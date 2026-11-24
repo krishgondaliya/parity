@@ -2,7 +2,7 @@
 
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
-- **Current phase:** Phase 0, kill test. M0 and M1 are done, and M3's install check was done early (the platform spike, which moved development to WSL2 Ubuntu and passed there with real installs). M2 is next. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
+- **Current phase:** Phase 0, kill test. M0, M1 and M2 are done, and M3's install check was done early (the platform spike, which moved development to WSL2 Ubuntu). M3, the adapters, is next, after the human reviews M2. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
 - **Last updated:** 2026-11-23
 - **Gates:** A not started · B not started · C not started
 
@@ -11,25 +11,26 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 - Plan written, starter kit installed, setup checked.
 - Guard hook works on Windows (Bash and PowerShell) and has tests (`tests/test_guard.py`). It also blocks hidden-vault access from `~/parity` in WSL2 (checked 2026-11-23).
 - M0: targets and the Qwen3 calibration model pinned by commit SHA (`docs/DECISIONS.md`).
-- M1: the 8 fixtures and the Tier 1 template reference, cross-checked against TRL's Qwen3 training template. 136 tests pass.
-- Design rules logged: mask zones, the known-differences registry (KD-0001), template properties, and a Tier 3 train/serve note.
-- M3's install check, done early (the platform spike) on native Windows: Axolotl can't install (it needs Linux-only `triton`), so development moves to WSL2 Ubuntu (`docs/DECISIONS.md`).
-- Repo cloned into `~/parity` in WSL2 Ubuntu; `uv sync` done and 136 tests pass there. `~/parity` is now the only working copy; the Windows checkout is retired.
-- Platform spike re-run in WSL2 with real installs. TRL, Axolotl, Unsloth, verl and SkyRL (`[skyrl-train]`) each install in their own environment and import their data path. Versions match the Windows resolutions. Together the five environments take 13.3 GiB.
-  - One catch: the plain PyPI SkyRL install fails on Linux because the `flash-attn` sdist won't build. Settled by a general rule: adapter environments install the way each framework's docs say, so SkyRL installs from its repo (`docs/DECISIONS.md`).
-  - Logged in `docs/DECISIONS.md`; evidence in `docs/evidence/2026-11-23-m1-wsl-spike/`.
-- Phase 3 prerequisite logged: the hidden vault moves to a separate Linux user before any pair enters it. `Bash(sudo *)` is denied in `.claude/settings.json`.
+- M1: the 8 fixtures and the Tier 1 template reference, cross-checked against TRL's Qwen3 training template.
+- M2: the six Tier 1 checks (`src/parity/checks/tier1/`), with 14 planted faults between them, on a check engine that enforces the self-test (`src/parity/engine/`).
+  - Tested against two stand-in encoders on Qwen3 (`tests/stubs.py`; not adapters). With Qwen3's own template, every applicable verdict passes and every planted fault is caught.
+  - With TRL's training template, template parity shows KD-0001 on exactly the 4 fixtures DECISIONS.md predicted, and everything else passes.
+  - 320 tests pass. No framework has been run yet.
+- Design rules logged: mask zones, the known-differences registry (KD-0001, now a data file), template properties, a Tier 3 train/serve note, the check engine rules, the Tier 1 pass rules, and the mask reference (prefix diff, cross-checked against generation markers; this settles the Inkling question).
+- M3's install check, done early (the platform spike): Axolotl can't install on native Windows, so development moved to WSL2 Ubuntu. Re-run there with real installs: all five frameworks install and import their data path (13.3 GiB together). `~/parity` is the only working copy; the Windows checkout is retired.
+- Adapter environments install the way each framework's docs say, and any deviation is recorded and treated as a triage suspect. SkyRL installs from its repo (Phase 2).
+- Phase 3 prerequisite logged: the hidden vault moves to a separate Linux user before any pair enters it, and the human runs hidden-vault evaluation (`/run-eval`, Phase 3 and 4 docs and SETUP.md updated). `Bash(sudo *)` is denied in `.claude/settings.json`.
 
 ## Next actions
 
-1. M2: the six Tier 1 checks, each with its planted fault. Plan proposed, not started.
+1. Human: review the M2 report.
+2. M3: TRL, Axolotl and Unsloth adapters (encode only), each in an environment installed per the framework's docs. Each declares its template, label convention, truncation mode, batching and pad token from its own config, and maps `pad_to` onto its own collator.
 
 ## Open questions
 
-- Mask zones for templates that ship their own generation markers (Inkling): decide in M2, before running Inkling.
 - The Hy4 license hasn't been reviewed (human). Do it before any Hy4 results are published.
-- M3 (adapter) open items: reference per framework environment, registry entries only from evidence, Unsloth's CPU fallback. See `docs/DECISIONS.md` (logged there under the old number, "M4").
-- Before Phase 3: close the `docker` group and WSL interop routes to root (human), and update `/run-eval`, SETUP.md and `vault/README.md` to the new vault setup (the lines naming the vault path need the human, since the guard blocks them). See the Phase 3 prerequisite in `docs/DECISIONS.md`.
+- M3 (adapter) open items: reference per framework environment, registry entries only from evidence, Unsloth's CPU fallback, and the metadata format for install deviations. See `docs/DECISIONS.md` (the first three were logged under the old number, "M4").
+- Before Phase 3 (human): close the `docker` group and WSL interop routes to root; edit the lines that name the vault path in `vault/README.md`, SETUP.md and Phase 3 M3. See the Phase 3 prerequisite in `docs/DECISIONS.md`.
 
 ## Findings so far
 
