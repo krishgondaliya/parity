@@ -32,8 +32,8 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 ## Open questions
 
 - DeepSeek V4.1 still refuses on its 4 multi-assistant fixtures. The template merges the user messages around a removed assistant turn, so no cut-out delimits a history turn. Also open: which zone `</think>` belongs to in its history turns. See `docs/DECISIONS.md`, 2026-11-24.
-- No target reaches "several stop tokens per turn" or "different closing tokens per turn". Proposal (not added): gpt-oss-20b as a second calibration tokenizer, after deciding how the reference treats `<|end|>`. Truncation-mode coverage needs a fixture, not a tokenizer. See `docs/evidence/2026-11-24-rule-coverage.md`.
-- TRL drops rows left with no trainable token after truncation. No fixture reaches this today. If one does, decide whether it's a TRL-specific truncation mode (`docs/DECISIONS.md`, M3 TRL entry).
+- Deferred to Phase 2 (the kill test is frozen at 8 fixtures and 432 runs): gpt-oss-20b and the `<|end|>` question, and a truncation fixture. See `docs/phases/phase-2-tier1-breadth.md`.
+- TRL drops rows left with no trainable token after truncation: the rule is logged, and it will be implemented when a fixture first hits it (`docs/DECISIONS.md`).
 - M4 heads-up: if a framework skips `empty_assistant` on purpose and documents it, that's a known-differences entry; if it's undocumented, it's a candidate finding.
 - The Hy4 license hasn't been reviewed (human). Do it before any Hy4 results are published.
 - M3 open items still to settle with Axolotl and Unsloth: registry entries only from evidence, and Unsloth's CPU fallback.

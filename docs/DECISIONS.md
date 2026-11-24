@@ -14,6 +14,17 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: The kill test is frozen; Phase 2 deferrals; declaring behavior that has no config option
+- Decision (human):
+  - **The kill test is frozen at 8 fixtures and 432 runs.** Real results exist now, so changing the design would be post-hoc. Two items move to Phase 2 (listed in `docs/phases/phase-2-tier1-breadth.md`, "Deferred from Phase 0"):
+    - gpt-oss-20b as a calibration tokenizer for per-turn closing tokens, with the open `<|end|>` question. Likely rule: a closing token is valid if it's a declared stop token or a documented history-form replacement of one, with the doc link.
+    - A truncation fixture where modes disagree beyond `long_answer`.
+    - No kill-test target reaches either rule, so neither can change Gate A.
+  - **Behavior with no config option may be declared from a source link pinned to the exact version** (code or test, e.g. `.../blob/v1.18.2/...#L1502-L1508`), and must be re-verified on every version bump.
+    - First case, logged now and implemented when a fixture first hits it: TRL 1.18.2 drops examples left with no trainable token after `keep_start` truncation. Source: `trl/trainer/sft_trainer.py` (`_prepare_dataset`, "Drop examples left fully masked by truncation") and `tests/test_sft_trainer.py::test_fully_masked_examples_dropped_after_truncation`, both at v1.18.2.
+    - When implemented, TRL's declaration will carry it as its truncation behavior ("right, then drop a row with nothing to train") instead of letting the truncation check call it a declared/actual mismatch.
+- Reversible? yes
+
 ## 2026-11-24: Structural delimiting of history turns, with guards; DeepSeek still refuses on the header guard
 - Decision (human):
   - Where the cut-out can't delimit an assistant turn, the reference tries a structural method (`structural_span`). It is used only if all of these hold:

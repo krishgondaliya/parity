@@ -17,6 +17,8 @@ Two kinds of information come back from an adapter, and checks keep them apart:
   - Every value must be read from the framework's live objects (its config,
     trainer, collator, tokenizer), never hardcoded in the adapter, and
     `sources` must say which object and attribute each value came from.
+    Behavior with no config option may be declared from a source link pinned
+    to the exact version (code or test), re-verified on every version bump.
   - A declaration is a claim: checks verify it against behavior wherever
     behavior can show it, and every verdict records it. Behavior that exactly
     matches a different declared value is a "declared/actual mismatch",

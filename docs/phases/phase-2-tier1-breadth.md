@@ -36,6 +36,13 @@ Every new fail goes through `/triage`, then `/shrink-repro`, the skeptic, `/draf
 ### M5. Pick the transfer framework now
 Choose the one framework the self-improving loop will **never** see (for example verl), for the Phase 6 transfer test. Record it in `docs/DECISIONS.md`. It stays in the hand-written suite, but loop agents never get its source, adapter or verdicts.
 
+### Deferred from Phase 0 (decide at the start of this phase)
+The kill test is frozen at 8 fixtures and 432 runs. Real results exist, so changing its design now would be post-hoc. These open items wait for this phase (`docs/DECISIONS.md`, 2026-11-24):
+- **A second calibration tokenizer for per-turn closing tokens.** No Phase 0 target has more than one stop token per turn, or different closing tokens on different turns. `openai/gpt-oss-20b` (ungated, Apache-2.0, tokenizer and template only) does: `<|return|>` for a final answer, `<|call|>` for a tool call, `<|end|>` for history. But `<|end|>` isn't one of its stop tokens, so the reference refuses its history turns today.
+  - Open question: when is a closing token valid? Likely rule: if it's a declared stop token, or a documented history-form replacement of one, with the doc link recorded.
+  - Evidence: `docs/evidence/2026-11-24-rule-coverage.md`.
+- **A truncation fixture where modes disagree beyond `long_answer`.** For example, a multi-turn conversation long enough that a right cut falls inside an earlier assistant turn and a left cut drops the system prompt. Adding it changes the run count, so it starts here, not in Phase 0.
+
 ## Definition of done
 
 - [ ] 5 adapters, calibration green on all of them
