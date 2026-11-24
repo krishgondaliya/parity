@@ -1,0 +1,15 @@
+{
+  "id": "multi_turn",
+  "title": "Multi-turn, 3 assistant turns",
+  "notes": "Three user/assistant exchanges. Every assistant turn should be supervised, and no user turn should be.",
+  "max_len": null,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "What is the capital of France?"},
+    {"role": "assistant", "content": "Paris."},
+    {"role": "user", "content": "And of Japan?"},
+    {"role": "assistant", "content": "Tokyo."},
+    {"role": "user", "content": "Which of the two cities has more people?"},
+    {"role": "assistant", "content": "Tokyo has more people than Paris."}
+  ]
+}

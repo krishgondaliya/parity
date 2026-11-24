@@ -1,0 +1,13 @@
+{
+  "id": "empty_assistant",
+  "title": "Empty assistant turn",
+  "notes": "The first assistant turn has empty content. Its closing token should still be supervised, and a framework must not drop or merge the turn.",
+  "max_len": null,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "Reply with an empty message."},
+    {"role": "assistant", "content": ""},
+    {"role": "user", "content": "Now reply with the word OK."},
+    {"role": "assistant", "content": "OK."}
+  ]
+}

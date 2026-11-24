@@ -1,0 +1,11 @@
+{
+  "id": "non_ascii",
+  "title": "Non-ASCII text (accents, CJK, emoji)",
+  "notes": "Accents, French guillemets, Japanese, Chinese, Arabic, and emoji including a skin-tone modifier and a zero-width-joiner sequence. Byte-level tokenizers split these across tokens, which is where offset and boundary bugs show up.",
+  "max_len": null,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "Traduis « bonjour, ça va ? » en japonais, en chinois et en arabe, puis ajoute un emoji."},
+    {"role": "assistant", "content": "Japonais : こんにちは、元気ですか？\nChinois : 你好，你还好吗？\nArabe : مرحبا، كيف حالك؟\nEmoji : 👋🏽 👩‍💻 (naïve café, Ångström, señor)"}
+  ]
+}

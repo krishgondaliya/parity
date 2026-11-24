@@ -1,0 +1,21 @@
+{
+  "id": "reasoning",
+  "title": "Reasoning (think) block in the assistant turn",
+  "notes": "Two exchanges, each assistant turn with reasoning in reasoning_content (the field Qwen3, Inkling and Hy4 templates read). Many templates drop the first turn's reasoning once a later user message exists, which is the main thing this fixture exercises.",
+  "max_len": null,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "Is 91 a prime number?"},
+    {
+      "role": "assistant",
+      "reasoning_content": "91 is odd and its digits sum to 10, so 2 and 3 do not divide it. 91 / 7 = 13, so 91 = 7 * 13.",
+      "content": "No. 91 = 7 * 13, so it is not prime."
+    },
+    {"role": "user", "content": "What about 97?"},
+    {
+      "role": "assistant",
+      "reasoning_content": "97 is not divisible by 2, 3, 5 or 7, and 11 * 11 = 121 is already larger than 97.",
+      "content": "Yes, 97 is prime."
+    }
+  ]
+}

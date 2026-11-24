@@ -1,0 +1,14 @@
+{
+  "id": "long_answer",
+  "title": "Answer long enough to hit max length",
+  "notes": "The prompt fits inside max_len but the answer does not. A framework must keep the supervised answer that fits, or report that it dropped it. It must never silently train on nothing.",
+  "max_len": 128,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "Give me a forty-step checklist for verifying a fine-tuning data pipeline."},
+    {
+      "role": "assistant",
+      "content": "Here is the checklist:\n1. Pin the exact model revision.\n2. Pin the framework version and its lockfile.\n3. Download only the tokenizer and config files.\n4. Render each conversation with the model's own chat template.\n5. Compare the rendered tokens with what the framework produces.\n6. Check that exactly one BOS token appears at the start.\n7. Check that the EOS token is not masked as padding.\n8. Confirm the loss mask covers every assistant turn.\n9. Confirm the loss mask never covers user turns.\n10. Confirm the loss mask never covers the system prompt.\n11. Confirm the loss mask never covers tool results.\n12. Make sure the closing token of each assistant turn is supervised.\n13. Make sure empty assistant turns still supervise their closing token.\n14. Check how reasoning blocks are kept or stripped in earlier turns.\n15. Check that tool call arguments keep their JSON types.\n16. Check that boolean values stay lowercase in tool calls.\n17. Check that truncation does not silently drop the answer.\n18. Report any example where the answer is cut off.\n19. Verify that non-ASCII text round-trips exactly.\n20. Verify that emoji with modifiers stay intact.\n21. Check that packing resets position ids for each document.\n22. Check that packed documents cannot attend to each other.\n23. Recompute the loss with plain cross-entropy.\n24. Compare gradient accumulation against one large batch.\n25. Recompute one optimizer step in double precision.\n26. Count weights that should change but did not.\n27. Save a checkpoint and resume from it.\n28. Confirm the step counter is restored after resuming.\n29. Compare logits before and after export.\n30. Check that expert weights keep their layout after conversion.\n31. Plant a known fault and make sure each check catches it.\n32. Mark a result inconclusive when its planted fault is missed.\n33. Re-run every failure in a clean environment.\n34. Shrink each failure to the smallest script that still fails.\n35. Search the issue tracker before filing anything.\n36. Rule out your own adapter before blaming the framework.\n37. Rule out the fixture before blaming the framework.\n38. Rule out the reference before blaming the framework.\n39. Write one short, polite issue per confirmed problem.\n40. Re-run the check when the fix ships."
+    }
+  ]
+}

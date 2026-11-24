@@ -1,0 +1,11 @@
+{
+  "id": "single_turn",
+  "title": "Single turn",
+  "notes": "One user message and one assistant reply. The simplest case every framework must get right.",
+  "max_len": null,
+  "tools": null,
+  "messages": [
+    {"role": "user", "content": "Name three primary colors."},
+    {"role": "assistant", "content": "Red, yellow and blue."}
+  ]
+}
