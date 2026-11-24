@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -424,9 +424,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "huggingface-hub", specifier = ">=2.4.0" },
+    { name = "huggingface-hub", specifier = ">=1.33.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "transformers", specifier = ">=5.24.0" },
+    { name = "transformers", specifier = ">=5.10.4" },
 ]
 
 [package.metadata.requires-dev]

@@ -13,6 +13,8 @@ from pathlib import Path
 import pytest
 
 trl = pytest.importorskip("trl")
+if trl.__version__ != "1.18.2":  # e.g. Axolotl's environment brings its own TRL
+    pytest.skip(f"the TRL adapter is for trl==1.18.2, this environment has {trl.__version__}", allow_module_level=True)
 
 from stubs import TRL_QWEN3_TRAINING_SHA256  # noqa: E402
 
