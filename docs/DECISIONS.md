@@ -14,6 +14,22 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Unsloth's assistant-only recipe: no original-Qwen3 notebook has one; the choice made
+- Finding while preparing M3 Unsloth: **Unsloth's Qwen3 docs and its notebooks for the original Qwen3 models show no assistant-only recipe.**
+  - The Qwen3 page marks "Qwen3 (14B) Reasoning + Conversational" as the recommended notebook (`unslothai/notebooks@ebe88117`). It trains on every token: it formats text with `tokenizer.apply_chat_template(tokenize=False)`, and `SFTTrainer(dataset_text_field="text")` labels the whole text.
+  - The same holds for the plain 14B, 32B and 0.6B ExecuTorch Qwen3 notebooks.
+  - `train_on_responses_only` appears only in the Qwen3-2507 notebooks and Qwen3.8. Thinking-2507 and Tool-Calling pass the explicit ChatML parts; Instruct-2507, QAT and Qwen3.8 use auto-detection.
+- **Decision (mine; the human's tie-break, "the one in the Qwen3 notebook", had no assistant-only recipe to pick):**
+  - the recommended notebook's loader, formatting and `SFTTrainer`;
+  - plus `train_on_responses_only(trainer, instruction_part="<|im_start|>user\n", response_part="<|im_start|>assistant\n")` from the Qwen3-4B-Thinking-2507 notebook (`unslothai/notebooks@0c6268b8`). Qwen3-0.6B is a hybrid thinking model, closest to the Thinking notebook.
+  - Probe: auto-detection picks the same parts and gives identical labels on 4 fixtures, so the choice of call doesn't move results.
+- **Mode setting:** `enable_thinking=False` in `tokenizer.apply_chat_template` while formatting (the Qwen3 page). The recommended notebook also appends " /no_think" to user turns of non-reasoning data; that changes content, so it is not applied.
+- **Loader:** `FastLanguageModel.from_pretrained` accepts a local folder with a tiny `from_config` Qwen3 and the real tokenizer files. On CPU this is `unsloth_zoo.cpu.FastCPUModel`; the deviations are in `envs/unsloth-2026.11.10/environment.json`.
+  - It leaves the template and pad token unchanged and sets `model_max_length` to `max_seq_length`.
+  - `load_in_4bit=True` loads 16-bit on CPU, by Unsloth's own choice.
+- **Process slip, disclosed:** a data-path probe ran before `predictions.md` was written, so some predictions rest on observed behavior. `predictions.md` says which.
+- Reversible? yes
+
 ## 2026-11-24: TRL's per-row mode setting counts as documented; citation level "docstring only"; SFTConfig docs gap
 - Decision (human): TRL's per-row `chat_template_kwargs` key counts as a documented way to set the serving mode. The function is public, TRL tests it, and it works through SFTTrainer.
 - **Citation level: docstring only.** At v1.18.2, TRL's rendered docs have no API-reference entry for `trl.apply_chat_template`: `docs/source/data_utils.md` autodocs only `is_conversational`, `maybe_convert_to_chatml`, `extract_prompt` and `unpair_preference_dataset`. The function appears only in a usage example in `dataset_formats.md` (L302-313), which doesn't mention the key. The key itself is described only in the docstring (`trl/data_utils.py#L325-L327`). Recorded in the adapter's citation.

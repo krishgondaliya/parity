@@ -1,0 +1,32 @@
+{
+ "framework": "unsloth",
+ "version": "2026.11.10",
+ "lockfile": "envs/unsloth-2026.11.10/uv.lock",
+ "install": {
+  "documented": "uv venv unsloth_env --python 3.13; uv pip install unsloth --torch-backend=auto",
+  "doc": "https://pypi.org/project/unsloth/2026.11.10/ (README: 'Linux, WSL')",
+  "ours": "uv project depending on unsloth==2026.11.10 and parity (editable, so the reference runs in this environment); every transitive version constrained to the 2026-11-23 WSL spike's resolution of `uv pip install unsloth==2026.11.10` (docs/evidence/2026-11-23-m1-wsl-spike/freeze/unsloth.txt); pytest added for the adapter tests"
+ },
+ "deviations": [
+  "CPU fallback instead of a GPU: Unsloth's fine-tuning docs assume an NVIDIA GPU (the Qwen3 page: 'fits comfortably in a Google Colab 16GB VRAM Tesla T4 GPU'). With no accelerator Unsloth 2026.11.10 takes its CPU route (unsloth/_cpu_init.py: 'stock transformers + PEFT + TRL'), and FastLanguageModel is unsloth_zoo.cpu.FastCPUModel, not the GPU loader. Verdicts describe Unsloth's CPU route.",
+  "GPU-only loader steps not exercised: the GPU loader's tokenizer repairs (unsloth/tokenizer_utils.py) and patched trainer don't run on CPU. Checked: the GPU path's post-load chat-template repair (_fix_chat_template_for_tokenizer) leaves Qwen3-0.6B's template unchanged, and Qwen3's pad token (<|endoftext|>) differs from its EOS, so the GPU pad-token repair would also leave it alone. Whether the GPU route's SFTTrainer patch changes TRL's EOS append or max_length is not verified.",
+  "load_in_4bit=True (the notebook's value) loads 16-bit weights on CPU: Unsloth's CPU loader decides this itself and says so ('loading 16-bit weights instead'). Weights are random and tiny; not on the data path.",
+  "Python 3.12, not the documented 3.13: Parity's core requires 3.12, and the spike resolved Unsloth on 3.12.",
+  "No --torch-backend=auto: the spike's plain install resolved torch 2.14.1 from PyPI's default Linux wheel."
+ ],
+ "runtime_settings": [
+  "UNSLOTH_DISABLE_STATISTICS=1, set by the adapter before importing Unsloth (Unsloth's documented opt-out of its usage statistics download; on CPU the statistics call is not reached anyway).",
+  "The model is a tiny from_config Qwen3 (1 layer) saved to a local folder next to the real Qwen3-0.6B tokenizer, template and config files; loaded through FastLanguageModel.from_pretrained, so the loader's own tokenizer handling applies. No weights are downloaded."
+ ],
+ "platform": "WSL2 Ubuntu 22.04, x86_64, no GPU.",
+ "resolved": {
+  "unsloth": "2026.11.10",
+  "unsloth-zoo": "2026.11.10",
+  "trl": "1.15.0",
+  "transformers": "5.17.0",
+  "tokenizers": "0.23.3",
+  "torch": "2.14.1",
+  "peft": "0.22.0",
+  "datasets": "4.8.5"
+ }
+}
