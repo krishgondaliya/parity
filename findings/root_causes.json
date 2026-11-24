@@ -1,0 +1,5 @@
+{
+  "schema": "parity.root_causes/v0",
+  "note": "Each triaged root cause pins the exact fail verdicts it explains (framework version, model, check, fixture, serving mode, evidence sha256), written with parity.engine.root_causes.pin() after /triage and the skeptic. No wildcards: a changed failure is untriaged again. Differences link through their known-differences entry instead.",
+  "root_causes": []
+}

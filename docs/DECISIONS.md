@@ -14,6 +14,18 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Shared root causes count once; every fail links to its root cause
+- Decision:
+  - Every cell keeps its own verdict. Each fail gets `Verdict.root_cause`, and the report card and Gate A count root causes, not cells (`src/parity/engine/root_causes.py`).
+  - **Differences** link through their known-differences entry: `finding` names the finding it came from (KD-0002 and KD-0003 → P-0001); an entry from no finding counts as its own root cause (KD-0001).
+  - **Bugs** link only by an exact pin in `findings/root_causes.json`: the same framework version, model, check, fixture and serving mode, and the same evidence (sha256 of its canonical JSON). Pins are written after /triage and the skeptic, from the verdicts themselves. No wildcards: if the failure changes in any way, the link breaks and the cell is untriaged again.
+  - **Untriaged fails count one each**, so grouping can never hide a fail. Gate A's A4 now also needs zero untriaged fails.
+  - The summary gains a "Fails by root cause" section per model, and result rows name their root causes.
+  - A fail that a known difference explains only in part keeps the leftover in `known_difference_residual`, to be triaged and linked like any other fail.
+- Why: one root cause fails several cells. P-0001 failed `t1.assistant_mask` and `t1.truncation`; P-0002 now fails up to four checks in both modes. "Blocked by t1.template_parity" only covered template parity.
+- Evidence: `src/parity/engine/root_causes.py`, `tests/test_root_causes.py`, `docs/gates/gate-A.md`, `.claude/skills/triage/SKILL.md`.
+- Reversible? yes.
+
 ## 2026-11-24: P-0001 is a known difference (KD-0002, KD-0003), thinking mode only; mask-level signatures
 - Decision:
   - **First, the token answer** (re-read from Axolotl's prepared row on `reasoning`, every assistant token printed): only `<think>` (index 51) and the `\n` after it (52) are untrained. The reasoning text (53-91), `</think>`, the `\n\n` after it, the answer and `<|im_end|>` are all trained. On the 7 fixtures without reasoning, the untrained tokens are the empty block `<think>`, `\n\n`, `</think>`, `\n\n`. So it is only think tags and blank lines; no reasoning text is lost.

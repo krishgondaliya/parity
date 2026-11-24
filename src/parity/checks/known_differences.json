@@ -26,6 +26,7 @@
     },
     {
       "id": "KD-0002",
+      "finding": "P-0001",
       "framework": "axolotl",
       "versions": [
         "0.21.1"
@@ -49,6 +50,7 @@
     },
     {
       "id": "KD-0003",
+      "finding": "P-0001",
       "framework": "axolotl",
       "versions": [
         "0.21.1"

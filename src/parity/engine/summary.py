@@ -38,6 +38,8 @@ class Cell:
     template_properties: tuple[str, ...]  # model-level properties the cell's verdicts inherit
     flags: dict[str, int]  # how many of the cell's verdicts carry each flag
     result: str
+    root_causes: tuple[str, ...] = ()  # the findings that explain this cell's fails (engine.root_causes)
+    untriaged: int = 0  # fails in this cell with no root cause
 
 
 def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
@@ -80,6 +82,8 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 template_properties=tuple(sorted({p for v in vs for p in v.template_properties})),
                 flags=dict(sorted(Counter(f for v in vs for f in v.flags).items())),
                 result=result,
+                root_causes=tuple(sorted({v.root_cause for v in vs if v.result == "fail" and v.root_cause})),
+                untriaged=sum(v.result == "fail" and not v.root_cause for v in vs),
             )
         )
     return cells

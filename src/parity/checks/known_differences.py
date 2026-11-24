@@ -52,6 +52,7 @@ class KnownDifference:
     docs: tuple[str, ...]
     decision: str
     docs_note: str = ""  # what the framework's user docs say (or don't) about this behavior
+    finding: str = ""  # the finding this entry came from (e.g. "P-0001"); its verdicts' root cause. Else the entry id.
 
 
 # Signatures: each computes the exact token ids a framework produces under the documented behavior.
@@ -143,6 +144,7 @@ def load_registry() -> tuple[KnownDifference, ...]:
             docs=tuple(e["docs"]),
             decision=e["decision"],
             docs_note=e.get("docs_note", ""),
+            finding=e.get("finding", ""),
         )
         _validate(entry)
         entries.append(entry)

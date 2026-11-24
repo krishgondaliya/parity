@@ -30,3 +30,5 @@ Then:
 - Write `findings/<next-id>/record.md` from `findings/_TEMPLATE.md`, with status `candidate` and every check above recorded.
 - Ask the `skeptic` subagent to review the record and repro, and include its verdict in the record.
 - Suggest `/shrink-repro` as the next step only if both you and the skeptic call it a real candidate.
+- **Link every fail to its root cause.** One root cause often fails several cells (other checks, other fixtures, both serving modes). For each fail verdict it explains, check that its evidence shows the same mechanism, then add `parity.engine.root_causes.pin(verdict)` to that finding's entry in `findings/root_causes.json`. A fail explained by an existing finding gets pinned there, not a new record. The report and Gate A count root causes, not cells; a fail with no pin stays untriaged and blocks A4.
+- A fail that a known difference explains only in part keeps its `known_difference_residual` evidence: triage the residual as its own root cause.

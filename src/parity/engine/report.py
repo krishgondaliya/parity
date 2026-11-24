@@ -14,6 +14,10 @@ Each model gets one section, in this order:
 Results come in one table per serving mode (parity.serving). The primary mode
 comes first; any other mode is a clearly labeled secondary result: the same
 encoded rows, judged against a second reference rendered in that mode.
+
+3. Fails by root cause: fails are counted by root cause, not by cell
+   (parity.engine.root_causes). Each root cause lists the cells it explains;
+   each untriaged fail is listed on its own and counts as its own root cause.
 """
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ import json
 import re
 from collections.abc import Iterable
 
+from parity.engine.root_causes import count_fails
 from parity.engine.summary import Cell, summarize
 from parity.engine.verdict import Verdict
 from parity.references.properties import TemplateProperty
@@ -85,7 +90,35 @@ def render_summary(
                     "",
                 ]
             lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
+        lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode)
     return "\n".join(lines)
+
+
+def _root_cause_section(verdicts: list[Verdict], primary_mode: str) -> list[str]:
+    count = count_fails(verdicts)
+    lines = ["### Fails by root cause", ""]
+    if not count.cells:
+        return lines + ["No fails.", ""]
+    lines += [
+        f"{count.cells} fail verdict(s) come from {count.total} root cause(s): {len(count.root_causes)} linked, "
+        f"{len(count.untriaged)} untriaged (each untriaged fail counts as its own).",
+        "",
+        "| Root cause | Fail verdicts | Where |",
+        "| --- | --- | --- |",
+    ]
+    for cause in count.root_causes:
+        where = sorted(
+            {
+                f"{v.framework} {v.check}/{v.fixture}" + ("" if v.serving_mode == primary_mode else f" ({v.serving_mode})")
+                for v in verdicts
+                if v.result == "fail" and v.root_cause == cause
+            }
+        )
+        lines.append(f"| {cause} | {count.root_causes[cause]} | {'; '.join(where)} |")
+    for item in count.untriaged:
+        lines.append(f"| untriaged | 1 | {item} |")
+    lines.append("")
+    return lines
 
 
 def _results_table(cells: list[Cell], by_id: dict[str, TemplateProperty]) -> list[str]:
@@ -97,6 +130,10 @@ def _results_table(cells: list[Cell], by_id: dict[str, TemplateProperty]) -> lis
         notes = []
         if c.known_differences:
             notes.append("known differences: " + ", ".join(c.known_differences))
+        if c.root_causes:
+            notes.append("root cause: " + ", ".join(c.root_causes))
+        if c.untriaged:
+            notes.append(f"{c.untriaged} untriaged fail(s)")
         for prop in c.template_properties:
             note = INHERITED_NOTE.get(by_id[prop].kind, "inherits a template property")
             notes.append(f"{note} (see [{prop}](#{anchor(prop)}))")

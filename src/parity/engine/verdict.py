@@ -20,6 +20,8 @@ One verdict per (check, model, framework, fixture). Rules the record enforces:
   model in the report) that a verdict depends on, e.g. a pass that inherits
   its template's prefix breaks.
 - `flags` mark things the report card must show even on a pass (see FLAGS).
+- `root_cause` names the finding that explains a fail (parity.engine.root_causes).
+  Fails are counted by root cause; an unlinked fail is untriaged.
 """
 
 from __future__ import annotations
@@ -60,6 +62,7 @@ class Verdict:
     template_properties: list[str] = field(default_factory=list)  # model-level template properties this verdict relies on
     flags: list[str] = field(default_factory=list)  # see FLAGS; each is shown on the report card
     serving_mode: str | None = None  # "thinking" or "non_thinking": which reference the verdict was judged against
+    root_cause: str | None = None  # the finding (or known difference) that explains this fail; see engine.root_causes
     env_lock: str | None = None
     env_fingerprint: str | None = None  # sha256 of the lockfile the framework environment was built from
     repro: str | None = None
@@ -84,6 +87,8 @@ class Verdict:
         unknown = [f for f in self.flags if f not in FLAGS]
         if unknown:
             raise ValueError(f"unknown flags {unknown}; known: {FLAGS}")
+        if self.root_cause is not None and self.result != "fail":
+            raise ValueError(f"root_cause is only set on a fail, not on {self.result!r}")
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
