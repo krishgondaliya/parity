@@ -1,0 +1,23 @@
+{
+  "framework": "axolotl",
+  "version": "0.21.1",
+  "lockfile": "envs/axolotl-0.21.1/uv.lock",
+  "install": {
+    "documented": "export UV_TORCH_BACKEND=cu130; uv pip install --no-build-isolation axolotl[deepspeed]",
+    "doc": "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/installation.qmd",
+    "ours": "uv project depending on axolotl==0.21.1 and parity (editable, so the reference runs in this environment); every transitive version constrained to the 2026-11-23 WSL spike's resolution of `uv pip install axolotl==0.21.1` (docs/evidence/2026-11-23-m1-wsl-spike/freeze/axolotl.txt); pytest added for the adapter tests"
+  },
+  "deviations": [
+    "No [deepspeed] extra: DeepSpeed is for distributed training and is not on the data path; the spike's resolution did not include it.",
+    "UV_TORCH_BACKEND not set: torch resolved from PyPI's default Linux wheel (2.14.1+cu130), as in the spike.",
+    "No GPU: Axolotl's docs require an NVIDIA or AMD GPU. The data path (dataset preparation and collator) runs on CPU; training is never run.",
+    "Not installed with --no-build-isolation: the spike's plain install needed no build step."
+  ],
+  "runtime_settings": [
+    "AXOLOTL_DO_NOT_TRACK=1 and DO_NOT_TRACK=1 (Axolotl's telemetry is opt-out; set by the adapter before importing Axolotl).",
+    "dataset_num_proc: 1, bf16/fp16 off, val_set_size: 0, shuffle_merged_datasets: false: don't touch tokenization or labels.",
+    "axolotl preprocess flag --debug-num-examples 0: the default debug sample crashes on a one-row dataset (random.randrange(0, len(dataset) - 1) in axolotl/common/datasets.py)."
+  ],
+  "platform": "WSL2 Ubuntu 22.04, x86_64, no GPU.",
+  "resolved": {"axolotl": "0.21.1", "transformers": "5.20.1", "tokenizers": "0.23.3", "torch": "2.14.1+cu130", "datasets": "5.0.1", "trl": "1.14.1"}
+}
