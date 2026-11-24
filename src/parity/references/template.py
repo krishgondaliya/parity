@@ -10,14 +10,21 @@ Tokens
     explicit `chat_template` override exists only for cross-checks (for
     example TRL's training template for the same family).
 
-Assistant spans: two methods
-    1. Generation markers. If the template wraps assistant output in
-       `{% generation %}...{% endgeneration %}`, its author has declared what is
-       supervised, and transformers' `return_assistant_tokens_mask` reads it.
+Assistant spans: the prefix diff, cross-checked against generation markers
+    Each assistant message k is located inside the full rendering F using
+    only further renders of the same template (the prefix diff, below). This
+    is the reference for every template, with or without markers.
 
-    2. Prefix diff, for templates without markers. Each assistant message k is
-       located inside the full rendering F using only further renders of the
-       same template:
+    If the template also wraps assistant output in
+    `{% generation %}...{% endgeneration %}`, the mask transformers reads from
+    those markers (`return_assistant_tokens_mask`) is cross-checked against
+    the prefix diff. Neutral tokens (below) never count as a disagreement.
+    Any other disagreement raises MarkerDisagreementError: the template's own
+    markers may be wrong, which is a possible model-template finding for
+    /triage, and the check verdict becomes inconclusive. (This revises the
+    earlier rule that markers define the mask; see docs/DECISIONS.md.)
+
+    The prefix diff:
 
          message start = len(render(messages[:k]))
          content start = len(render(messages[:k], add_generation_prompt=True))
@@ -39,20 +46,28 @@ Assistant spans: two methods
        then does not match the full conversation, so every boundary here is
        anchored in F itself.
 
+Zones (docs/DECISIONS.md, "Mask zones")
+    Every reference token is in exactly one zone. must-train: from the
+    content start through the turn's last stop token. neutral: after that
+    stop token, to the end of the message (Qwen3: the newline after
+    <|im_end|>). must-not-train: everything else.
+
 Every ambiguity raises TemplateReferenceError. The check engine turns that into
 an `inconclusive` verdict, never a pass.
 """
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import Any
 
 import transformers
 from transformers import PreTrainedTokenizerBase
 
-from parity.fixtures import Fixture
+from parity.fixtures import Conversation
 from parity.release import LoadedRelease
 
 _GENERATION_TAG = re.compile(r"\{%-?\s*generation\s*-?%\}")
@@ -60,6 +75,24 @@ _GENERATION_TAG = re.compile(r"\{%-?\s*generation\s*-?%\}")
 
 class TemplateReferenceError(RuntimeError):
     """The reference cannot be computed without guessing."""
+
+
+class MarkerDisagreementError(TemplateReferenceError):
+    """The template's generation markers disagree with the prefix diff on a non-neutral token."""
+
+    def __init__(self, message: str, positions: list[dict[str, Any]]):
+        super().__init__(message)
+        self.positions = positions
+
+
+class Zone(IntEnum):
+    MUST_NOT_TRAIN = 0
+    MUST_TRAIN = 1
+    NEUTRAL = 2
+
+
+def template_sha256(template: str) -> str:
+    return hashlib.sha256(template.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -77,11 +110,14 @@ class TemplateReference:
     release: str
     fixture_id: str
     template_source: str  # "model", or a label like "trl@1.18.2:qwen3_training.jinja"
-    mask_method: str  # "generation_markers" or "prefix_diff"
+    template_sha256: str
+    mask_method: str  # always "prefix_diff"
+    marker_check: str  # "agrees" (markers cross-checked) or "no_markers"
     text: str
     input_ids: tuple[int, ...]
-    assistant_mask: tuple[int, ...]
-    spans: tuple[AssistantSpan, ...]  # empty when mask_method == "generation_markers"
+    assistant_mask: tuple[int, ...]  # 1 on must-train tokens
+    zones: tuple[Zone, ...]
+    spans: tuple[AssistantSpan, ...]
     prefix_breaks: tuple[int, ...]  # see prefix_breaks()
     transformers_version: str
 
@@ -103,53 +139,97 @@ def model_chat_template(tokenizer: PreTrainedTokenizerBase) -> str:
 
 def render_reference(
     loaded: LoadedRelease,
-    fixture: Fixture,
+    fixture: Conversation,
     chat_template: str | None = None,
     template_source: str = "model",
 ) -> TemplateReference:
-    """Compute the reference tokens and assistant mask for one fixture."""
+    """Compute the reference tokens, zones and assistant mask for one conversation."""
     tokenizer = loaded.tokenizer
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
     _reject_special_tokens_in_content(tokenizer, fixture)
 
-    text = _render(tokenizer, fixture.messages, fixture.tools, template)
-    encoded = tokenizer.apply_chat_template(
-        fixture.messages, tools=fixture.tools, chat_template=template, tokenize=True, return_dict=True
-    )
-    input_ids = list(encoded["input_ids"])
+    text = render_text(tokenizer, fixture.messages, fixture.tools, template)
+    input_ids = template_token_ids(tokenizer, fixture, template)
     ids_from_text, _ = _tokenize_with_offsets(tokenizer, text)
     if ids_from_text != input_ids:
         raise TemplateReferenceError("tokenizing the rendered text does not reproduce apply_chat_template's ids")
 
+    spans = assistant_spans_by_prefix_diff(loaded, fixture, template)
+    zones = zones_from_spans(len(input_ids), spans)
+    marker_check = "no_markers"
     if has_generation_markers(template):
-        marker_ids, mask = assistant_mask_from_markers(tokenizer, fixture, template)
-        if marker_ids != input_ids:
-            raise TemplateReferenceError("the generation-marker render produced different ids")
-        spans: tuple[AssistantSpan, ...] = ()
-        method = "generation_markers"
-    else:
-        spans = assistant_spans_by_prefix_diff(loaded, fixture, template)
-        mask = [0] * len(input_ids)
-        for span in spans:
-            mask[span.token_start : span.token_end] = [1] * (span.token_end - span.token_start)
-        method = "prefix_diff"
+        _cross_check_markers(tokenizer, fixture, template, input_ids, zones)
+        marker_check = "agrees"
 
     return TemplateReference(
         release=loaded.release.spec,
         fixture_id=fixture.id,
         template_source=template_source,
-        mask_method=method,
+        template_sha256=template_sha256(template),
+        mask_method="prefix_diff",
+        marker_check=marker_check,
         text=text,
         input_ids=tuple(input_ids),
-        assistant_mask=tuple(mask),
+        assistant_mask=tuple(1 if z == Zone.MUST_TRAIN else 0 for z in zones),
+        zones=zones,
         spans=spans,
         prefix_breaks=prefix_breaks(tokenizer, fixture, template),
         transformers_version=transformers.__version__,
     )
 
 
+def zones_from_spans(length: int, spans: tuple[AssistantSpan, ...]) -> tuple[Zone, ...]:
+    zones = [Zone.MUST_NOT_TRAIN] * length
+    for span in spans:
+        zones[span.token_start : span.token_end] = [Zone.MUST_TRAIN] * (span.token_end - span.token_start)
+        zones[span.token_end : span.token_message_end] = [Zone.NEUTRAL] * (span.token_message_end - span.token_end)
+    return tuple(zones)
+
+
+def _cross_check_markers(
+    tokenizer: PreTrainedTokenizerBase,
+    conv: Conversation,
+    template: str,
+    input_ids: list[int],
+    zones: tuple[Zone, ...],
+) -> None:
+    marker_ids, marker_mask = assistant_mask_from_markers(tokenizer, conv, template)
+    if marker_ids != input_ids:
+        raise TemplateReferenceError("the generation-marker render produced different ids")
+    disagree = [
+        i
+        for i, (zone, marked) in enumerate(zip(zones, marker_mask))
+        if (zone == Zone.MUST_TRAIN and not marked) or (zone == Zone.MUST_NOT_TRAIN and marked)
+    ]
+    if disagree:
+        positions = [
+            {
+                "index": i,
+                "token": tokenizer.decode([input_ids[i]], skip_special_tokens=False),
+                "zone": zones[i].name.lower(),
+                "marked": bool(marker_mask[i]),
+            }
+            for i in disagree
+        ]
+        first = positions[0]
+        raise MarkerDisagreementError(
+            f"the template's generation markers disagree with the prefix-diff reference on {len(disagree)} "
+            f"token(s); first at {first['index']} ({first['token']!r}, zone {first['zone']}, "
+            f"marked {first['marked']}). Possible model-template finding: send to /triage.",
+            positions,
+        )
+
+
+def template_token_ids(tokenizer: PreTrainedTokenizerBase, conv: Conversation, chat_template: str) -> list[int]:
+    """Token ids of a conversation rendered with `chat_template`, exactly as apply_chat_template returns them."""
+    encoded = tokenizer.apply_chat_template(
+        conv.messages, tools=conv.tools, chat_template=chat_template, tokenize=True, return_dict=True
+    )
+    return list(encoded["input_ids"])
+
+
 def assistant_mask_from_markers(
-    tokenizer: PreTrainedTokenizerBase, fixture: Fixture, chat_template: str
+    tokenizer: PreTrainedTokenizerBase, fixture: Conversation, chat_template: str
 ) -> tuple[list[int], list[int]]:
     """Return (input_ids, assistant mask) as declared by the template's generation markers."""
     if not has_generation_markers(chat_template):
@@ -166,23 +246,23 @@ def assistant_mask_from_markers(
 
 
 def assistant_spans_by_prefix_diff(
-    loaded: LoadedRelease, fixture: Fixture, chat_template: str | None = None
+    loaded: LoadedRelease, fixture: Conversation, chat_template: str | None = None
 ) -> tuple[AssistantSpan, ...]:
     """Locate every assistant message in the full rendering (see module docstring)."""
     tokenizer = loaded.tokenizer
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
     messages, tools = fixture.messages, fixture.tools
 
-    full = _render(tokenizer, messages, tools, template)
+    full = render_text(tokenizer, messages, tools, template)
     ids, offsets = _tokenize_with_offsets(tokenizer, full)
 
     spans = []
     for k in fixture.assistant_indices:
         if k == 0:
             raise TemplateReferenceError("an assistant message with nothing before it is not supported")
-        before = _render(tokenizer, messages[:k], tools, template)
-        prompt = _render(tokenizer, messages[:k], tools, template, add_generation_prompt=True)
-        without = _render(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
+        before = render_text(tokenizer, messages[:k], tools, template)
+        prompt = render_text(tokenizer, messages[:k], tools, template, add_generation_prompt=True)
+        without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
 
         if not full.startswith(before):
             raise TemplateReferenceError(f"message {k}: render of messages[:{k}] is not a prefix of the full render")
@@ -210,7 +290,7 @@ def assistant_spans_by_prefix_diff(
 
 
 def prefix_breaks(
-    tokenizer: PreTrainedTokenizerBase, fixture: Fixture, chat_template: str | None = None
+    tokenizer: PreTrainedTokenizerBase, fixture: Conversation, chat_template: str | None = None
 ) -> tuple[int, ...]:
     """Boundaries j where render(messages[:j]) is NOT a prefix of the full render.
 
@@ -221,11 +301,11 @@ def prefix_breaks(
     """
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
     messages, tools = fixture.messages, fixture.tools
-    full = _render(tokenizer, messages, tools, template)
-    return tuple(j for j in range(1, len(messages)) if not full.startswith(_render(tokenizer, messages[:j], tools, template)))
+    full = render_text(tokenizer, messages, tools, template)
+    return tuple(j for j in range(1, len(messages)) if not full.startswith(render_text(tokenizer, messages[:j], tools, template)))
 
 
-def _render(
+def render_text(
     tokenizer: PreTrainedTokenizerBase,
     messages: list[dict[str, Any]],
     tools: list[dict[str, Any]] | None,
@@ -280,7 +360,7 @@ def _check_decodes_exactly(
         raise TemplateReferenceError(f"message {message_index}: span tokens decode to {got!r}, text has {expected!r}")
 
 
-def _reject_special_tokens_in_content(tokenizer: PreTrainedTokenizerBase, fixture: Fixture) -> None:
+def _reject_special_tokens_in_content(tokenizer: PreTrainedTokenizerBase, fixture: Conversation) -> None:
     """Special-token text inside a message would make span boundaries ambiguous."""
     specials = [t for t in tokenizer.all_special_tokens if t]
     for i, message in enumerate(fixture.messages):

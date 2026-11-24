@@ -14,6 +14,27 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-23: Check engine rules for Tier 1 (M2)
+- Decision:
+  - **Adapters declare before they encode.** From the framework's own config and defaults, and before encoding anything, an adapter reports: the chat template the framework will render with, its label convention (`aligned` or `pre_shifted`), its truncation mode (`right`, `left` or `drop`), whether it pads or packs, and its pad token. `encode` always returns labels aligned with the input ids; an adapter for a pre-shifting framework shifts them back, and the verdict records which convention the framework uses.
+  - **`not_applicable` is a fourth result.** Applicability is decided from the fixture alone, before any framework output exists, never from what the adapter returns. It is never a pass. The summary shows how many fixtures each check ran on, and a check that ran on zero fixtures for a framework is `inconclusive`.
+  - **Planted faults.** A check can ship several. Which ones apply to a fixture is decided from the fixture, the model's own tokenizer and template, and the framework's declaration, never from the adapter's output. A verdict counts only if at least one applies and every one that applies is caught (its run ends in a fail of kind `bug`). Otherwise the result is `inconclusive`, and the clean result stays in the evidence.
+  - **Which reference.** Template parity compares against the model's own template. The other five checks compare against the template the framework declares, so they test masks, stop tokens, padding, truncation and prefixes, not template choice. If the framework's tokens don't match its own declared template's render, those checks return `inconclusive` and point to template parity.
+  - **Verdict fields added to `parity.verdict/v0`** (nothing is published yet): `known_difference`, `reason`, `conventions` (the framework's recorded choices), `reference` (template source and sha256, the official template's sha256, the transformers, tokenizers and TRL versions), and `plants` (each planted fault and whether it was caught).
+  - **Test stand-ins until M3.** The checks are tested against stand-in encoders in `tests/stubs.py`: Qwen3's own template with labels from our reference, and TRL's vendored training template with labels from its generation markers. They are not adapters, live only in `tests/`, and never produce published verdicts. Passing on them proves the checks' logic, not anything about a framework.
+- Why: rule 3 (a check proves itself in the same run), rule 4 (keep our choices apart from the framework's), and the decisions of 2026-11-23 on `not_applicable`, label conventions, truncation and padding.
+- Evidence: `src/parity/adapters/base.py`, `src/parity/engine/`, `tests/test_engine.py`, `tests/test_stubs.py`.
+- Reversible? yes
+
+## 2026-11-23: Mask reference: the prefix diff, cross-checked against generation markers (settles Inkling)
+- Decision:
+  - The prefix diff is the assistant-mask reference for every template, with or without `{% generation %}` markers. This revises the rule in "Tier 1 reference, and how assistant spans are defined" below, that a template's markers define the mask.
+  - When a template has markers, the mask transformers reads from them is cross-checked against the prefix-diff zones. Neutral tokens never count as a disagreement. Any other disagreement (a must-train token left unmarked, or a must-not-train token marked) makes the reference refuse: the verdict is `inconclusive`, and the disagreement goes to `/triage` as a possible model-template finding.
+  - This settles the Inkling question from "Mask zones" below: Inkling's zones come from the prefix diff like every other template, and its markers are cross-checked, not trusted.
+- Why: markers are the template author's claim. Taking them as the reference would test whether frameworks follow the claim, never whether the claim is right, and M0 picked Inkling partly to test exactly that.
+- Evidence: on TRL's Qwen3 training template the two agree on all 8 fixtures; they differ only on the neutral newline after `<|im_end|>` (`test_trl_template_reference_uses_prefix_diff_and_its_markers_agree`). Markers moved onto the assistant header are refused (`test_markers_that_disagree_on_a_non_neutral_token_are_refused`).
+- Reversible? yes
+
 ## 2026-11-23: Phase 3 prerequisite: isolate the hidden vault at the OS level
 - Decision:
   - The guard hook only prevents accidents. It matches a path string in tool calls, so it can't stop a command that reaches the vault some other way.

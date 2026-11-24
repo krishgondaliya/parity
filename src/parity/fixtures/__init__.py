@@ -7,10 +7,17 @@ optionally `reasoning_content`, `tool_calls`, `tool_call_id` and `name`.
 
 `load_fixture` parses the file fresh every time, so a check or planted fault
 that mutates a fixture can never leak that change into another run.
+
+A `Fixture` is a `Conversation` with a title, notes and an optional length
+limit. Checks also build shorter conversations from a fixture (for example
+`messages[:j]` for the multi-turn prefix check), and adapters and the
+reference accept any `Conversation`.
 """
 
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 from dataclasses import dataclass
 from importlib.resources import files
@@ -29,17 +36,43 @@ FIXTURE_IDS: tuple[str, ...] = (
 
 
 @dataclass(frozen=True)
-class Fixture:
+class Conversation:
+    """Messages plus optional tool definitions: what an adapter is asked to encode."""
+
     id: str
-    title: str
-    notes: str
     messages: list[dict[str, Any]]
     tools: list[dict[str, Any]] | None
-    max_len: int | None  # set only on fixtures meant to hit a length limit
 
     @property
     def assistant_indices(self) -> list[int]:
         return [i for i, m in enumerate(self.messages) if m["role"] == "assistant"]
+
+    def prefix(self, j: int) -> Conversation:
+        """A fresh copy of the first j messages, with the same tools."""
+        if not 1 <= j <= len(self.messages):
+            raise ValueError(f"prefix length {j} out of range for {len(self.messages)} messages")
+        return Conversation(
+            id=f"{self.id}[:{j}]",
+            messages=copy.deepcopy(self.messages[:j]),
+            tools=copy.deepcopy(self.tools),
+        )
+
+    def with_messages(self, messages: list[dict[str, Any]]) -> Conversation:
+        """The same conversation id and tools with different messages (used by planted faults)."""
+        return Conversation(id=self.id, messages=messages, tools=copy.deepcopy(self.tools))
+
+    @property
+    def content_key(self) -> str:
+        """A hash of the messages and tools, for caching. Two conversations with the same content share it."""
+        blob = json.dumps({"messages": self.messages, "tools": self.tools}, sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class Fixture(Conversation):
+    title: str
+    notes: str
+    max_len: int | None  # set only on fixtures meant to hit a length limit
 
 
 def fixture_path(fixture_id: str):

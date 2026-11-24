@@ -7,14 +7,14 @@ Three kinds of evidence:
    {% generation %} markers give an independent assistant mask.
 """
 
-import hashlib
-from pathlib import Path
-
 import pytest
+from stubs import TRL_QWEN3_TRAINING_SHA256, TRL_SOURCE
 
 from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.template import (
+    MarkerDisagreementError,
     TemplateReferenceError,
+    Zone,
     _token_boundary,
     assistant_mask_from_markers,
     assistant_spans_by_prefix_diff,
@@ -23,20 +23,7 @@ from parity.references.template import (
     render_reference,
 )
 
-TRL_SOURCE = "trl@1.18.2:qwen3_training.jinja"
-TRL_QWEN3_TRAINING = Path(__file__).parent / "data" / "trl" / "qwen3_training.jinja"
-TRL_QWEN3_TRAINING_SHA256 = "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b"
 THINK_EMPTY = "<think>\n\n</think>\n\n"
-
-
-@pytest.fixture(scope="module")
-def trl_qwen3_template() -> str:
-    raw = TRL_QWEN3_TRAINING.read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == TRL_QWEN3_TRAINING_SHA256, (
-        "tests/data/trl/qwen3_training.jinja no longer matches TRL v1.18.2 byte for byte "
-        "(line endings changed?). See tests/data/trl/SOURCE.md."
-    )
-    return raw.decode("utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -71,9 +58,23 @@ def test_tokens_are_exactly_apply_chat_template(qwen3, own, fid):
     assert own[fid].text == tok.apply_chat_template(fx.messages, tools=fx.tools, tokenize=False)
 
 
-def test_qwen3_template_has_no_markers_so_prefix_diff_is_used(qwen3, own):
+def test_qwen3_template_has_no_markers_so_nothing_is_cross_checked(qwen3, own):
     assert not has_generation_markers(qwen3.tokenizer.chat_template)
     assert {r.mask_method for r in own.values()} == {"prefix_diff"}
+    assert {r.marker_check for r in own.values()} == {"no_markers"}
+
+
+@pytest.mark.parametrize("fid", FIXTURE_IDS)
+def test_zones_match_the_spans(qwen3, own, fid):
+    """must-train is the supervised span; neutral is only the newline after each <|im_end|>."""
+    ref = own[fid]
+    assert len(ref.zones) == len(ref.input_ids)
+    assert [i for i, z in enumerate(ref.zones) if z == Zone.MUST_TRAIN] == [
+        i for i, m in enumerate(ref.assistant_mask) if m
+    ]
+    neutral = [i for i, z in enumerate(ref.zones) if z == Zone.NEUTRAL]
+    assert neutral == [i for s in ref.spans for i in range(s.token_end, s.token_message_end)]
+    assert [_decode(qwen3.tokenizer, [ref.input_ids[i]]) for i in neutral] == ["\n"] * len(ref.spans)
 
 
 @pytest.mark.parametrize("fid", FIXTURE_IDS)
@@ -258,11 +259,36 @@ def test_own_template_spans_match_trl_markers_where_tokens_agree(qwen3, own, trl
     assert [_decode(qwen3.tokenizer, [ref.input_ids[i]]) for i in extra] == ["\n"] * len(ref.spans)
 
 
-def test_trl_template_reference_uses_its_markers(qwen3, trl_qwen3_template):
-    ref = render_reference(qwen3, load_fixture("multi_turn"), trl_qwen3_template, TRL_SOURCE)
-    assert ref.mask_method == "generation_markers"
+@pytest.mark.parametrize("fid", FIXTURE_IDS)
+def test_trl_template_reference_uses_prefix_diff_and_its_markers_agree(qwen3, trl_qwen3_template, fid):
+    """The prefix diff is the reference; TRL's markers are cross-checked.
+
+    TRL's markers also cover the newline after <|im_end|>. That token is
+    neutral, so it never counts as a disagreement.
+    """
+    ref = render_reference(qwen3, load_fixture(fid), trl_qwen3_template, TRL_SOURCE)
+    assert ref.mask_method == "prefix_diff"
+    assert ref.marker_check == "agrees"
     assert ref.template_source == TRL_SOURCE
-    assert ref.spans == ()
+    assert ref.template_sha256 == TRL_QWEN3_TRAINING_SHA256
+    assert [s.message_index for s in ref.spans] == load_fixture(fid).assistant_indices
+
+
+def _markers_moved_onto_the_header(trl_template: str) -> str:
+    """TRL's template with {% generation %} opened before the assistant header instead of after it."""
+    header = "{{- '<|im_start|>' + message.role + '\\n' }}"
+    opening = "        {%- generation %}\n"
+    assert trl_template.count(header) == 1 and trl_template.count(opening) == 1
+    return trl_template.replace(opening, "").replace(header, "{%- generation %}" + header)
+
+
+def test_markers_that_disagree_on_a_non_neutral_token_are_refused(qwen3, trl_qwen3_template):
+    bad = _markers_moved_onto_the_header(trl_qwen3_template)
+    with pytest.raises(MarkerDisagreementError, match="disagree") as caught:
+        render_reference(qwen3, load_fixture("single_turn"), bad, "test:markers-on-header")
+    assert {p["zone"] for p in caught.value.positions} == {"must_not_train"}
+    assert all(p["marked"] for p in caught.value.positions)
+    assert "".join(p["token"] for p in caught.value.positions) == "<|im_start|>assistant\n"
 
 
 # Failure paths: the reference refuses instead of guessing.
