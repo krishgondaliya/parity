@@ -12,6 +12,37 @@ Format:
 - Reversible? yes/no
 ```
 
+Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
+
+## 2026-11-23: Phase 3 prerequisite: isolate the hidden vault at the OS level
+- Decision:
+  - The guard hook only prevents accidents. It matches a path string in tool calls, so it can't stop a command that reaches the vault some other way.
+  - Before any pair enters the hidden vault, the vault moves to a separate Linux user with `700` permissions, so this account (the one Claude Code runs as) can't read it at the OS level.
+  - Hidden-vault evaluation runs as that user, through one wrapper that prints only aggregate numbers. The human runs it, not Claude Code. Every run is logged, and the log holds only what the wrapper prints.
+  - `Bash(sudo *)` is in the deny list in `.claude/settings.json` from today.
+- Why: Gates B and C rest on hidden-vault recall. If an agent could read the vault, that number would prove nothing. File permissions are a boundary; a string-matching hook is not.
+- Found while logging this (checked 2026-11-23 with `id` and the WSL interop entry in `binfmt_misc`): this account has three ways around file permissions today. Each must be closed before the move counts.
+  - It is in the `sudo` group. The deny-list entry is a guardrail; the boundary is that sudo asks for a password Claude Code never has.
+  - It is in the `docker` group, which is root-equivalent without a password (a container can mount `/`). Remove the account from the group, or switch to rootless Docker.
+  - WSL interop is on (`wsl.exe` is on the PATH), and `wsl.exe -u root` opens a root shell without a password. Turn interop off in `/etc/wsl.conf` (`[interop]` `enabled = false`, then `wsl --shutdown`).
+- Done when, as this account, reading or listing the vault fails with "Permission denied" and none of the three routes above works. Record that check here.
+- Follow-ups before Phase 3, not done yet:
+  - `/run-eval`, Phase 4's `/run-eval` steps and SETUP.md (which puts `PARITY_HIDDEN_VAULT` in this account's `.env`) still assume Claude Code runs the evaluation.
+  - `vault/README.md`, SETUP.md and Phase 3 M3 still give the old location in this account's home. The guard hook blocks Claude Code from writing that path, so the human edits those lines.
+  - The blueprint's "separate private repo" storage line is superseded by this entry.
+  - Keep the marker name the guard hook matches in the new vault path, so the hook still catches accidents.
+- Reversible? yes, but don't loosen it once the vault holds pairs.
+
+## 2026-11-23: Adapter environments install the way each framework's docs say
+- Decision:
+  - Each adapter environment is installed the way the framework's own docs say: the documented source (PyPI, or the repo at the release tag), extras and build settings.
+  - Any deviation is recorded in that environment's metadata (what differs from the docs, and why) and treated as a suspect in triage, to rule out before calling anything a framework bug. Running on CPU where the docs require a GPU counts as a deviation too.
+  - SkyRL: install from its repo at the release tag, as its docs say (`uv sync --active --extra fsdp`), when its environment is first built in Phase 2, and the same in Phase 7. The PyPI install with custom `flash-attn` build settings that the spike used is not used for verdicts.
+- Why: a verdict should describe what the framework's users actually run. An install route they don't use can resolve different versions (the spike's PyPI route got torch 2.15.0; SkyRL's repo install pins 2.14.0), and every undocumented choice of ours is one more thing that can pass for a framework bug (rule 4).
+- Settles: open item 4 (SkyRL's install route) in "Open items for M4 (adapters)" below.
+- Follow-up: the metadata format is set when the first adapter environment is built (Phase 0 M3), and `/triage` then lists that environment's recorded deviations as suspects.
+- Reversible? yes
+
 ## 2026-11-23: Open items for M4 (adapters), from the platform spike
 - No code yet. Each item becomes a decision when M4 settles it.
   1. **Reference per framework environment.** Each framework brings its own TRL and transformers (see the version table in the entry below). The reference runs inside each framework's own environment, and every verdict records the transformers, tokenizers and TRL versions it ran with (TRL is `none` when the env has none). The core env's transformers 5.24.0 is used only for the reference's own tests.

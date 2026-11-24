@@ -23,6 +23,7 @@
       "Bash(gh pr create *)",
       "Bash(gh pr comment *)",
       "Bash(git push --force *)",
+      "Bash(sudo *)",
       "PowerShell(gh issue create *)",
       "PowerShell(gh issue comment *)",
       "PowerShell(gh pr create *)",
