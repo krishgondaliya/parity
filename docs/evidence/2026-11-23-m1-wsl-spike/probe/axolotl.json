@@ -1,0 +1,65 @@
+{
+  "framework": "axolotl",
+  "python": "3.12.13",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cuda_available": false,
+  "versions": {
+    "torch": "2.14.1",
+    "transformers": "5.20.1",
+    "tokenizers": "0.23.3",
+    "trl": "1.14.1",
+    "triton": "3.8.0",
+    "flash-attn": "none",
+    "axolotl": "0.21.1",
+    "unsloth": "none",
+    "unsloth_zoo": "none",
+    "verl": "none",
+    "skyrl": "none"
+  },
+  "all_ok": true,
+  "imports": [
+    {
+      "module": "axolotl.prompt_strategies",
+      "names": [
+        "load"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "axolotl.prompt_strategies.chat_template",
+      "names": [
+        "ChatTemplatePrompter",
+        "ChatTemplateStrategy",
+        "StrategyLoader"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "axolotl.utils.chat_templates",
+      "names": [
+        "get_chat_template"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "axolotl.utils.collators",
+      "names": [
+        "DataCollatorForSeq2Seq",
+        "V2BatchSamplerDataCollatorForSeq2Seq"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "axolotl.utils.data.sft",
+      "names": [
+        "prepare_datasets"
+      ],
+      "ok": true,
+      "error": null
+    }
+  ]
+}

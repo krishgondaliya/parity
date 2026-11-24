@@ -1,0 +1,45 @@
+{
+  "framework": "trl",
+  "python": "3.12.13",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cuda_available": false,
+  "versions": {
+    "torch": "2.15.0",
+    "transformers": "5.24.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.18.2",
+    "triton": "3.9.0",
+    "flash-attn": "none",
+    "axolotl": "none",
+    "unsloth": "none",
+    "unsloth_zoo": "none",
+    "verl": "none",
+    "skyrl": "none"
+  },
+  "all_ok": true,
+  "imports": [
+    {
+      "module": "trl",
+      "names": [
+        "SFTTrainer",
+        "SFTConfig"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "trl.data_utils",
+      "names": [],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "trl.chat_template_utils",
+      "names": [
+        "get_training_chat_template"
+      ],
+      "ok": true,
+      "error": null
+    }
+  ]
+}

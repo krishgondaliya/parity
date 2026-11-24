@@ -1,0 +1,62 @@
+{
+  "framework": "skyrl",
+  "python": "3.12.13",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cuda_available": false,
+  "versions": {
+    "torch": "2.15.0",
+    "transformers": "5.16.1",
+    "tokenizers": "0.23.3",
+    "trl": "none",
+    "triton": "3.9.0",
+    "flash-attn": "2.8.3.post1",
+    "axolotl": "none",
+    "unsloth": "none",
+    "unsloth_zoo": "none",
+    "verl": "none",
+    "skyrl": "0.5.0"
+  },
+  "all_ok": true,
+  "imports": [
+    {
+      "module": "skyrl.train.dataset.sft_dataset",
+      "names": [
+        "SFTDataset"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "skyrl.train.dataset.dataset",
+      "names": [
+        "PromptDataset"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "skyrl.train.dataset.collators",
+      "names": [
+        "DefaultCollator"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "skyrl.train.dataset.preprocess",
+      "names": [
+        "convert_prompts_responses_to_batch_tensors"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "skyrl.train.generators.utils",
+      "names": [
+        "get_response_ids_and_loss_mask_from_messages"
+      ],
+      "ok": true,
+      "error": null
+    }
+  ]
+}

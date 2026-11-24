@@ -1,0 +1,7 @@
+# Copied from SkyRL's pyproject.toml @ skyrl-v0.5.0 ([tool.uv.extra-build-dependencies] and
+# [tool.uv.extra-build-variables]). A PyPI install doesn't apply these settings, so we pass them explicitly.
+[extra-build-dependencies]
+flash-attn = [{ requirement = "torch", match-runtime = true }]
+
+[extra-build-variables]
+flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }

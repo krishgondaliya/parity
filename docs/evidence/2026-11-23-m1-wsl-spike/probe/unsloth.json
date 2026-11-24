@@ -1,0 +1,43 @@
+{
+  "framework": "unsloth",
+  "python": "3.12.13",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "cuda_available": false,
+  "versions": {
+    "torch": "2.14.1",
+    "transformers": "5.17.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.15.0",
+    "triton": "3.8.0",
+    "flash-attn": "none",
+    "axolotl": "none",
+    "unsloth": "2026.11.10",
+    "unsloth_zoo": "2026.11.10",
+    "verl": "none",
+    "skyrl": "none"
+  },
+  "all_ok": true,
+  "imports": [
+    {
+      "module": "unsloth",
+      "names": [],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "unsloth.chat_templates",
+      "names": [
+        "get_chat_template",
+        "train_on_responses_only"
+      ],
+      "ok": true,
+      "error": null
+    },
+    {
+      "module": "unsloth_zoo.dataset_utils",
+      "names": [],
+      "ok": true,
+      "error": null
+    }
+  ]
+}

@@ -16,7 +16,50 @@ Format:
 - No code yet. Each item becomes a decision when M4 settles it.
   1. **Reference per framework environment.** Each framework brings its own TRL and transformers (see the version table in the entry below). The reference runs inside each framework's own environment, and every verdict records the transformers, tokenizers and TRL versions it ran with (TRL is `none` when the env has none). The core env's transformers 5.24.0 is used only for the reference's own tests.
   2. **Registry entries only from evidence.** A known-differences entry is added only when calibration actually hits a difference and it has been checked against the framework's docs. No entries ahead of time for the TRL inside Unsloth (1.15.0) or Axolotl (1.14.1), since they may not use TRL's training-template swap at all. KD-0001 covers only TRL `==1.18.2` used directly.
-  3. **Unsloth without a GPU.** Unsloth takes its CPU fallback: stock transformers + PEFT + TRL, per `unsloth/_cpu_init.py`. That's fine for Tier 1 data checks. Tier 2 numerics on Unsloth will need a GPU, to cover the code paths users actually run.
+  3. **Unsloth without a GPU.** Unsloth takes its CPU fallback: stock transformers + PEFT + TRL, per `unsloth/_cpu_init.py`. That's fine for Tier 1 data checks. Tier 2 numerics on Unsloth will need a GPU, to cover the code paths users actually run. The CPU fallback is confirmed in WSL (see the WSL spike entry below).
+  4. **SkyRL's install route.** A plain PyPI install of `skyrl[skyrl-train]==0.5.0` fails on Linux: the `flash-attn` sdist won't build. One option is SkyRL's documented repo install (`uv sync --extra fsdp` at the tag), which uses SkyRL's prebuilt `flash-attn` for torch 2.14 + CUDA 13 and pins torch 2.14.0. The other is the PyPI install plus SkyRL's own `flash-attn` build settings, which the spike used (torch 2.15.0). Pick the route SkyRL users actually run and record it in the environment's lockfile. See the WSL spike entry below.
+- Reversible? yes
+
+## 2026-11-23: Platform spike re-run in WSL2: all five frameworks install and import their data path (M1)
+- Decision:
+  - The move to WSL2 holds. Every framework installs for real in WSL2 Ubuntu and imports its data path. M1 is done; M3 is next.
+  - SkyRL is the one exception to a plain PyPI install. On Linux it needs SkyRL's own `flash-attn` build settings (below). Which SkyRL install route the M4 environments use is open item 4 in the entry above.
+- Spike setup:
+  - WSL2 Ubuntu 22.04.5 (kernel 6.6.87.2-microsoft-standard-WSL2), x86_64, 16 logical CPUs, no NVIDIA GPU (`torch.cuda.is_available()` is `False` in every environment), Python 3.12.13, uv 0.11.3.
+  - Same framework versions as the Windows spike. They were still the latest on PyPI on 2026-11-23.
+  - Each framework in its own environment: `uv venv --python 3.12 <env>`, then `uv pip install --python <env>/bin/python <pkg>==<version>`. Real installs, no dry runs.
+  - `probe.py` imports only the data-path names listed below, from a neutral working directory, and writes the resolved versions to JSON.
+
+  | Framework | Installs in WSL2 Ubuntu | Data path imports | Exact error | Docs on Linux |
+  | --- | --- | --- | --- | --- |
+  | TRL 1.18.2 | yes | yes: `SFTTrainer`, `SFTConfig`, `trl.data_utils`, `trl.chat_template_utils.get_training_chat_template` | — | no platform statement ([installation.md @ v1.18.2](https://github.com/huggingface/trl/blob/v1.18.2/docs/source/installation.md)) |
+  | Axolotl 0.21.1 | yes (with `triton` 3.8.0, `xformers`, `bitsandbytes`) | yes: `axolotl.prompt_strategies.load`, `axolotl.prompt_strategies.chat_template` (`ChatTemplatePrompter`, `ChatTemplateStrategy`, `StrategyLoader`), `axolotl.utils.chat_templates.get_chat_template`, `axolotl.utils.collators` (`DataCollatorForSeq2Seq`, `V2BatchSamplerDataCollatorForSeq2Seq`), `axolotl.utils.data.sft.prepare_datasets` | — | requires an NVIDIA or AMD GPU, Python ≥ 3.12, PyTorch ≥ 2.13.0 ("2.13.0 recommended"); the documented install picks the CUDA build with `UV_TORCH_BACKEND` ([installation.qmd @ v0.21.1](https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/installation.qmd)) |
+  | Unsloth 2026.11.10 | yes (with `triton` 3.8.0, not `triton-windows`; `xformers`, `bitsandbytes`) | yes: `unsloth`, `unsloth.chat_templates` (`get_chat_template`, `train_on_responses_only`), `unsloth_zoo.dataset_utils`, all through its CPU fallback ("no GPU found, training on CPU") | — | "Unsloth works on **Windows, Linux, WSL** and **macOS**", CPUs included ([README on PyPI](https://pypi.org/project/unsloth/2026.11.10/)) |
+  | verl 0.9.1 | yes | yes: `MultiTurnSFTDataset`, `RLHFDataset` | — | requires CUDA ≥ 12.8; "The uv workflow targets **Linux** with Python 3.12" ([install.rst @ v0.9.1](https://github.com/volcengine/verl/blob/v0.9.1/docs/start/install.rst)) |
+  | SkyRL 0.5.0 `[skyrl-train]` | **plain PyPI install: no.** With SkyRL's own `flash-attn` build settings: yes | yes, with those settings: `skyrl.train.dataset.sft_dataset.SFTDataset`, `skyrl.train.dataset.dataset.PromptDataset`, `skyrl.train.dataset.collators.DefaultCollator`, `skyrl.train.dataset.preprocess.convert_prompts_responses_to_batch_tensors`, `skyrl.train.generators.utils.get_response_ids_and_loss_mask_from_messages` | Plain install: `Failed to build flash-attn==2.8.3.post1` … `ModuleNotFoundError: No module named 'torch'` | requires CUDA 13.0; the documented install is from the repo, `uv sync --active --extra fsdp` ([installation.mdx @ skyrl-v0.5.0](https://github.com/NovaSky-AI/SkyRL/blob/skyrl-v0.5.0/docs/content/docs/getting-started/installation.mdx)) |
+
+- Versions each environment resolved to, and its size on disk:
+
+  | Environment | TRL | transformers | tokenizers | torch | Size alone |
+  | --- | --- | --- | --- | --- | --- |
+  | trl 1.18.2 | 1.18.2 | 5.24.0 | 0.23.3 | 2.15.0 | 5.6 GiB |
+  | axolotl 0.21.1 | 1.14.1 | 5.20.1 | 0.23.3 | 2.14.1 | 7.0 GiB |
+  | unsloth 2026.11.10 | 1.15.0 | 5.17.0 | 0.23.3 | 2.14.1 | 6.1 GiB |
+  | verl 0.9.1 | none | 5.10.4 | 0.22.2 | 2.15.0 | 6.0 GiB |
+  | skyrl 0.5.0 [skyrl-train] | none | 5.16.1 | 0.23.3 | 2.15.0 | 6.9 GiB |
+
+  - Every version matches the Windows resolutions in the entry below, and Axolotl matches its earlier Linux dry-run resolve. So M4 open item 1 holds on Linux.
+  - **Total disk: 13.3 GiB (14.3 GB)** for all five environments. That is one `du -sb` over all five, which counts each file once: uv hardlinks identical files, so environments with the same torch share them. Each environment alone is 5.6 to 7.0 GiB.
+  - Because of those hardlinks into uv's cache, the five environments added only 1.8 GB of new disk on this machine (`df` before and after), since the cache already held the wheels. On a fresh machine, budget about 14 GB; the cache and the environments share files when they're on the same filesystem.
+- What changed from native Windows:
+  - Axolotl installs. The Windows blocker (`triton` has no Windows wheels) doesn't apply on Linux.
+  - Unsloth installs `triton`, not `triton-windows`, and leaves `sentencepiece` importable: `disable_sentencepiece_on_windows` acts only when `sys.platform == "win32"`. Checked: `import sentencepiece` (0.2.3) works after `import unsloth`. Neither Windows-only behavior from the entry below occurs.
+  - SkyRL fails on Linux where Windows didn't. The `[skyrl-train]` extra requires `flash-attn==2.8.3.post1; sys_platform == "linux"`, so Windows never tried to install it. PyPI has that version only as an sdist, and its `setup.py` imports torch without declaring it as a build dependency.
+    - SkyRL's own `pyproject.toml` @ skyrl-v0.5.0 avoids this in two ways. `[tool.uv.sources]` points `flash-attn` at SkyRL's prebuilt wheels (torch 2.14 + CUDA 13). `[tool.uv.extra-build-dependencies]` and `[tool.uv.extra-build-variables]` add torch as a build dependency and set `FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE`.
+    - A PyPI install applies neither. The spike passed the second pair explicitly (`uv pip install --config-file skyrl-flash-attn-build.toml ...`). That builds `flash-attn` without its CUDA kernels, which the data path doesn't use. The resolution was otherwise unchanged (torch 2.15.0).
+- Why: the spike checks the move before anything is built on it. Every framework's data path now imports on the operating system the verdicts will run on.
+- Not covered: GPU code paths (no NVIDIA GPU here); SkyRL's documented repo install, which pins torch 2.14.0 and uses the prebuilt `flash-attn` (M4 open item 4); SkyRL without the `[skyrl-train]` extra (not re-run).
+- Evidence: `docs/evidence/2026-11-23-m1-wsl-spike/` holds `probe.py`, the probe output per environment (`probe/*.json`), each environment's `uv pip freeze` (`freeze/*.txt`), the `flash-attn` build settings (`skyrl-flash-attn-build.toml`), and the failing plain SkyRL install log (`skyrl-plain-pypi-install.log`).
 - Reversible? yes
 
 ## 2026-11-23: Develop and run Parity in WSL2 Ubuntu, not native Windows (M1 platform spike)
@@ -55,7 +98,7 @@ Format:
   - It's cheapest now: there are no runs and no `envs/` yet, and the repo can be cloned straight from the Windows checkout.
   - It also removes Windows friction seen during setup: PowerShell 5.1 mangling quotes, the cp1252 console crashing on emoji, CRLF line endings.
 - Also learned: the Phase 0 playbook says Unsloth needs an NVIDIA GPU just to import. That's out of date for 2026.11.10. With no accelerator it takes a CPU route (`unsloth/_cpu_init.py`) and prints "no GPU found, training on CPU".
-- Not verified yet: nothing has been installed inside WSL. Axolotl was only dry-run resolved for Linux, and Unsloth's CPU route in WSL is assumed.
+- Not verified yet: nothing has been installed inside WSL. Axolotl was only dry-run resolved for Linux, and Unsloth's CPU route in WSL is assumed. (Verified later the same day: see the WSL spike entry above.)
 - Evidence: the spike logs lived in the session scratchpad and were deleted afterwards. The commands above reproduce them.
 - Reversible? yes
 
