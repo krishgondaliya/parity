@@ -44,6 +44,18 @@ def read_trl_qwen3_template() -> str:
     return raw.decode("utf-8")
 
 
+def markers_moved_onto_the_header(trl_template: str) -> str:
+    """TRL's template with {% generation %} opened before the assistant header instead of after it.
+
+    Its markers then claim the header "<|im_start|>assistant\\n" is trained,
+    which the prefix diff says must not be: a template whose markers are wrong.
+    """
+    header = "{{- '<|im_start|>' + message.role + '\\n' }}"
+    opening = "        {%- generation %}\n"
+    assert trl_template.count(header) == 1 and trl_template.count(opening) == 1
+    return trl_template.replace(opening, "").replace(header, "{%- generation %}" + header)
+
+
 class TemplateStub:
     """A known-good stand-in encoder. Every behavior a check reads is a constructor argument."""
 

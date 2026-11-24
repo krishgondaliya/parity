@@ -8,7 +8,7 @@ Three kinds of evidence:
 """
 
 import pytest
-from stubs import TRL_QWEN3_TRAINING_SHA256, TRL_SOURCE
+from stubs import TRL_QWEN3_TRAINING_SHA256, TRL_SOURCE, markers_moved_onto_the_header
 
 from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.template import (
@@ -274,16 +274,8 @@ def test_trl_template_reference_uses_prefix_diff_and_its_markers_agree(qwen3, tr
     assert [s.message_index for s in ref.spans] == load_fixture(fid).assistant_indices
 
 
-def _markers_moved_onto_the_header(trl_template: str) -> str:
-    """TRL's template with {% generation %} opened before the assistant header instead of after it."""
-    header = "{{- '<|im_start|>' + message.role + '\\n' }}"
-    opening = "        {%- generation %}\n"
-    assert trl_template.count(header) == 1 and trl_template.count(opening) == 1
-    return trl_template.replace(opening, "").replace(header, "{%- generation %}" + header)
-
-
 def test_markers_that_disagree_on_a_non_neutral_token_are_refused(qwen3, trl_qwen3_template):
-    bad = _markers_moved_onto_the_header(trl_qwen3_template)
+    bad = markers_moved_onto_the_header(trl_qwen3_template)
     with pytest.raises(MarkerDisagreementError, match="disagree") as caught:
         render_reference(qwen3, load_fixture("single_turn"), bad, "test:markers-on-header")
     assert {p["zone"] for p in caught.value.positions} == {"must_not_train"}
