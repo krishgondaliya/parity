@@ -74,6 +74,11 @@
 - **Known difference:** KD-0002 / KD-0003, signature `think_opener_untrained`, pinned to `tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177` @ v0.21.1.
 - **Docs:** Axolotl's user docs don't say it; `conversation.qmd` L445 only implies it. Logged as a possible docs gap, not a finding.
 
+## Cells after the decision (re-run 2026-11-24, `docs/evidence/2026-11-24-m3-rerun/axolotl/`)
+- Thinking mode (primary): 13 differences, KD-0002 on `t1.assistant_mask` ×7 and KD-0003 on `t1.truncation` ×6. They link to P-0001 through the registry's `finding` field.
+- `empty_assistant` stays a bug on both checks: KD-0002/0003 explain its think opener, and the residual (`<|im_end|>` at 14) is P-0002, to which those cells are linked.
+- Non-thinking mode (secondary): Axolotl passes all 7 no-reasoning fixtures on both checks, except `empty_assistant` (P-0002). `reasoning` is inconclusive there by design.
+
 ## Repro
 - findings/P-0001/repro.py (tokenizer and config files only, telemetry off): exits 1 (reproduces) 3/3 on axolotl 0.21.1.
 - On main: not tested.

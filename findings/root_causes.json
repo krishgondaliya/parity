@@ -1,5 +1,64 @@
 {
   "schema": "parity.root_causes/v0",
   "note": "Each triaged root cause pins the exact fail verdicts it explains (framework version, model, check, fixture, serving mode, evidence sha256), written with parity.engine.root_causes.pin() after /triage and the skeptic. No wildcards: a changed failure is untriaged again. Differences link through their known-differences entry instead.",
-  "root_causes": []
+  "root_causes": [
+    {
+      "id": "P-0002",
+      "record": "findings/P-0002/record.md",
+      "status": "candidate",
+      "framework": "axolotl@0.21.1",
+      "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+      "summary": "An empty assistant turn's <|im_end|> is never labeled despite train_on_eos: turn (empty_assistant, position 14), in both serving modes.",
+      "pins": [
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "0da5b54a1fe0e2d59355f836c9eb6ec8dd2b3591486240a9e5648ad961023043"
+        },
+        {
+          "check": "t1.end_of_turn",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "79c6e30e2cab3a26fb82bc0a8434cf05f220075a1079621dceefdcf8c518f4f4"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "fb05fda1004ab46927d92581c213bf61e3b387e71c1ff290a9e9a225cf9387d3"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "7572470941aeaf9b32f86e1ea8fe3f4129c8f3f65a4ce292d81ac5afcd76aeb2"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "85eb7450177d1093a278cc5921aca47298c22fc30af9b0b9d53915691eeae63b"
+        },
+        {
+          "check": "t1.end_of_turn",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "79c6e30e2cab3a26fb82bc0a8434cf05f220075a1079621dceefdcf8c518f4f4"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "fb05fda1004ab46927d92581c213bf61e3b387e71c1ff290a9e9a225cf9387d3"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "62123f7a9fdc0ce36ce06dbfaf2e1a6d8ff1ddd8279236d7223db858eceae037"
+        }
+      ]
+    }
+  ]
 }

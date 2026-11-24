@@ -60,6 +60,12 @@
   - No open PR or issue covers it (searched PRs and issues: "empty turn", "empty assistant", "train_on_eos", "find_turn", "empty content eos"; the issue reviewer ran 10 more queries). Open PR #4132 changes the turn locator, but only after a span is found; the `char_end <= char_start` return that empty turns take is untouched (checked).
 - **Only log line:** an unrelated torchao `SyntaxWarning`. Nothing mentions the empty turn.
 
+## Cells linked to this root cause (re-run 2026-11-24, `docs/evidence/2026-11-24-m3-rerun/axolotl/`)
+- 8 fail verdicts, pinned in `findings/root_causes.json`: `t1.end_of_turn`, `t1.special_tokens`, `t1.assistant_mask` and `t1.truncation` on `empty_assistant`, each in thinking (primary) and non-thinking (secondary) mode.
+- Each one was checked before pinning: the only failing token is message 1's `<|im_end|>` at position 14.
+  - In thinking mode, `assistant_mask` and `truncation` also contain the think opener that KD-0002/0003 explain; the known-difference residual is exactly position 14.
+  - `special_tokens` flags it in the row and in the padded batch.
+
 ## Variants tested (2026-11-24, strategy level and full preprocess, identical)
 | Case | Empty turn's `<|im_end|>` trained? |
 | --- | --- |

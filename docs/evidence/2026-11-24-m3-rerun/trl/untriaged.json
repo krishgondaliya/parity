@@ -1,0 +1,790 @@
+[
+ {
+  "verdict": "non_thinking/t1.assistant_mask__single_turn",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "single_turn",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "90bc5703e21c032990ce5a7b8fbcccc69dc893a5473e8a56ae02048fc0560411"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 13,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 14,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 15,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 16,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 7,
+   "supervised_tokens": 12
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__single_turn",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "single_turn",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "749c545e0a59b40a10b84e93c6fb7b7e12ac89facd4ba064fd5c2d7ab736b6af"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 13,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 14,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 15,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 16,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 12,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__multi_turn",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "multi_turn",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "06e01b542d6f2090bed657483944a232e168216541796fed0433766c86e1b859"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 12,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 15,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 16,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 17,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 18,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 35,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 36,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 37,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 38,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 16,
+   "supervised_tokens": 31
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__multi_turn",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "multi_turn",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "b1e5c9cc2eaf07426758602491e6d9fd6f114e928bab552ec638f546bdf17e5e"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 12,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 15,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 16,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 17,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 18,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 35,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 36,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 37,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 38,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 31,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__system_prompt",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "system_prompt",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "322098770f6c84b520aa486814f4ccdd5acee8399174dfc0c603d72fd3f78e33"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 30,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 31,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 32,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 33,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 23,
+   "supervised_tokens": 28
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__system_prompt",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "system_prompt",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "84dc1446a64edb2ee60f5ce436c87a15f4ffbe2f36deabb5c208179868e06a7d"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 30,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 31,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 32,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 33,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 28,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__tool_call",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "tool_call",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "6542745af915abe1a5da947c5d2c2abeab6cd847e5e248b40e71e700cbdf7df7"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 8,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 194,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 195,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 196,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 197,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 255,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 256,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 257,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 258,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 45,
+   "supervised_tokens": 55
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__tool_call",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "tool_call",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "4f3a8d8258810595bd67f5727d1865710d55ad45a5e7a35ba4ef791560d183e6"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 8,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 194,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 195,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 196,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 197,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 255,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 256,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 257,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 258,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 55,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__empty_assistant",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "empty_assistant",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "470e5064768c2757d3f4b0fae831b09d60f8dddb01d7237d5c26f791bbdd3d90"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 8,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 14,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 15,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 16,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 17,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 35,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 36,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 37,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 38,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 4,
+   "supervised_tokens": 14
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__empty_assistant",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "empty_assistant",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "78282a976fd3a3e48aa1f65394d5501dcaf71c1658936acfca8f9ee3ce9e9540"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 8,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 14,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 15,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 16,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 17,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 35,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 36,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 37,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 38,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 14,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__long_answer",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "long_answer",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "861c11b1ba532586c66ff91393ced011740524fb20cbf574ea9697b44ddfedc6"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 23,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 24,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 25,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 26,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 509,
+   "supervised_tokens": 514
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__long_answer",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "long_answer",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "c8557b9c71eac4da0e314755cc3e8be56e40c7c7aead586d0117820810e263fb"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 23,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 24,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 25,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 26,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 105,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.assistant_mask__non_ascii",
+  "pin": {
+   "check": "t1.assistant_mask",
+   "fixture": "non_ascii",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "b40f06516a01668892544e9ea5b07dedde3e3de2faac407a9007c3231549a58b"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 36,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 37,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 38,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 39,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "must_train_tokens": 56,
+   "supervised_tokens": 61
+  }
+ },
+ {
+  "verdict": "non_thinking/t1.truncation__non_ascii",
+  "pin": {
+   "check": "t1.truncation",
+   "fixture": "non_ascii",
+   "serving_mode": "non_thinking",
+   "evidence_sha256": "68fbe39438e7620fa2cbd9b951515abfdd56f2abbb5c5fecf575605dd7b269a4"
+  },
+  "evidence": {
+   "counts": {
+    "must_train_unsupervised": 0,
+    "must_not_train_supervised": 4,
+    "label_mismatch": 0
+   },
+   "must_train_unsupervised": [],
+   "must_not_train_supervised": [
+    {
+     "index": 36,
+     "token": "<think>",
+     "zone": "must_not_train",
+     "label": 151667
+    },
+    {
+     "index": 37,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    },
+    {
+     "index": 38,
+     "token": "</think>",
+     "zone": "must_not_train",
+     "label": 151668
+    },
+    {
+     "index": 39,
+     "token": "\n\n",
+     "zone": "must_not_train",
+     "label": 271
+    }
+   ],
+   "label_mismatch": [],
+   "supervised_tokens": 61,
+   "rule": "right: the kept row's loss doesn't follow the reference zones"
+  }
+ }
+]

@@ -1,0 +1,60 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.special_tokens",
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "framework": "trl@1.18.2",
+  "fixture": "reasoning",
+  "result": "inconclusive",
+  "kind": null,
+  "self_test": "missed",
+  "known_difference": null,
+  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header",
+  "evidence": {
+    "clean_result": "inconclusive",
+    "clean_kind": null
+  },
+  "conventions": {},
+  "reference": {},
+  "plants": [],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null,
+      "serving_mode": "non_thinking"
+    },
+    "template_source": "trl@1.18.2:qwen3_training.jinja",
+    "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+    "label_convention": "aligned",
+    "truncation_mode": "right",
+    "batching": "padded",
+    "pad_token_id": 151643,
+    "tool_arguments": "passed_through",
+    "sources": [
+      "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
+      "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
+      "label_convention: SFTTrainer.compute_loss passes the dataset labels to the model unchanged and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: SFTConfig.truncation_mode='keep_start', max_length=None (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py); TRL also drops examples left with no trainable token after truncation",
+      "batching: SFTTrainer.padding_free=False, SFTConfig.packing=False",
+      "pad_token_id: SFTTrainer.data_collator.pad_token_id=151643; pad_to_multiple_of=None",
+      "tool_arguments: no option; tokenize_fn passes the messages to apply_chat_template unchanged, so a string is rendered verbatim (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381)"
+    ],
+    "verified": {
+      "chat_template": "unverified",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified",
+      "tool_arguments": "unverified"
+    }
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "non_thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/uv.lock",
+  "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
+  "repro": null
+}

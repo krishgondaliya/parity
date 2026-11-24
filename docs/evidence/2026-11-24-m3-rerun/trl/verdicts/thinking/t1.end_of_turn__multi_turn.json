@@ -1,0 +1,110 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.end_of_turn",
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "framework": "trl@1.18.2",
+  "fixture": "multi_turn",
+  "result": "pass",
+  "kind": null,
+  "self_test": "caught",
+  "known_difference": null,
+  "reason": null,
+  "evidence": {
+    "turns": [
+      {
+        "message_index": 1,
+        "position": 21,
+        "expected_token": "<|im_end|>",
+        "status": "trained"
+      },
+      {
+        "message_index": 3,
+        "position": 42,
+        "expected_token": "<|im_end|>",
+        "status": "trained"
+      },
+      {
+        "message_index": 5,
+        "position": 73,
+        "expected_token": "<|im_end|>",
+        "status": "trained"
+      }
+    ]
+  },
+  "conventions": {},
+  "reference": {
+    "template_source": "trl@1.18.2:qwen3_training.jinja",
+    "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+    "official_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "marker_check": "agrees",
+    "template_kwargs": {
+      "enable_thinking": true
+    },
+    "transformers": "5.24.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.18.2"
+  },
+  "plants": [
+    {
+      "plant": "mask_closing_tokens",
+      "description": "take the loss off every supervised stop token",
+      "origin": "real-world",
+      "source": "Plumbline, https://arxiv.org/pdf/2611.13393: the loss mask of GLM-5.3-Flash left out the token that ends a reply",
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "wrong_closing_token",
+      "description": "close every assistant turn with a different stop/special token, trained",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    }
+  ],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null,
+      "serving_mode": "thinking"
+    },
+    "template_source": "trl@1.18.2:qwen3_training.jinja",
+    "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+    "label_convention": "aligned",
+    "truncation_mode": "right",
+    "batching": "padded",
+    "pad_token_id": 151643,
+    "tool_arguments": "passed_through",
+    "sources": [
+      "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
+      "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
+      "label_convention: SFTTrainer.compute_loss passes the dataset labels to the model unchanged and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: SFTConfig.truncation_mode='keep_start', max_length=None (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py); TRL also drops examples left with no trainable token after truncation",
+      "batching: SFTTrainer.padding_free=False, SFTConfig.packing=False",
+      "pad_token_id: SFTTrainer.data_collator.pad_token_id=151643; pad_to_multiple_of=None",
+      "tool_arguments: no option; tokenize_fn passes the messages to apply_chat_template unchanged, so a string is rendered verbatim (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381)"
+    ],
+    "verified": {
+      "chat_template": "consistent",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified",
+      "tool_arguments": "unverified"
+    }
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/uv.lock",
+  "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
+  "repro": null
+}
