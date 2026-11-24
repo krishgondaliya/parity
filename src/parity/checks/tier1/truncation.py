@@ -152,6 +152,11 @@ class Truncation(Tier1Check):
         if leftovers:
             evidence["known_difference_residual"] = leftovers
 
+        # The tokens kept are exactly the declared mode's: the mode holds, and the fail is about the loss.
+        if kept_as(ref, max_len, mode, out):
+            status = CONSISTENT if conventions["cut"] else "unverified: nothing is cut at this limit"
+            return verdict("fail", status, kind="bug", evidence=evidence)
+
         # Not what the declared mode gives. If it is exactly what another mode gives,
         # the declaration is contradicted: a declared/actual mismatch for /triage.
         others = [m for m in TRUNCATION_MODES if m != mode and judge(tokenizer, ref, max_len, m, out)[0]]
@@ -212,6 +217,14 @@ def judge(
 def limit_for(fixture: Fixture, ref: TemplateReference) -> int:
     """The fixture's own max_len, or its exact reference length (the boundary)."""
     return fixture.max_len if fixture.max_len is not None else len(ref.input_ids)
+
+
+def kept_as(ref: TemplateReference, max_len: int, mode: str, out: Encoded | Dropped) -> bool:
+    """Did the framework keep exactly the tokens `mode` keeps (or drop the row when `mode` drops it)? Loss aside."""
+    expected = cut_reference(ref, max_len, mode)
+    if expected is None:
+        return isinstance(out, Dropped)
+    return isinstance(out, Encoded) and tuple(out.input_ids) == tuple(expected[0])
 
 
 def cut_reference(ref: TemplateReference, max_len: int, mode: str) -> tuple[tuple[int, ...], tuple[Zone, ...]] | None:

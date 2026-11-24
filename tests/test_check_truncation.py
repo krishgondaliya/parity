@@ -164,3 +164,17 @@ def test_a_contradicted_mode_is_flagged_for_triage(qwen3):
     lying = PlantedAdapter(stub, "wrong-mode", on_declare=lambda d: replace(d, truncation_mode="right"))
     v = CHECK.run(lying, qwen3, load_fixture("long_answer"))
     assert v.flags == ["declared_actual_mismatch"] and v.evidence["triage"] == "declared/actual mismatch"
+
+
+def test_a_loss_only_fail_confirms_the_mode_instead_of_denying_it(qwen3, official):
+    """Found by the P-0003 skeptic: a row whose tokens are exactly the declared cut, with the wrong loss, used to be
+    recorded as "the row matches no truncation mode". The tokens confirm the mode; the fail is about the loss."""
+    cut = _planted(qwen3, official, "long_answer", "lose_answer_labels")
+    assert (cut.result, cut.kind) == ("fail", "bug")
+    assert cut.declaration["verified"]["truncation_mode"] == "consistent"
+    no_loss = PlantedAdapter(
+        official, "no loss", after_encode=lambda out, conv, cfg: replace(out, labels=(-100,) * len(out.labels))
+    )
+    boundary = CHECK.run(no_loss, qwen3, load_fixture("single_turn"))
+    assert (boundary.result, boundary.kind) == ("fail", "bug")
+    assert boundary.declaration["verified"]["truncation_mode"].startswith("unverified")
