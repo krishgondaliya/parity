@@ -32,11 +32,16 @@ row), or pads that are all one token other than the declared pad token,
 contradict the declaration. That is an adapter error until shown otherwise,
 so the verdict is inconclusive. Pads holding several different tokens fail.
 
-Planted faults (both apply to every fixture):
-- extra_leading_special: prepend one more special token: a second BOS when
-  the model has one, otherwise its pad token (Qwen3 has no BOS).
-- pad_is_closing_token_masked: declare the token that closes assistant turns
-  as the pad token, pad with it, and take the loss off every occurrence.
+Planted faults (each part of the check has one of its own):
+- extra_leading_special (every fixture): prepend one more special token: a
+  second BOS when the model has one, otherwise its pad token (Qwen3 has no BOS).
+- pad_is_closing_token_masked (when the framework pads): the collator pads
+  with the token that closes assistant turns and takes the loss off every
+  occurrence while collating, as transformers' DataCollatorForLanguageModeling
+  does with pad = EOS. Only the padded batch shows it, so it guards part 2.
+- closing_token_masked_per_row (every fixture): the same masking done in each
+  row before batching. It guards part 1's stop-token rule, and is the only pad
+  fault for a framework that packs.
 """
 
 from __future__ import annotations
@@ -268,25 +273,46 @@ class SpecialTokens(Tier1Check):
         if ref.spans:
             closing = closing_token_id(ref)
             name = decode_each(tokenizer, [closing])[0]
+
+            def masked_batch(batch: Batch, convs: Any, cfg: Any) -> Batch:
+                return Batch(tuple(_mask_token(_repad_with(r, closing), closing) for r in batch.rows))
+
+            if declaration.batching == "padded":
+                # The real mechanism masks pad ids while collating, so only the padded batch shows it:
+                # this fault guards the padding part of the check.
+                out.append(
+                    Plant(
+                        "pad_is_closing_token_masked",
+                        f"collator pads with {name} and takes the loss off every {name}",
+                        lambda adapter: PlantedAdapter(
+                            adapter,
+                            "pad_is_closing_token_masked",
+                            on_declare=lambda d: replace(d, pad_token_id=closing),
+                            after_batch=masked_batch,
+                        ),
+                        origin="real-world",
+                        source=(
+                            "pad_token set to the EOS token, with id-based pad masking at collation as in "
+                            "transformers 5.24.0 DataCollatorForLanguageModeling(mlm=False), data_collator.py "
+                            "lines 797-800: labels = input_ids.clone(); labels[labels == pad_token_id] = -100, "
+                            "which also takes the loss off every real EOS"
+                        ),
+                    )
+                )
+            # The same masking done per row, before any batching: this fault guards the row-level rule,
+            # and is the only pad fault for a framework that packs.
             out.append(
                 Plant(
-                    "pad_is_closing_token_masked",
-                    f"pad with {name} and take the loss off every {name}",
+                    "closing_token_masked_per_row",
+                    f"pad id set to {name} and every {name} masked in each row before batching",
                     lambda adapter: PlantedAdapter(
                         adapter,
-                        "pad_is_closing_token_masked",
+                        "closing_token_masked_per_row",
                         on_declare=lambda d: replace(d, pad_token_id=closing),
                         after_encode=lambda row, conv, cfg: _mask_token(row, closing),
-                        after_batch=lambda batch, convs, cfg: Batch(
-                            tuple(_mask_token(_repad_with(r, closing), closing) for r in batch.rows)
-                        ),
+                        after_batch=masked_batch,
                     ),
-                    origin="real-world",
-                    source=(
-                        "pad_token set to the EOS token, with id-based pad masking as in transformers' "
-                        "DataCollatorForLanguageModeling (mlm=False): labels[labels == pad_token_id] = -100 "
-                        "also takes the loss off every real EOS"
-                    ),
+                    origin="synthetic",
                 )
             )
         return out

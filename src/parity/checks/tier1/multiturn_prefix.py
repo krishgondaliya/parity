@@ -64,7 +64,7 @@ from parity.references.properties import (
     describe_break,
     prefix_break_property_id,
 )
-from parity.references.template import template_sha256
+from parity.references.template import template_sha256, template_token_ids
 from parity.release import LoadedRelease
 
 
@@ -155,7 +155,10 @@ class MultiturnPrefix(Tier1Check):
         if not boundaries(fixture):
             return []
         out = []
-        if any(_has_boolean_tool_argument(m) for m in fixture.messages[:-1] if m["role"] == "assistant"):
+        has_boolean = any(_has_boolean_tool_argument(m) for m in fixture.messages[:-1] if m["role"] == "assistant")
+        if has_boolean and _renders(release, _rewrite_history(fixture, _arguments_as_python_repr), declaration):
+            # Skipped when the declared template refuses string arguments (Inkling's and Hy4's do):
+            # then no framework using it can produce this fault, and the planted run would only crash.
             out.append(
                 _history_plant(
                     "history_false_as_python",
@@ -176,20 +179,30 @@ class MultiturnPrefix(Tier1Check):
         return out
 
 
+def _rewrite_history(conv: Conversation, rewrite: Any) -> Conversation:
+    """The conversation with every assistant message that isn't the last one rewritten."""
+    messages = copy.deepcopy(conv.messages)
+    for i, message in enumerate(messages[:-1]):
+        if message["role"] == "assistant":
+            messages[i] = rewrite(message)
+    return conv.with_messages(messages)
+
+
+def _renders(release: LoadedRelease, conv: Conversation, declaration: Declaration) -> bool:
+    """Can the declared template render this conversation at all? Decided from the template, not the framework."""
+    try:
+        template_token_ids(release.tokenizer, conv, declaration.chat_template)
+    except Exception:  # noqa: BLE001 - a template that refuses the input is exactly what we're asking about
+        return False
+    return True
+
+
 def _history_plant(name: str, description: str, rewrite: Any, *, origin: str, source: str | None = None) -> Plant:
     """A fault in how history is re-rendered: rewrite every assistant message that isn't the last one."""
-
-    def before(conv: Conversation) -> Conversation:
-        messages = copy.deepcopy(conv.messages)
-        for i, message in enumerate(messages[:-1]):
-            if message["role"] == "assistant":
-                messages[i] = rewrite(message)
-        return conv.with_messages(messages)
-
     return Plant(
         name,
         description,
-        lambda adapter: PlantedAdapter(adapter, name, before_encode=before),
+        lambda adapter: PlantedAdapter(adapter, name, before_encode=lambda conv: _rewrite_history(conv, rewrite)),
         origin=origin,
         source=source,
     )

@@ -63,8 +63,13 @@ class Conversation:
 
     @property
     def content_key(self) -> str:
-        """A hash of the messages and tools, for caching. Two conversations with the same content share it."""
-        blob = json.dumps({"messages": self.messages, "tools": self.tools}, sort_keys=True, ensure_ascii=False)
+        """A hash of the messages and tools, for caching.
+
+        Key order is kept, not sorted: templates render dicts in their own key
+        order (transformers' `tojson` doesn't sort), so two conversations that
+        differ only in key order render differently and must not share a key.
+        """
+        blob = json.dumps({"messages": self.messages, "tools": self.tools}, ensure_ascii=False)
         return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 

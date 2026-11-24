@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from parity.adapters.base import Declaration, Encoded, TrainCfg
@@ -51,8 +53,11 @@ def test_unknown_result_is_refused():
         _v(result="skipped")
 
 
+CAUGHT = {"self_test": "caught", "plants": [{"plant": "p", "caught": True}]}
+
+
 def test_verdict_json_round_trip(tmp_path):
-    v = _v(result="fail", kind="bug", evidence={"first_divergence": 3}, plants=[{"plant": "p", "caught": True}])
+    v = _v(result="fail", kind="bug", evidence={"first_divergence": 3}, **CAUGHT)
     path = write_verdict(v, tmp_path)
     assert path.name == "t1.x__single_turn.json"
     assert read_verdict(path) == v
@@ -177,6 +182,8 @@ def _cell(results):
     vs = []
     for i, r in enumerate(results):
         kw = {"result": r, "fixture": f"f{i}"}
+        if r in ("pass", "fail", "difference"):
+            kw.update(CAUGHT)
         if r == "fail":
             kw["kind"] = "bug"
         elif r == "difference":
@@ -211,3 +218,37 @@ def test_summary_cell_result(results, expected):
     assert cell.result == expected
     if "difference" in results:
         assert cell.known_differences == ("KD-0001",)
+
+
+# Rule 3 at the record level: a pass or fail without its caught self-test never counts.
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"result": "pass"},  # what check.run returns, before the engine adds the planted faults
+        {"result": "pass", "self_test": "caught"},  # no planted fault recorded
+        {"result": "pass", "self_test": "caught", "plants": [{"plant": "p", "caught": False}]},
+        {"result": "fail", "kind": "bug", "self_test": "missed", "plants": [{"plant": "p", "caught": False}]},
+    ],
+)
+def test_a_pass_or_fail_without_its_self_test_is_refused_everywhere(tmp_path, fields):
+    raw = _v(**fields)
+    with pytest.raises(ValueError, match="self-test"):
+        summarize([raw])
+    with pytest.raises(ValueError, match="self-test"):
+        write_verdict(raw, tmp_path)
+
+
+def test_reading_a_hand_edited_pass_is_refused(tmp_path):
+    path = write_verdict(_v(**CAUGHT), tmp_path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["plants"] = []
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="self-test"):
+        read_verdict(path)
+
+
+def test_not_applicable_never_carries_a_self_test(tmp_path):
+    with pytest.raises(ValueError, match="not_applicable"):
+        write_verdict(_v(result="not_applicable", reason="x", plants=[{"plant": "p", "caught": True}]), tmp_path)

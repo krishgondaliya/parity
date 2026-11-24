@@ -18,7 +18,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from parity.engine.verdict import Verdict
+from parity.engine.verdict import Verdict, require_self_test
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ class Cell:
 def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
     groups: dict[tuple[str, str, str], list[Verdict]] = defaultdict(list)
     for v in verdicts:
-        groups[(v.model, v.framework, v.check)].append(v)
+        groups[(v.model, v.framework, v.check)].append(require_self_test(v))
 
     cells = []
     for (model, framework, check), vs in sorted(groups.items()):

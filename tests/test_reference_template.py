@@ -300,6 +300,15 @@ def test_template_that_reorders_messages_is_refused(qwen3):
         render_reference(qwen3, load_fixture("multi_turn"), REVERSED_TEMPLATE, "test:reversed")
 
 
+def test_template_that_ignores_add_generation_prompt_is_refused(qwen3):
+    """Otherwise the assistant header would silently become must-train (found by the M2 skeptic review)."""
+    template = qwen3.tokenizer.chat_template
+    no_prompt = template[: template.index("{%- if add_generation_prompt %}")]
+    assert "add_generation_prompt" not in no_prompt
+    with pytest.raises(TemplateReferenceError, match="generation prompt adds nothing"):
+        render_reference(qwen3, load_fixture("single_turn"), no_prompt, "test:no-generation-prompt")
+
+
 def test_template_without_a_stop_token_is_refused(qwen3):
     with pytest.raises(TemplateReferenceError, match="no stop token"):
         render_reference(qwen3, load_fixture("single_turn"), NO_STOP_TEMPLATE, "test:no-stop")

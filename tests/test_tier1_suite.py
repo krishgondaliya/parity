@@ -101,7 +101,7 @@ def test_real_world_and_synthetic_plants(qwen3, official):
         "pad_is_closing_token_masked",
         "history_false_as_python",
     }
-    assert len(origins) == 14
+    assert len(origins) == 15
 
 
 @pytest.mark.parametrize("check", TIER1_CHECKS, ids=lambda c: c.id)

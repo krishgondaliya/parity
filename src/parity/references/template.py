@@ -276,6 +276,13 @@ def assistant_spans_by_prefix_diff(
             )
         if not msg_start <= content_start <= msg_end:
             raise TemplateReferenceError(f"message {k}: generation prompt runs past the end of the message")
+        if content_start == msg_start and not has_generation_markers(template):
+            # Without a generation prompt the assistant's header would count as content
+            # (must-train). Only the template's own markers could say otherwise.
+            raise TemplateReferenceError(
+                f"message {k}: the generation prompt adds nothing, so the assistant header can't be told apart "
+                "from its content, and the template has no generation markers to say where content starts"
+            )
 
         t_content = _token_boundary(offsets, content_start)
         t_msg_end = _token_boundary(offsets, msg_end)

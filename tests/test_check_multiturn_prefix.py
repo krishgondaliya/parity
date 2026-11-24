@@ -17,7 +17,7 @@ from parity.engine.runner import evaluate
 from parity.engine.summary import summarize
 from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.properties import boundaries, break_signature, prefix_break_property_id
-from parity.references.template import template_sha256
+from parity.references.template import template_sha256, template_token_ids
 
 CHECK = MultiturnPrefix()
 APPLICABLE = {"multi_turn": [2, 4], "tool_call": [2], "reasoning": [2], "empty_assistant": [2]}
@@ -52,7 +52,7 @@ def test_template_breaks_match_the_references_prefix_breaks(qwen3):
         assert [j for j in boundaries(fx) if j in ref.prefix_breaks] == expected
         full = ref.input_ids
         for j in boundaries(fx):
-            prefix_ids = qwen3.tokenizer.apply_chat_template(fx.prefix(j).messages, tools=fx.tools, chat_template=template)
+            prefix_ids = template_token_ids(qwen3.tokenizer, fx.prefix(j), template)
             assert bool(break_signature(prefix_ids, full)) == (j in ref.prefix_breaks)
 
 
@@ -151,3 +151,22 @@ def test_a_dropped_prefix_fails(qwen3, official):
 )
 def test_break_signature(prefix, full, expected):
     assert break_signature(prefix, full) == expected
+
+
+def _rejects_string_arguments(template: str) -> str:
+    """Qwen3's template, changed to refuse tool-call arguments given as a string (as Inkling's and Hy4's do)."""
+    branch = "{%- if tool_call.arguments is string %}"
+    assert template.count(branch) == 1
+    return template.replace(branch, branch + "{{ raise_exception('tool call arguments must be a parsed object') }}")
+
+
+def test_a_plant_the_declared_template_cant_render_is_not_applied(qwen3):
+    """Found by the M2 skeptic review: on such templates the plant used to crash, so tool_call was inconclusive."""
+    from stubs import TemplateStub
+
+    template = _rejects_string_arguments(official_template(qwen3))
+    stub = TemplateStub(qwen3, chat_template=template, template_source="test:rejects-string-arguments")
+    fx = load_fixture("tool_call")
+    assert {p.name for p in CHECK.plants(qwen3, fx, stub.declare(TrainCfg()))} == {"history_edit"}
+    v = evaluate(CHECK, stub, fx)
+    assert (v.result, v.self_test) == ("pass", "caught"), (v.reason, v.plants)

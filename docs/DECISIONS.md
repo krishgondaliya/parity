@@ -14,6 +14,32 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: M2 skeptic review: five bugs fixed
+- Decision: an independent review (the `skeptic` subagent) of everything M2 added found these. Each fix has a test that failed before it.
+  1. **A pass without its self-test could be counted.** `summarize`, `write_verdict` and `read_verdict` now refuse a pass or fail unless its self-test was caught and every planted-fault record says caught. A raw `check.run` result, or a hand-edited JSON file, can't count (rule 3 at the record level).
+  2. **The reference cache ignored key order in dicts.** It hashed conversations with sorted keys, but transformers' `tojson` keeps key order, so two conversations that differ only in key order shared stale token ids. It now hashes in order.
+  3. **The reference silently trusted templates that ignore `add_generation_prompt`.** The assistant header became must-train without any error. It now refuses when the generation prompt adds nothing and the template has no generation markers. Inkling still computes, because its markers agree.
+  4. **The `false` → `False` planted fault crashed on templates that refuse string tool arguments.** It crashed on Inkling and Hy4, making their multi-turn prefix cells inconclusive. It is now skipped when the declared template can't render it (decided from the template, before any framework output). With stand-ins, all six checks now compute on Inkling and Hy4.
+  5. **No planted fault guarded the padding part of `t1.special_tokens`.** The pad = EOS fault also masked each row, so the row rule caught it first.
+     - The real-world fault now masks only at collation, as transformers' collator does, so it guards the padding part.
+     - A new synthetic per-row variant guards the row rule, and it is the only pad fault when the framework packs.
+     - Mutation tests confirm each part is guarded. There are now 15 planted faults; 3 are real-world.
+- Also found and fixed while doing this: `test_template_breaks_match_the_references_prefix_breaks` was vacuous. It compared the keys of the dict `apply_chat_template` returns in transformers 5 with token ids, so it could never fail. It now compares real ids, and passes.
+- Not fixed: the review's design questions are open below and in `docs/STATUS.md`.
+- Evidence: `tests/test_engine.py` (record-level self-test), `tests/test_checks_common.py` (cache key), `tests/test_reference_template.py::test_template_that_ignores_add_generation_prompt_is_refused`, `tests/test_check_multiturn_prefix.py::test_a_plant_the_declared_template_cant_render_is_not_applied`, `tests/test_check_special_tokens.py` (the two mutation tests). The review's scratch scripts lived in the session scratchpad; the tests are the durable record.
+- Open for the human (from the review):
+  - **DeepSeek V4.1:** every cell is `inconclusive`. Its generation prompt pre-fills `<think>`, but history turns render `</think>` instead, so the reference refuses on 4 of the 8 fixtures. Either anchor content at the longest common prefix and record "prefill missing from history" as a template property, or keep refusing.
+  - **Circularity:** the official stand-in is circular for all six checks, and the TRL stand-in is circular for every check except template parity. Independent evidence comes only from unit tests (golden spans, TRL markers, KD-0001) and from the planted faults.
+  - **Rules no planted fault guards on Qwen3:** `end_of_turn`'s `missing_or_replaced` and `wrong_label` branches, `label_mismatch`, the leading-special and count rules. Most planted faults are blatant; the review proposed harder variants.
+  - **Other design questions:**
+    - A cut row with zero must-train tokens passes truncation.
+    - `declare()` is read with `base_cfg`, not the config used to encode.
+    - A `packed` declaration is never verified.
+    - Marker disagreements are not a first-class report property.
+    - Multi-turn prefix can blame prefix handling for a data bug (dropped reasoning) that template parity owns.
+    - The `history_false_as_python` source matches Prime Intellect's symptom, not its mechanism, and has no URL.
+- Reversible? yes
+
 ## 2026-11-23: M2 follow-ups: declarations are verified, planted faults are tagged, template properties are reported
 - Decision:
   - **Declarations are claims, and checks verify them.** Every verdict records the adapter's declaration and, per field, whether behavior confirmed it.

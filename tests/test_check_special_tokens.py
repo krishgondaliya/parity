@@ -10,13 +10,14 @@ import pytest
 from stubs import TemplateStub, plant_named, run_on_all_fixtures, with_a_plant_that_does_nothing
 
 from parity.adapters.base import LABEL_IGNORE, Batch, Encoded, TrainCfg
-from parity.checks.tier1.special_tokens import SpecialTokens, batch_plan
+from parity.checks.tier1 import special_tokens as special_tokens_module
+from parity.checks.tier1.special_tokens import SpecialTokens, _PaddingResult, batch_plan
 from parity.engine.plants import PlantedAdapter
 from parity.engine.runner import evaluate
 from parity.fixtures import FIXTURE_IDS, load_fixture
 
 CHECK = SpecialTokens()
-PLANTS = {"extra_leading_special", "pad_is_closing_token_masked"}
+PLANTS = {"extra_leading_special", "pad_is_closing_token_masked", "closing_token_masked_per_row"}
 
 
 @pytest.mark.parametrize("stub", ["official", "trl_markers"])
@@ -67,13 +68,17 @@ def test_extra_leading_special_is_reported(qwen3, official):
     assert lead["expected"] == ["<|im_start|>"] and lead["got"] == ["<|endoftext|>", "<|im_start|>"]
 
 
-def test_pad_equal_to_the_closing_token_reports_untrained_stop_tokens(qwen3, official):
+@pytest.mark.parametrize(
+    "name, where",
+    [("pad_is_closing_token_masked", {"padded batch"}), ("closing_token_masked_per_row", {"row", "padded batch"})],
+)
+def test_pad_equal_to_the_closing_token_reports_untrained_stop_tokens(qwen3, official, name, where):
     fx = load_fixture("multi_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), "pad_is_closing_token_masked")
+    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), name)
     v = CHECK.run(plant.apply(official), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     lost = [p for p in v.evidence["problems"] if p["rule"] == "stop_tokens_trained"]
-    assert {p["where"] for p in lost} == {"row", "padded batch"}
+    assert {p["where"] for p in lost} == where
     assert all(p["tokens"] == ["<|im_end|>"] * 3 for p in lost)
 
 
@@ -154,3 +159,35 @@ def test_a_consistent_padded_batch_verifies_batching_and_pad_token(official):
     v = evaluate(CHECK, official, load_fixture("single_turn"))
     verified = v.declaration["verified"]
     assert (verified["batching"], verified["pad_token_id"], verified["chat_template"]) == ("consistent",) * 3
+
+
+# Each part of the check is guarded by a planted fault of its own (found by the M2 skeptic review:
+# the pad fault used to be caught by the row rule alone, so the padding part was unguarded).
+
+
+def test_the_collator_pad_fault_is_caught_only_by_the_padding_part(qwen3, official, monkeypatch):
+    fx = load_fixture("single_turn")
+    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), "pad_is_closing_token_masked")
+    v = CHECK.run(plant.apply(official), qwen3, fx)
+    assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "fail"}
+
+    monkeypatch.setattr(SpecialTokens, "_padding", lambda self, *args: _PaddingResult(side="right"))
+    v = evaluate(CHECK, official, fx)
+    assert (v.result, v.self_test) == ("inconclusive", "missed")
+    assert [p["plant"] for p in v.plants if not p["caught"]] == ["pad_is_closing_token_masked"]
+
+
+def test_the_per_row_pad_fault_guards_the_row_rule_when_the_framework_packs(qwen3, monkeypatch):
+    packed = TemplateStub(qwen3, batching="packed")
+    fx = load_fixture("multi_turn")
+    names = {p.name for p in CHECK.plants(qwen3, fx, packed.declare(TrainCfg()))}
+    assert names == {"extra_leading_special", "closing_token_masked_per_row"}  # no collator fault without padding
+
+    original = special_tokens_module._untrained_stop_tokens
+    monkeypatch.setattr(
+        special_tokens_module,
+        "_untrained_stop_tokens",
+        lambda tokenizer, release, ref, row, where: [] if where == "row" else original(tokenizer, release, ref, row, where),
+    )
+    v = evaluate(CHECK, packed, fx)
+    assert (v.result, v.self_test) == ("inconclusive", "missed")

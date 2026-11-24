@@ -93,11 +93,32 @@ def make_verdict(check_id: str, adapter: Any, fixture_id: str, result: str, **fi
     )
 
 
+def require_self_test(verdict: Verdict) -> Verdict:
+    """Rule 3 at the record level: a pass or fail counts only with its self-test caught.
+
+    `check.run` returns verdicts without a self-test; only `engine.runner.evaluate`
+    adds one. Writing, reading and summarizing all go through this, so a raw or
+    hand-edited pass can never be counted.
+    """
+    if verdict.result in ("pass", "fail"):
+        plants = verdict.plants
+        if verdict.self_test != "caught" or not plants or not all(p.get("caught") for p in plants):
+            raise ValueError(
+                f"{verdict.check} on {verdict.fixture}: a {verdict.result} counts only with its self-test caught "
+                f"(self_test={verdict.self_test!r}, {len(plants)} planted fault record(s)); "
+                "run it through parity.engine.runner.evaluate"
+            )
+    if verdict.result == "not_applicable" and (verdict.self_test is not None or verdict.plants):
+        raise ValueError(f"{verdict.check} on {verdict.fixture}: a not_applicable verdict runs no planted fault")
+    return verdict
+
+
 def verdict_filename(verdict: Verdict) -> str:
     return f"{verdict.check}__{verdict.fixture}.json"
 
 
 def write_verdict(verdict: Verdict, directory: Path) -> Path:
+    require_self_test(verdict)
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / verdict_filename(verdict)
     path.write_text(verdict.to_json(), encoding="utf-8")
@@ -105,4 +126,4 @@ def write_verdict(verdict: Verdict, directory: Path) -> Path:
 
 
 def read_verdict(path: Path) -> Verdict:
-    return Verdict(**json.loads(path.read_text(encoding="utf-8")))
+    return require_self_test(Verdict(**json.loads(path.read_text(encoding="utf-8"))))
