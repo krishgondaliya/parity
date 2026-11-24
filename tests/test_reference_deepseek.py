@@ -88,8 +88,10 @@ def test_golden_anchored_spans_qwen3_non_thinking(qwen3, qwen3_non_thinking):
     ]
 
 
-def test_deepseek_history_turns_still_refuse_for_the_merge(deepseek):
-    """Anything other than the missing pre-fill still refuses."""
+def test_deepseek_history_turns_still_refuse(deepseek):
+    """The cut-out fails (the template merges the user messages around a removed turn), and the structural
+    method's guard refuses too: DeepSeek declares <｜Assistant｜> as an added token, not a special one."""
+    assert not deepseek.tokenizer.added_tokens_decoder[_id(deepseek, "<｜Assistant｜>")].special
     refused = {}
     for fid in FIXTURE_IDS:
         try:
@@ -97,7 +99,51 @@ def test_deepseek_history_turns_still_refuse_for_the_merge(deepseek):
         except TemplateReferenceError as exc:
             refused[fid] = str(exc)
     assert set(refused) == {"multi_turn", "reasoning", "empty_assistant", "tool_call"}
-    assert all("cutting it out of the full render" in reason for reason in refused.values())
+    for reason in refused.values():
+        assert "cutting it out of the full render" in reason
+        assert "isn't a header token the tokenizer declares special" in reason
+
+
+def _id(release, token):
+    return release.tokenizer.convert_tokens_to_ids(token)
+
+
+def test_thinking_off_evidence_puts_the_history_close_tag_prompt_side(deepseek):
+    """With thinking off, DeepSeek's generation prompt ends in the same </think> its history turns carry after
+    the header: a pre-fill, so prompt side and never trained (same rule as <think>)."""
+    from parity.references.template import THINKING_OFF, render_text
+
+    tok, template, fx = deepseek.tokenizer, official_template(deepseek), load_fixture("multi_turn")
+    base = render_text(tok, fx.messages[:1], None, template, **THINKING_OFF)
+    prompt = render_text(tok, fx.messages[:1], None, template, add_generation_prompt=True, **THINKING_OFF)
+    assert prompt[len(base) :] == "<｜Assistant｜></think>"
+    full = render_text(tok, fx.messages, None, template)
+    assert full.count("<｜Assistant｜></think>Paris.") == 1 and full.count("<｜Assistant｜></think>Tokyo.") == 1
+
+
+def test_with_added_token_headers_the_structural_method_would_give(deepseek):
+    """Not in use: what DeepSeek's history turns would be if added tokens were accepted as headers."""
+    from parity.references.template import (
+        _generation_prompt_renders,
+        _tokenize_with_offsets,
+        render_text,
+        structural_span,
+    )
+
+    tok, template, fx = deepseek.tokenizer, official_template(deepseek), load_fixture("multi_turn")
+    full = render_text(tok, fx.messages, None, template)
+    ids, offsets = _tokenize_with_offsets(tok, full)
+    renders, _ = _generation_prompt_renders(tok, fx, template, full)
+    added = frozenset(tok.added_tokens_decoder)
+    got = []
+    for k in (1, 3):
+        span, prefix = structural_span(deepseek, fx, template, k, full, ids, offsets, renders[k][0], added)
+        header = _decode(tok, ids[span.token_message_start : span.token_start])
+        got.append((header, prefix, _decode(tok, ids[span.token_start : span.token_end]), span.method))
+    assert got == [
+        ("<｜Assistant｜></think>", "</think>", "Paris." + EOS, "structural"),
+        ("<｜Assistant｜></think>", "</think>", "Tokyo." + EOS, "structural"),
+    ]
 
 
 def test_deepseek_has_the_pre_fill_property(deepseek):

@@ -14,6 +14,27 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Structural delimiting of history turns, with guards; DeepSeek still refuses on the header guard
+- Decision (human):
+  - Where the cut-out can't delimit an assistant turn, the reference tries a structural method (`structural_span`). It is used only if all of these hold:
+    - the turn starts with a header token the tokenizer declares special, and closes with a stop token that is also declared special;
+    - the text between the header and the content is exactly what a generation prompt adds after that header. The default prompt is tried first, then the thinking-off one; each prompt's tail is taken against the same mode's render without it. That text must also be identical at every structurally delimited turn;
+    - the message's content appears exactly once between the header and the stop token, right after that text.
+  - The span runs from the content through the stop token, and whitespace right after the stop token is neutral.
+  - **`</think>` in DeepSeek history turns is decided by evidence.** DeepSeek's generation prompt with thinking off ends in `<｜Assistant｜></think>`, the same text its history turns carry after the header. So `</think>` is a pre-fill: prompt side, never trained.
+- **Validation** (`docs/evidence/2026-11-24-structural-validation/`): the structural method ran on every turn of every fixture on Qwen3, Inkling, Hy4 and DeepSeek, and was compared token for token with the cut-out wherever both compute.
+  - There are **0 disagreements**. But that's thin evidence: both compute on only 3 turns, all Qwen3 history turns. The guards rarely let the structural method compute where the cut-out works:
+    - last turns carry a think block before the content;
+    - Inkling's generation prompt is empty;
+    - Hy4 puts text between header and content that no generation prompt adds.
+  - It's wired in under the guard as decided, and changes no result today.
+- **Result on DeepSeek: still refuses.** DeepSeek declares `<｜Assistant｜>` as an added token, not a special one (`special: false`), so the header guard fails on every history turn.
+  - If added tokens were accepted as headers, `multi_turn` (turns 1 and 3) and `reasoning` (turn 1) would compute, with `</think>` prompt side and spans `Paris.<eos>`, `Tokyo.<eos>`, `No. 91 = 7 * 13, so it is not prime.<eos>`. This is shown in `docs/evidence/golden-review.md`, marked NOT IN USE.
+  - `empty_assistant` and `tool_call` would still refuse: their first assistant turn has no text content to locate.
+- Open for the human: accept tokenizer-declared added tokens (special or not) as headers for the structural method?
+- Evidence: `tests/test_reference_deepseek.py` (header guard, thinking-off evidence, what added-token headers would give), `tests/test_reference_template.py::test_the_structural_method_agrees_with_the_cut_out_where_both_compute`.
+- Reversible? yes
+
 ## 2026-11-24: M3 TRL adapter, and the first run on a real framework
 - Decision:
   - **Adapter.** `src/parity/adapters/trl.py` builds an `SFTTrainer` the way a user would and reads `trainer.train_dataset` through `trainer.data_collator`. It never tokenizes or applies a template itself.

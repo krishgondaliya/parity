@@ -116,6 +116,7 @@ class AssistantSpan:
     token_message_end: int  # one past the whole rendered message (may include a separator)
     token_message_start: int | None = None  # first token of the message (its role header); None if mid-token
     prefill_missing: str | None = None  # the generation prompt's pre-fill, when this turn renders without it
+    method: str = "prefix_diff"  # or "structural" (see structural_span)
 
 
 @dataclass(frozen=True)
@@ -273,53 +274,178 @@ def assistant_spans_by_prefix_diff(
     renders, seen_in_full = _generation_prompt_renders(tokenizer, fixture, template, full)
 
     spans = []
+    structural_prefixes = set()
     for k in fixture.assistant_indices:
         before, prompt = renders[k]
         try:
-            without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
-        except jinja2.TemplateError as exc:
-            raise TemplateReferenceError(
-                f"message {k}: the template refuses the conversation without it ({exc}), so it can't be cut out"
-            ) from exc
-        msg_start, prefill = len(before), None
-        if full.startswith(prompt):
-            content_start = len(prompt)
-        else:
-            anchored = _prefill_anchor(tokenizer, full, before, prompt, seen_in_full)
-            if anchored is None:
+            span = _span_by_cut_out(loaded, fixture, template, k, full, ids, offsets, before, prompt, seen_in_full)
+        except TemplateReferenceError as cut_out_error:
+            # Only where the cut-out can't delimit the turn: the structural method, with its own guards.
+            found = structural_span(loaded, fixture, template, k, full, ids, offsets, before)
+            if isinstance(found, str):
+                raise TemplateReferenceError(f"{cut_out_error}; structural method: {found}") from cut_out_error
+            span, prefix = found
+            structural_prefixes.add(prefix)
+            if len(structural_prefixes) > 1:
                 raise TemplateReferenceError(
-                    f"message {k}: generation prompt render is not a prefix of the full render"
-                )
-            content_start, prefill = anchored
-        msg_end = msg_start + len(full) - len(without)
-        if msg_end <= msg_start or full[:msg_start] + full[msg_end:] != without:
-            raise TemplateReferenceError(
-                f"message {k}: cutting it out of the full render does not give the render without it"
-            )
-        if not msg_start <= content_start <= msg_end:
-            raise TemplateReferenceError(f"message {k}: generation prompt runs past the end of the message")
-        if content_start == msg_start and not has_generation_markers(template):
-            # Without a generation prompt the assistant's header would count as content
-            # (must-train). Only the template's own markers could say otherwise.
-            raise TemplateReferenceError(
-                f"message {k}: the generation prompt adds nothing, so the assistant header can't be told apart "
-                "from its content, and the template has no generation markers to say where content starts"
-            )
-
-        t_content = _token_boundary(offsets, content_start)
-        t_msg_end = _token_boundary(offsets, msg_end)
-        stops = [i for i in range(t_content, t_msg_end) if ids[i] in loaded.stop_token_ids]
-        if not stops:
-            raise TemplateReferenceError(f"message {k}: no stop token inside the assistant message")
-        t_end = stops[-1] + 1
-
-        _check_decodes_exactly(tokenizer, ids, offsets, full, t_content, t_end, k)
-        try:
-            t_msg_start: int | None = _token_boundary(offsets, msg_start)
-        except TemplateReferenceError:
-            t_msg_start = None  # only the header planted fault needs it; it doesn't apply then
-        spans.append(AssistantSpan(k, t_content, t_end, t_msg_end, t_msg_start, prefill))
+                    f"message {k}: structural method: the text between header and content differs between turns "
+                    f"({sorted(structural_prefixes)})"
+                ) from cut_out_error
+            _check_decodes_exactly(tokenizer, ids, offsets, full, span.token_start, span.token_end, k)
+        spans.append(span)
     return tuple(spans)
+
+
+def _span_by_cut_out(
+    loaded: LoadedRelease,
+    fixture: Conversation,
+    template: str,
+    k: int,
+    full: str,
+    ids: list[int],
+    offsets: list[tuple[int, int]],
+    before: str,
+    prompt: str,
+    seen_in_full: set[str],
+) -> AssistantSpan:
+    """The prefix-diff span for message k (see the module docstring)."""
+    tokenizer = loaded.tokenizer
+    messages, tools = fixture.messages, fixture.tools
+    try:
+        without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
+    except jinja2.TemplateError as exc:
+        raise TemplateReferenceError(
+            f"message {k}: the template refuses the conversation without it ({exc}), so it can't be cut out"
+        ) from exc
+    msg_start, prefill = len(before), None
+    if full.startswith(prompt):
+        content_start = len(prompt)
+    else:
+        anchored = _prefill_anchor(tokenizer, full, before, prompt, seen_in_full)
+        if anchored is None:
+            raise TemplateReferenceError(
+                f"message {k}: generation prompt render is not a prefix of the full render"
+            )
+        content_start, prefill = anchored
+    msg_end = msg_start + len(full) - len(without)
+    if msg_end <= msg_start or full[:msg_start] + full[msg_end:] != without:
+        raise TemplateReferenceError(
+            f"message {k}: cutting it out of the full render does not give the render without it"
+        )
+    if not msg_start <= content_start <= msg_end:
+        raise TemplateReferenceError(f"message {k}: generation prompt runs past the end of the message")
+    if content_start == msg_start and not has_generation_markers(template):
+        # Without a generation prompt the assistant's header would count as content
+        # (must-train). Only the template's own markers could say otherwise.
+        raise TemplateReferenceError(
+            f"message {k}: the generation prompt adds nothing, so the assistant header can't be told apart "
+            "from its content, and the template has no generation markers to say where content starts"
+        )
+
+    t_content = _token_boundary(offsets, content_start)
+    t_msg_end = _token_boundary(offsets, msg_end)
+    stops = [i for i in range(t_content, t_msg_end) if ids[i] in loaded.stop_token_ids]
+    if not stops:
+        raise TemplateReferenceError(f"message {k}: no stop token inside the assistant message")
+    t_end = stops[-1] + 1
+
+    _check_decodes_exactly(tokenizer, ids, offsets, full, t_content, t_end, k)
+    try:
+        t_msg_start: int | None = _token_boundary(offsets, msg_start)
+    except TemplateReferenceError:
+        t_msg_start = None  # only the header planted fault needs it; it doesn't apply then
+    return AssistantSpan(k, t_content, t_end, t_msg_end, t_msg_start, prefill)
+
+
+THINKING_OFF = {"enable_thinking": False, "thinking": False}  # the two names chat templates use
+
+
+def declared_special_ids(tokenizer: PreTrainedTokenizerBase) -> frozenset[int]:
+    """Tokens the tokenizer declares special (not merely added, like DeepSeek's <｜Assistant｜>)."""
+    ids = set(tokenizer.all_special_ids)
+    ids.update(i for i, token in tokenizer.added_tokens_decoder.items() if token.special)
+    return frozenset(ids)
+
+
+def structural_span(
+    loaded: LoadedRelease,
+    conv: Conversation,
+    template: str,
+    k: int,
+    full: str,
+    ids: list[int],
+    offsets: list[tuple[int, int]],
+    before: str,
+    header_ids: frozenset[int] | None = None,
+) -> tuple[AssistantSpan, str] | str:
+    """Delimit assistant message k by its structure, or say why not. Returns (span, header-to-content text) or a reason.
+
+    Used only where the cut-out can't delimit a turn (DeepSeek V4.1 merges the user messages around a removed
+    assistant turn). Guards, all required:
+    - the message starts with a header token the tokenizer declares special (`header_ids`, default
+      `declared_special_ids`), and closes with a stop token that is also declared special;
+    - the text between the header and the content is exactly what a generation prompt adds after that header:
+      the default one, or with thinking turned off (each prompt's tail is taken against the same mode's render
+      without it, since a mode can change earlier text too, e.g. DeepSeek drops its default system prompt). That
+      makes it template-emitted and prompt side by evidence (DeepSeek: history turns carry `</think>`, which is
+      its thinking-off pre-fill). The caller also requires it to be identical at every structurally delimited turn;
+    - the message's content string appears exactly once between the header and the stop token, right after that
+      text.
+    The span runs from the content through the stop token; whitespace-only tokens right after it are neutral.
+    """
+    tokenizer = loaded.tokenizer
+    specials = declared_special_ids(tokenizer)
+    header_ids = specials if header_ids is None else header_ids
+    msg_start = len(before)
+    try:
+        t_header = _token_boundary(offsets, msg_start)
+    except TemplateReferenceError:
+        return f"message {k}: the message starts inside a token"
+    if t_header >= len(ids) or ids[t_header] not in header_ids:
+        shown = tokenizer.decode([ids[t_header]]) if t_header < len(ids) else "the end"
+        return f"message {k}: it starts with {shown!r}, which isn't a header token the tokenizer declares special"
+    header_end = offsets[t_header][1]
+    header = full[msg_start:header_end]
+
+    prefix = None
+    for kwargs in ({}, THINKING_OFF):
+        # The generation prompt's own tail: its render minus the same mode's render without it.
+        base = render_text(tokenizer, conv.messages[:k], conv.tools, template, **kwargs)
+        prompt = render_text(tokenizer, conv.messages[:k], conv.tools, template, add_generation_prompt=True, **kwargs)
+        if not prompt.startswith(base):
+            continue
+        tail = prompt[len(base) :]
+        if tail.startswith(header) and full.startswith(tail, msg_start):
+            prefix = tail[len(header) :]
+            break
+    if prefix is None:
+        return f"message {k}: no generation prompt (default or thinking off) matches the text after its header"
+    content_start = header_end + len(prefix)
+
+    content = conv.messages[k].get("content")
+    if not isinstance(content, str) or not content:
+        return f"message {k}: it has no text content to locate"
+    if not full.startswith(content, content_start):
+        return f"message {k}: its content doesn't follow the generation prompt's text directly"
+    try:
+        t_content = _token_boundary(offsets, content_start)
+    except TemplateReferenceError:
+        return f"message {k}: its content starts inside a token"
+    stops = [i for i in range(t_content, len(ids)) if ids[i] in loaded.stop_token_ids]
+    if not stops:
+        return f"message {k}: no stop token after its content"
+    t_stop = stops[0]
+    if ids[t_stop] not in specials:
+        return f"message {k}: its stop token isn't declared special"
+    if full[header_end : offsets[t_stop][0]].count(content) != 1:
+        return f"message {k}: its content doesn't appear exactly once between the header and the stop token"
+
+    t_end = t_stop + 1
+    t_message_end = t_end
+    while t_message_end < len(ids) and tokenizer.decode([ids[t_message_end]]).isspace():
+        t_message_end += 1
+    span = AssistantSpan(k, t_content, t_end, t_message_end, t_header, None, "structural")
+    return span, prefix
 
 
 def _generation_prompt_renders(
@@ -424,6 +550,7 @@ def render_text(
     tools: list[dict[str, Any]] | None,
     chat_template: str,
     add_generation_prompt: bool = False,
+    **template_kwargs: Any,
 ) -> str:
     return tokenizer.apply_chat_template(
         messages,
@@ -431,6 +558,7 @@ def render_text(
         chat_template=chat_template,
         add_generation_prompt=add_generation_prompt,
         tokenize=False,
+        **template_kwargs,
     )
 
 

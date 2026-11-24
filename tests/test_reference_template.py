@@ -352,3 +352,34 @@ def test_a_template_that_refuses_the_cut_conversation_is_a_reference_refusal(qwe
     template = guard + qwen3.tokenizer.chat_template
     with pytest.raises(TemplateReferenceError, match="refuses the conversation without it"):
         render_reference(qwen3, load_fixture("tool_call"), template, "test:refuses-orphan-tool-result")
+
+
+def test_the_structural_method_agrees_with_the_cut_out_where_both_compute(qwen3):
+    """Regression for the validation in docs/evidence/2026-11-24-structural-validation/: Qwen3's history turns."""
+    from parity.references.template import (
+        _generation_prompt_renders,
+        _span_by_cut_out,
+        _tokenize_with_offsets,
+        render_text,
+        structural_span,
+    )
+
+    template, compared = qwen3.tokenizer.chat_template, 0
+    for fid in FIXTURE_IDS:
+        fx = load_fixture(fid)
+        full = render_text(qwen3.tokenizer, fx.messages, fx.tools, template)
+        ids, offsets = _tokenize_with_offsets(qwen3.tokenizer, full)
+        renders, seen = _generation_prompt_renders(qwen3.tokenizer, fx, template, full)
+        for k in fx.assistant_indices:
+            before, prompt = renders[k]
+            cut = _span_by_cut_out(qwen3, fx, template, k, full, ids, offsets, before, prompt, seen)
+            found = structural_span(qwen3, fx, template, k, full, ids, offsets, before)
+            if not isinstance(found, str):
+                compared += 1
+                assert (cut.token_start, cut.token_end, cut.token_message_end, cut.token_message_start) == (
+                    found[0].token_start,
+                    found[0].token_end,
+                    found[0].token_message_end,
+                    found[0].token_message_start,
+                ), (fid, k)
+    assert compared == 3
