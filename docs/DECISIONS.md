@@ -14,6 +14,19 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Token-level false→False plant; "tool arguments" is a declared, behavior-verified framework property
+- Decision:
+  - **New plant `history_false_as_python_tokens`** (synthetic) on `t1.multiturn_prefix`. In the framework's encoded output, inside every assistant turn that isn't the conversation's last message, tokens spelling `false` are swapped for their single-token `False` counterpart, labels included. The prefix encoding, where that turn is the latest, is untouched. So every framework keeps a guard on the history re-render rule, whatever it does with string arguments. 21 plants now.
+  - **The input-level `history_false_as_python` is skipped where the framework declares `parsed_as_json`.** Such a framework refuses a Python repr, so this fault can't arise there, and the planted run only crashed: that is what made Axolotl's `tool_call` cell inconclusive.
+  - **`Declaration.tool_arguments`**: `parsed_as_json` or `passed_through`. Neither framework has an option for it, so it is declared from a version-pinned source link:
+    - TRL 1.18.2: `passed_through` (`trl/trainer/sft_trainer.py#L1360-L1381`: messages go to `apply_chat_template` unchanged; the installed file is identical to the tag).
+    - Axolotl 0.21.1: `parsed_as_json` (`prompt_strategies/chat_template.py#L1402-L1415`: `json.loads`, raises on failure).
+  - **Verified by behavior** on fixtures with dict tool arguments. The check also encodes the conversation with every argument given as a compact JSON string (`{"celsius":false}`). Passing it through renders it verbatim; parsing re-serializes it as the dict renders (`{"celsius": false}`). So the two behaviors give different tokens and neither needs an error path. A contradicted declaration makes the verdict inconclusive with `declared_actual_mismatch`.
+  - **On the report card**: a "Framework properties" section shows the declared value and the behavior result for each framework.
+- Why: the human's decision on the open question from the Axolotl run.
+- Evidence: `src/parity/checks/tier1/multiturn_prefix.py`, `src/parity/adapters/base.py`, `tests/test_tool_arguments.py`.
+- Reversible? yes.
+
 ## 2026-11-24: Shared root causes count once; every fail links to its root cause
 - Decision:
   - Every cell keeps its own verdict. Each fail gets `Verdict.root_cause`, and the report card and Gate A count root causes, not cells (`src/parity/engine/root_causes.py`).

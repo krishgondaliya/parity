@@ -15,7 +15,10 @@ Results come in one table per serving mode (parity.serving). The primary mode
 comes first; any other mode is a clearly labeled secondary result: the same
 encoded rows, judged against a second reference rendered in that mode.
 
-3. Fails by root cause: fails are counted by root cause, not by cell
+3. Framework properties: behavior a framework declares that no check grades
+   pass/fail but users need to know (tool arguments parsed as JSON or passed
+   through), with whether the framework's behavior confirmed it.
+4. Fails by root cause: fails are counted by root cause, not by cell
    (parity.engine.root_causes). Each root cause lists the cells it explains;
    each untriaged fail is listed on its own and counts as its own root cause.
 """
@@ -90,8 +93,46 @@ def render_summary(
                     "",
                 ]
             lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
+        lines += _framework_properties([v for v in verdicts if v.model == model])
         lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode)
     return "\n".join(lines)
+
+
+PROPERTY_LABELS = {
+    "tool_arguments": (
+        "tool-call arguments given as a string",
+        {"parsed_as_json": "parsed as JSON, then rendered like a dict", "passed_through": "rendered verbatim"},
+    ),
+}
+
+
+def _framework_properties(verdicts: list[Verdict]) -> list[str]:
+    rows = []
+    for framework in sorted({v.framework for v in verdicts}):
+        mine = [v for v in verdicts if v.framework == framework and v.declaration.get("verified")]
+        for field, (label, values) in PROPERTY_LABELS.items():
+            declared = {v.declaration.get(field) for v in mine} - {None}
+            if not declared:
+                continue
+            checks = sorted(
+                {
+                    f"{v.declaration['verified'][field]} ({v.check} on {v.fixture})"
+                    for v in mine
+                    if v.declaration["verified"].get(field, "unverified") != "unverified"
+                }
+            )
+            shown = ", ".join(values.get(d, d) for d in sorted(declared))
+            rows.append(f"| {framework} | {label} | {shown} | {'; '.join(checks) or 'unverified'} |")
+    if not rows:
+        return []
+    return [
+        "### Framework properties",
+        "",
+        "| Framework | Property | Declared | Verified by behavior |",
+        "| --- | --- | --- | --- |",
+        *rows,
+        "",
+    ]
 
 
 def _root_cause_section(verdicts: list[Verdict], primary_mode: str) -> list[str]:

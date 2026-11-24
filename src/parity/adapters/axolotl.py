@@ -86,6 +86,7 @@ DOCS = {
     "schema": f"{BLOB}/src/axolotl/utils/schemas/datasets.py",
     "excess_length": f"{BLOB}/src/axolotl/utils/schemas/config.py",
     "excess_length_default": f"{BLOB}/src/axolotl/utils/data/utils.py#L347",
+    "tool_arguments": f"{BLOB}/src/axolotl/prompt_strategies/chat_template.py#L1402-L1415",
 }
 EXCESS_LENGTH_MODES = {"drop": "drop", "truncate": "right"}
 NO_LIMIT = 8192
@@ -269,6 +270,7 @@ def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
         truncation_mode=EXCESS_LENGTH_MODES[effective],
         batching="packed" if packed else "padded",
         pad_token_id=pad,
+        tool_arguments="parsed_as_json",
         sources=(
             f"chat_template: get_chat_template_from_config(cfg, datasets[0]) with chat_template={choice!r} "
             f"({DOCS['chat_template']})",
@@ -284,5 +286,7 @@ def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
             f"{type(collator).__name__}(pad_to_multiple_of={getattr(collator, 'pad_to_multiple_of', None)}, "
             f"label_pad_token_id={getattr(collator, 'label_pad_token_id', None)}), "
             f"padding_side={tokenizer.padding_side!r}",
+            f"tool_arguments: no option; a string is parsed with json.loads before rendering, and a parse error "
+            f"raises ({DOCS['tool_arguments']})",
         ),
     )

@@ -75,6 +75,7 @@ DOCS = {
         "https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only"
     ),
     "sft_config": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py",
+    "tool_arguments": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381",
 }
 TRUNCATION_MODES = {"keep_start": "right", "keep_end": "left"}
 TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num_attention_heads": 2,
@@ -224,6 +225,7 @@ def _declaration(trainer: SFTTrainer) -> Declaration:
         truncation_mode=truncation,
         batching="packed" if packed else "padded",
         pad_token_id=pad,
+        tool_arguments="passed_through",
         sources=(
             f"chat_template: {where}; template_source: matched against trl/chat_templates/*.jinja",
             f"objective: SFTConfig.assistant_only_loss={args.assistant_only_loss} ({DOCS['assistant_only_loss']})",
@@ -234,6 +236,8 @@ def _declaration(trainer: SFTTrainer) -> Declaration:
             f"batching: SFTTrainer.padding_free={trainer.padding_free}, SFTConfig.packing={args.packing}",
             f"pad_token_id: SFTTrainer.data_collator.pad_token_id={pad}; "
             f"pad_to_multiple_of={args.pad_to_multiple_of!r}",
+            f"tool_arguments: no option; tokenize_fn passes the messages to apply_chat_template unchanged, so a "
+            f"string is rendered verbatim ({DOCS['tool_arguments']})",
         ),
     )
 

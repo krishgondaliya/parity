@@ -17,7 +17,9 @@ proves the checks' logic, not anything about a framework; real calibration is M4
 
 from __future__ import annotations
 
+import copy
 import hashlib
+import json
 from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
@@ -74,6 +76,8 @@ class TemplateStub:
         padding_side: str = "right",
         label_convention: str = "aligned",
         labels_mode: str | None = None,
+        tool_arguments: str | None = None,
+        parses_tool_arguments: bool = False,
     ):
         assert labels_from in ("reference", "markers")
         assert padding_side in ("right", "left")
@@ -90,6 +94,8 @@ class TemplateStub:
         self.padding_side = padding_side
         self.label_convention = label_convention
         self.labels_mode = labels_mode  # labels follow our reference in this serving mode (None: the model's default)
+        self.tool_arguments = tool_arguments  # what declare() says
+        self.parses_tool_arguments = parses_tool_arguments  # what encode() does: json.loads string arguments first
         self.pad_token_id = release.tokenizer.pad_token_id
 
     @property
@@ -105,10 +111,13 @@ class TemplateStub:
             batching=self.batching,
             pad_token_id=self.pad_token_id,
             sources=("test stand-in: constructor arguments",),
+            tool_arguments=self.tool_arguments,
         )
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
         tokenizer = self.release.tokenizer
+        if self.parses_tool_arguments:
+            conv = _parse_tool_arguments(conv)
         ids = template_token_ids(tokenizer, conv, self.template)
         if self.labels_from == "markers":
             marker_ids, mask = assistant_mask_from_markers(tokenizer, conv, self.template)
@@ -147,6 +156,16 @@ class TemplateStub:
             else:
                 out.append(Encoded(pad[0] + r.input_ids, pad[1] + r.labels, pad[2] + r.attention_mask))
         return Batch(tuple(out))
+
+
+def _parse_tool_arguments(conv: Conversation) -> Conversation:
+    messages = copy.deepcopy(conv.messages)
+    for message in messages:
+        for call in message.get("tool_calls") or []:
+            function = call.get("function", call)
+            if isinstance(function.get("arguments"), str):
+                function["arguments"] = json.loads(function["arguments"])
+    return conv.with_messages(messages)
 
 
 def official_stub(release: LoadedRelease, **kwargs) -> TemplateStub:

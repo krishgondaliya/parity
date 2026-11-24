@@ -83,6 +83,7 @@ def test_every_verdict_records_the_declaration_and_every_plant_its_origin(offici
             "truncation_mode",
             "batching",
             "pad_token_id",
+            "tool_arguments",
         }, (v.check, v.fixture)
         for p in v.plants:
             assert p["origin"] in ("real-world", "synthetic")
@@ -102,7 +103,7 @@ def test_real_world_and_synthetic_plants(qwen3, official):
         "mask_closing_tokens",
         "pad_is_closing_token_masked",
     }
-    assert len(origins) == 20
+    assert len(origins) == 21
 
 
 @pytest.mark.parametrize("check", TIER1_CHECKS, ids=lambda c: c.id)

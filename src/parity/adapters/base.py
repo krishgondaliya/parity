@@ -40,6 +40,7 @@ from parity.release import LoadedRelease
 LABEL_IGNORE = -100  # the label value that means "no loss on this token"
 
 OBJECTIVES = ("assistant_only", "completion_only", "all")
+TOOL_ARGUMENTS = ("parsed_as_json", "passed_through")
 SERVING_MODES = ("thinking", "non_thinking")
 LABEL_CONVENTIONS = ("aligned", "pre_shifted")
 TRUNCATION_MODES = ("right", "left", "drop")
@@ -141,6 +142,11 @@ class Declaration:
     truncation_mode: "right" (keep the start), "left" (keep the end) or "drop".
     batching: "padded" or "packed" under this config.
     pad_token_id: the id the framework pads with.
+    tool_arguments: what the framework does with tool-call arguments given as a
+        string: "parsed_as_json" (parsed, then rendered by the template like a
+        dict) or "passed_through" (rendered verbatim). None if not declared.
+        No framework has an option for it, so it is declared from a version-pinned
+        source link and verified by behavior in t1.multiturn_prefix.
     sources: where each value was read from (config field or default), for the verdict.
     """
 
@@ -151,6 +157,7 @@ class Declaration:
     batching: str
     pad_token_id: int | None
     sources: tuple[str, ...] = ()
+    tool_arguments: str | None = None
 
     FIELDS: ClassVar[tuple[str, ...]] = (
         "chat_template",
@@ -158,6 +165,7 @@ class Declaration:
         "truncation_mode",
         "batching",
         "pad_token_id",
+        "tool_arguments",
     )
 
     def record(self, verified: dict[str, str] | None = None, cfg: TrainCfg | None = None) -> dict[str, Any]:
@@ -175,6 +183,7 @@ class Declaration:
             "truncation_mode": self.truncation_mode,
             "batching": self.batching,
             "pad_token_id": self.pad_token_id,
+            "tool_arguments": self.tool_arguments,
             "sources": list(self.sources),
             "verified": status,
         }
@@ -186,6 +195,8 @@ class Declaration:
             raise ValueError(f"truncation_mode must be one of {TRUNCATION_MODES}, got {self.truncation_mode!r}")
         if self.batching not in BATCHING:
             raise ValueError(f"batching must be one of {BATCHING}, got {self.batching!r}")
+        if self.tool_arguments is not None and self.tool_arguments not in TOOL_ARGUMENTS:
+            raise ValueError(f"tool_arguments must be one of {TOOL_ARGUMENTS} or None, got {self.tool_arguments!r}")
 
 
 class Adapter(Protocol):

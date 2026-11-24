@@ -76,7 +76,8 @@ def test_passes_on_trls_prefix_preserving_template(trl_markers):
 def test_plants_on_each_fixture(qwen3, official):
     for fid in APPLICABLE:
         names = {p.name for p in CHECK.plants(qwen3, load_fixture(fid), official.declare)}
-        expected = {"history_edit", "history_false_as_python"} if fid == "tool_call" else {"history_edit"}
+        tool = {"history_false_as_python", "history_false_as_python_tokens"}
+        expected = {"history_edit"} | (tool if fid == "tool_call" else set())
         assert names == expected, fid
 
 
@@ -167,6 +168,7 @@ def test_a_plant_the_declared_template_cant_render_is_not_applied(qwen3):
     template = _rejects_string_arguments(official_template(qwen3))
     stub = TemplateStub(qwen3, chat_template=template, template_source="test:rejects-string-arguments")
     fx = load_fixture("tool_call")
-    assert {p.name for p in CHECK.plants(qwen3, fx, stub.declare)} == {"history_edit"}
+    # The input-level plant is skipped; the token-level one still guards the rule.
+    assert {p.name for p in CHECK.plants(qwen3, fx, stub.declare)} == {"history_edit", "history_false_as_python_tokens"}
     v = evaluate(CHECK, stub, fx)
     assert (v.result, v.self_test) == ("pass", "caught"), (v.reason, v.plants)
