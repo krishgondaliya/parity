@@ -44,6 +44,7 @@ Done when, given the misses plus public context (issues, changelogs, template di
 - **B3:** human-directed checks, written by you with Claude Code over the same calendar window. Log your hours.
 - **Seeds:** 3 independent loop runs from v0.
 
+**You** run the hidden-vault wrapper for each of these (as the vault user; see the Phase 3 prerequisite). Then paste each aggregate output into Claude Code to record and compare it:
 ```
 /run-eval v1
 /run-eval B2-final
@@ -59,7 +60,7 @@ Done when, given the misses plus public context (issues, changelogs, template di
 
 - [ ] Gatekeeper with tests for all 4 steps
 - [ ] Breaker and writer agents with budget caps, logs, and archived writer versions
-- [ ] Loop iterations scored with `/run-eval`; `runs/eval/history.csv` filled in
+- [ ] Loop iterations scored by your hidden-vault wrapper runs and recorded with `/run-eval`; `runs/eval/history.csv` filled in
 - [ ] B1, B2 and B3 scored, 3 seeds run
 - [ ] `eval-auditor` report attached; Gate B record written and decided
 

@@ -70,6 +70,8 @@ echo 'PARITY_HIDDEN_VAULT=~/parity-vault-hidden' >> .env
 
 The guard hook blocks any tool call that mentions `parity-vault-hidden`. Only the evaluation harness reads it, through the environment variable.
 
+**You run hidden-vault evaluation, not Claude Code.** Before any pair enters the hidden vault (Phase 3), the vault moves to a separate Linux user with `700` permissions, and evaluation runs as that user through one wrapper that prints only aggregate numbers. Every run is logged, and Claude Code works only from the numbers you paste back (`/run-eval`). See the Phase 3 prerequisite in `docs/phases/phase-3-vault-baseline.md` and `docs/DECISIONS.md`.
+
 ## 4. First Claude Code session
 
 ```bash

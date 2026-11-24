@@ -31,6 +31,7 @@ Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and i
   - `vault/README.md`, SETUP.md and Phase 3 M3 still give the old location in this account's home. The guard hook blocks Claude Code from writing that path, so the human edits those lines.
   - The blueprint's "separate private repo" storage line is superseded by this entry.
   - Keep the marker name the guard hook matches in the new vault path, so the hook still catches accidents.
+- Update (same day): the first follow-up is done. `/run-eval`, Phase 3 M6, Phase 4 M5 and SETUP.md now say the human runs hidden-vault evaluation and Claude Code only records the aggregates. The lines that name the vault path are left for the human.
 - Reversible? yes, but don't loosen it once the vault holds pairs.
 
 ## 2026-11-23: Adapter environments install the way each framework's docs say

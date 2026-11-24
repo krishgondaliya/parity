@@ -63,7 +63,7 @@ Test it end to end on vault/open.
 ```
 git tag suite-v0
 ```
-Then **you** run the hidden-vault wrapper on `suite-v0`. Claude Code works only from the aggregate numbers it prints.
+Then **you** run the hidden-vault wrapper on `suite-v0` and paste the aggregate numbers it prints; `/run-eval v0` records and compares them. Claude Code works only from those numbers.
 
 ## Definition of done
 
