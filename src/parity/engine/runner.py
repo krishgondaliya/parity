@@ -67,6 +67,13 @@ def _blocked(v: Verdict, parity: Verdict) -> Verdict:
 def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     """Every verdict this returns records the adapter's declaration (or why it couldn't be read)."""
     verdict = _evaluate(check, adapter, fixture)
+    if verdict.result != "not_applicable" and hasattr(check, "reference_properties"):
+        try:
+            extra = check.reference_properties(adapter.release, fixture, adapter.declare(check.base_cfg))
+        except Exception:  # noqa: BLE001 - a property lookup must never turn a verdict into a pass or a crash
+            extra = []
+        if extra:
+            verdict = replace(verdict, template_properties=sorted(set(verdict.template_properties) | set(extra)))
     if verdict.declaration:
         return verdict
     try:

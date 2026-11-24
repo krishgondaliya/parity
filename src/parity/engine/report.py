@@ -25,6 +25,7 @@ from parity.references.properties import TemplateProperty
 INHERITED_NOTE = {
     "prefix_breaks": "prefix not preserved; the breaks are the template's",
     "marker_disagreement": "the template's generation markers disagree with the reference",
+    "prefill_missing_from_history": "spans anchored past a pre-fill missing from history",
 }
 FLAG_NOTE = {
     "zero_trainable_tokens": "kept a row with zero trainable tokens",
@@ -108,6 +109,9 @@ def _property_details(p: TemplateProperty) -> list[str]:
                 f"- `{detail['fixture']}`: {detail['count']} token(s) disagree; first at {first['index']} "
                 f"({json.dumps(first['token'], ensure_ascii=False)}, zone {first['zone']}, marked {first['marked']})"
             )
+        elif p.kind == "prefill_missing_from_history":
+            turns = ", ".join(f"message {t['message_index']}" for t in detail["turns"])
+            lines.append(f"- `{detail['fixture']}`: {turns} render without the pre-fill")
         else:
             lines.append(f"- `{detail.get('fixture', '?')}`: {json.dumps(detail, ensure_ascii=False)}")
     return lines

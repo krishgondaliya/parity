@@ -27,6 +27,9 @@ Done when one command spins up the rented machine's environment (Docker or a uv 
 - **Token in, token out:** the trainer trains on exactly the sampled token ids. Planted fault: retokenize the decoded text.
 - **Logprob parity:** trainer logprobs vs rollout-engine logprobs on the same tokens, judged by the noise-floor rule. Planted fault: the wrong temperature. Note that verl already logs mismatch metrics; Parity's value is the calibrated verdict.
 - **Serving parity:** a deployed chat endpoint builds the same tokens as the training format. Planted fault: a missing generation prompt.
+  - Known train/serve mismatches it must cover (`docs/DECISIONS.md`, Tier 3 notes):
+    - TRL trains Qwen3 with think blocks that serving strips.
+    - Templates whose generation prompt pre-fills tokens that history turns render without. DeepSeek V4.1 pre-fills `<think>`; Qwen3 in non-thinking mode pre-fills an empty think block. See the model-level property "pre-fill missing from history".
 
 ### M3. Runs and card
 Run on verl and SkyRL with 1-2 recent releases, and add a Tier 3 column to the card with its scope stated.

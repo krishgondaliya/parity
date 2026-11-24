@@ -14,6 +14,26 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Narrow pre-fill anchoring in the reference; DeepSeek V4.1 still refuses on history turns
+- Decision (human): anchor assistant content where the generation-prompt render and the full render stop agreeing, only when the difference is exactly the generation prompt's trailing pre-fill. Anything else still refuses.
+  - The prompt must be the tokens it shares with the full render, followed by the pre-fill's own tokens, token for token.
+  - The shared tokens must cover messages[:k] and at least one token of the generation prompt, and end on a token boundary.
+  - One guard added while building it: the same generation prompt must appear verbatim at another assistant turn in the full render. That proves the template really emits the pre-fill there; a merely different header (e.g. a capitalized role) is not a pre-fill and still refuses.
+  - The span records the missing pre-fill. Verdicts that judge such spans name the model-level property "pre-fill missing from history".
+- Result on DeepSeek V4.1:
+  - The generation-prompt step now passes on its history turns. But they still refuse at the next step: when an assistant turn is removed, DeepSeek merges the user messages around it ("...France?\n\nAnd of Japan?"), so no cut-out delimits the turn.
+  - That is a different rule from the one approved, so it is left refusing. DeepSeek stays `inconclusive` on `multi_turn`, `reasoning`, `empty_assistant` and `tool_call`, and computes on the other four.
+  - Its "pre-fill missing from history" property is still recorded, because it is detected from the generation-prompt renders alone (`prefill_missing_turns`).
+- Where the anchoring does apply today: Qwen3 in non-thinking mode, whose generation prompt pre-fills an empty think block that history turns lack. Golden: `tests/test_reference_deepseek.py::test_golden_anchored_spans_qwen3_non_thinking`.
+- Golden for DeepSeek: `single_turn`. The header `<｜Assistant｜><think>` is prompt side; `</think>Red, yellow and blue.<｜end▁of▁sentence｜>` is must-train; no separator follows the EOS. The template also injects a default system prompt ("Reasoning Effort: 75 ...") when there is none.
+- Open for the human:
+  - **How to delimit DeepSeek history turns.** For example, end the turn at its stop token and check that the message's content string appears exactly once in between.
+  - **Which zone `</think>` belongs to in DeepSeek history turns.** The template emits it together with the `<｜Assistant｜>` header, which suggests it is prompt side. Anchoring where the renders stop agreeing would make it must-train.
+- Reversible? yes
+
+## 2026-11-24: Tier 3 note: pre-fill missing from history is a train/serve mismatch
+- Note (not a decision, not a finding): a template whose generation prompt ends in a pre-fill that history turns render without (DeepSeek V4.1: `<think>`; Qwen3 non-thinking: an empty think block) trains history turns in a form the served model never sees at the start of its own turns. The Tier 3 serving-parity check must cover it next to the TRL think-block note below (`docs/phases/phase-7-rl-seam.md`).
+
 ## 2026-11-24: Engine rules after the skeptic review (flags, blocking, declarations per config)
 - Decision (human):
   - **Verdict flags**, shown on the report card even on a pass:

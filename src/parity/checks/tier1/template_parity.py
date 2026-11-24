@@ -106,6 +106,9 @@ class TemplateParity(Tier1Check):
             return verdict("fail", kind="difference", known_difference=entry.id, evidence=evidence)
         return verdict("fail", kind="bug", evidence=evidence)
 
+    def reference_properties(self, release: LoadedRelease, fixture: Fixture, declaration: Any) -> list[str]:
+        return []  # judged on token ids alone, never on spans
+
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
         ids = declared_reference(release, fixture, declare(self.base_cfg)).input_ids

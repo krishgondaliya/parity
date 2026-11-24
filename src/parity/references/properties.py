@@ -14,6 +14,7 @@ the report shows each property once per model, in a model-level section.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -23,6 +24,7 @@ from parity.fixtures import Conversation
 from parity.references.template import (
     MarkerDisagreementError,
     TemplateReferenceError,
+    prefill_missing_turns,
     render_reference,
     template_sha256,
     template_token_ids,
@@ -169,6 +171,48 @@ def marker_disagreement_property(
     )
 
 
+def prefill_property_id(release: LoadedRelease, template_sha: str) -> str:
+    r = release.release
+    return f"{r.repo_id}@{r.revision[:12]}#prefill-missing@{template_sha[:12]}"
+
+
+def prefill_property(
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+) -> TemplateProperty | None:
+    """Assistant turns that render without the generation prompt's pre-fill (DeepSeek V4.1's `<think>`).
+
+    The reference anchors those turns' content where the generation prompt and the history render stop
+    agreeing. It is also a train/serve mismatch for Tier 3: at inference the model is prompted with the
+    pre-fill; in training history it never sees it.
+    """
+    details = []
+    for conv in conversations:
+        try:
+            missing = prefill_missing_turns(release, conv, template)
+        except TemplateReferenceError:
+            continue
+        if missing:
+            details.append({"fixture": conv.id, "turns": [{"message_index": k, "prefill": p} for k, p in missing]})
+    if not details:
+        return None
+    sha = template_sha256(template)
+    prefills = sorted({t["prefill"] for d in details for t in d["turns"]})
+    return TemplateProperty(
+        id=prefill_property_id(release, sha),
+        model=release.release.spec,
+        template_source=source,
+        template_sha256=sha,
+        kind="prefill_missing_from_history",
+        summary=(
+            f"The generation prompt ends in a pre-fill ({', '.join(json.dumps(p, ensure_ascii=False) for p in prefills)}) "
+            "that earlier assistant turns render without. Where the reference can delimit those turns, it "
+            "anchors their content where the two renders stop agreeing. Also a train/serve mismatch for "
+            "Tier 3: served turns start with the pre-fill, trained history turns don't."
+        ),
+        details=tuple(details),
+    )
+
+
 def template_properties_for(
     release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
 ) -> list[TemplateProperty]:
@@ -177,5 +221,6 @@ def template_properties_for(
     found = [
         prefix_break_property(release, template, source, conversations),
         marker_disagreement_property(release, template, source, conversations),
+        prefill_property(release, template, source, conversations),
     ]
     return [p for p in found if p is not None]

@@ -34,6 +34,15 @@ Assistant spans: the prefix diff, cross-checked against generation markers
        out of F at its start must give exactly the "without k" render.
        Otherwise we raise instead of guessing.
 
+       One narrow exception: a template whose generation prompt ends in a
+       pre-fill (DeepSeek V4.1: `<｜Assistant｜><think>`) that history turns
+       render without. Content is anchored where the two renders stop agreeing,
+       only if the prompt is exactly the shared tokens plus the pre-fill's own
+       tokens and the same generation prompt appears verbatim at another
+       assistant turn (see `_prefill_anchor`). The span records the missing
+       pre-fill, and the template gets a "pre-fill missing from history"
+       property (parity.references.properties).
+
        The supervised span runs from the content start through the last stop
        token inside the message: the tokens a model must generate before it
        stops. Anything after that stop token inside the message (usually a
@@ -105,6 +114,7 @@ class AssistantSpan:
     token_end: int  # one past the turn's last stop token
     token_message_end: int  # one past the whole rendered message (may include a separator)
     token_message_start: int | None = None  # first token of the message (its role header); None if mid-token
+    prefill_missing: str | None = None  # the generation prompt's pre-fill, when this turn renders without it
 
 
 @dataclass(frozen=True)
@@ -259,19 +269,22 @@ def assistant_spans_by_prefix_diff(
     full = render_text(tokenizer, messages, tools, template)
     ids, offsets = _tokenize_with_offsets(tokenizer, full)
 
+    renders, seen_in_full = _generation_prompt_renders(tokenizer, fixture, template, full)
+
     spans = []
     for k in fixture.assistant_indices:
-        if k == 0:
-            raise TemplateReferenceError("an assistant message with nothing before it is not supported")
-        before = render_text(tokenizer, messages[:k], tools, template)
-        prompt = render_text(tokenizer, messages[:k], tools, template, add_generation_prompt=True)
+        before, prompt = renders[k]
         without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
-
-        if not full.startswith(before):
-            raise TemplateReferenceError(f"message {k}: render of messages[:{k}] is not a prefix of the full render")
-        if not full.startswith(prompt):
-            raise TemplateReferenceError(f"message {k}: generation prompt render is not a prefix of the full render")
-        msg_start, content_start = len(before), len(prompt)
+        msg_start, prefill = len(before), None
+        if full.startswith(prompt):
+            content_start = len(prompt)
+        else:
+            anchored = _prefill_anchor(tokenizer, full, before, prompt, seen_in_full)
+            if anchored is None:
+                raise TemplateReferenceError(
+                    f"message {k}: generation prompt render is not a prefix of the full render"
+                )
+            content_start, prefill = anchored
         msg_end = msg_start + len(full) - len(without)
         if msg_end <= msg_start or full[:msg_start] + full[msg_end:] != without:
             raise TemplateReferenceError(
@@ -299,8 +312,88 @@ def assistant_spans_by_prefix_diff(
             t_msg_start: int | None = _token_boundary(offsets, msg_start)
         except TemplateReferenceError:
             t_msg_start = None  # only the header planted fault needs it; it doesn't apply then
-        spans.append(AssistantSpan(k, t_content, t_end, t_msg_end, t_msg_start))
+        spans.append(AssistantSpan(k, t_content, t_end, t_msg_end, t_msg_start, prefill))
     return tuple(spans)
+
+
+def _generation_prompt_renders(
+    tokenizer: PreTrainedTokenizerBase, conv: Conversation, template: str, full: str
+) -> tuple[dict[int, tuple[str, str]], set[str]]:
+    """For each assistant message k: (render of messages[:k], the same with the generation prompt).
+
+    Also returns the generation prompts the full render shows verbatim at the start of some assistant turn.
+    """
+    renders = {}
+    for k in conv.assistant_indices:
+        if k == 0:
+            raise TemplateReferenceError("an assistant message with nothing before it is not supported")
+        before = render_text(tokenizer, conv.messages[:k], conv.tools, template)
+        prompt = render_text(tokenizer, conv.messages[:k], conv.tools, template, add_generation_prompt=True)
+        if not full.startswith(before):
+            raise TemplateReferenceError(f"message {k}: render of messages[:{k}] is not a prefix of the full render")
+        if not prompt.startswith(before):
+            raise TemplateReferenceError(f"message {k}: the generation prompt render doesn't extend messages[:{k}]")
+        renders[k] = (before, prompt)
+    seen_in_full = {prompt[len(before) :] for before, prompt in renders.values() if full.startswith(prompt)}
+    return renders, seen_in_full
+
+
+def prefill_missing_turns(
+    loaded: LoadedRelease, conv: Conversation, chat_template: str | None = None
+) -> list[tuple[int, str]]:
+    """Assistant turns that render without the generation prompt's trailing pre-fill: [(message index, pre-fill)].
+
+    Uses only the generation-prompt renders, so it works even where the full
+    reference refuses for another reason (DeepSeek V4.1 merges the user
+    messages around a removed assistant turn, so no cut-out delimits it).
+    """
+    tokenizer = loaded.tokenizer
+    template = chat_template if chat_template is not None else model_chat_template(tokenizer)
+    full = render_text(tokenizer, conv.messages, conv.tools, template)
+    renders, seen_in_full = _generation_prompt_renders(tokenizer, conv, template, full)
+    found = []
+    for k, (before, prompt) in renders.items():
+        if not full.startswith(prompt):
+            anchored = _prefill_anchor(tokenizer, full, before, prompt, seen_in_full)
+            if anchored is not None:
+                found.append((k, anchored[1]))
+    return found
+
+
+def _prefill_anchor(
+    tokenizer: PreTrainedTokenizerBase, full: str, before: str, prompt: str, seen_in_full: set[str]
+) -> tuple[int, str] | None:
+    """Where message content starts when the generation prompt's trailing pre-fill is missing from history.
+
+    Allowed only in this narrow case (anything else returns None, and the
+    reference refuses):
+    - the prompt's tokens are the tokens it shares with the full render,
+      followed by a pre-fill whose own tokens are exactly the rest of the
+      prompt's tokens (token for token);
+    - the shared tokens cover all of messages[:k] and at least one token of the
+      generation prompt (the role header), and end on a token boundary of the
+      full render;
+    - the same generation prompt appears verbatim at the start of some other
+      assistant turn in the full render, so the pre-fill is something this
+      template really emits there, not just a different header.
+    Returns (content start, pre-fill text).
+    """
+    if prompt[len(before) :] not in seen_in_full:
+        return None
+    p_ids, p_offsets = _tokenize_with_offsets(tokenizer, prompt)
+    f_ids, f_offsets = _tokenize_with_offsets(tokenizer, full)
+    shared = 0
+    while shared < min(len(p_ids), len(f_ids)) and p_ids[shared] == f_ids[shared]:
+        shared += 1
+    if shared == 0 or shared == len(p_ids):
+        return None
+    shared_end = p_offsets[shared - 1][1]
+    if shared_end <= len(before) or f_offsets[shared - 1][1] != shared_end or full[:shared_end] != prompt[:shared_end]:
+        return None
+    prefill = prompt[shared_end:]
+    if list(tokenizer(prefill, add_special_tokens=False)["input_ids"]) != list(p_ids[shared:]):
+        return None
+    return shared_end, prefill
 
 
 def prefix_breaks(

@@ -26,8 +26,10 @@ from parity.engine.evidence import decode_each, token_evidence
 from parity.engine.plants import Plant
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Conversation, Fixture
+from parity.references.properties import prefill_property_id
 from parity.references.template import (
     TemplateReference,
+    TemplateReferenceError,
     Zone,
     model_chat_template,
     render_reference,
@@ -71,6 +73,20 @@ class Tier1Check:
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         raise NotImplementedError
+
+    def reference_properties(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[str]:
+        """Model-level template properties this check's reference relies on for this fixture.
+
+        Checks that judge against spans of the declared template depend on how those spans were found;
+        a span anchored past a missing pre-fill depends on the "pre-fill missing from history" property.
+        """
+        try:
+            ref = declared_reference(release, fixture, declaration)
+        except TemplateReferenceError:
+            return []
+        if any(span.prefill_missing for span in ref.spans):
+            return [prefill_property_id(release, ref.template_sha256)]
+        return []
 
     def verdict(
         self,
