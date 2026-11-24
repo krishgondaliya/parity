@@ -17,3 +17,6 @@ hf_cache/
 
 # never commit the hidden vault (it should live outside this repo anyway)
 parity-vault-hidden/
+
+# Unsloth writes its compiled trainer code into the working directory
+unsloth_compiled_cache/
