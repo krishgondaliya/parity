@@ -72,6 +72,8 @@ Fill these in as they come to exist. Keep this list accurate.
 - Golden review by eye: `uv run python docs/evidence/golden_review.py`
 - Axolotl environment: `cd envs/axolotl-0.21.1 && uv sync`, then from the repo root `envs/axolotl-0.21.1/.venv/bin/python -m pytest -q` (includes `tests/test_adapter_axolotl.py`, a few minutes)
 - Six checks on the real Axolotl adapter (M3 evidence, ~12 min): `envs/axolotl-0.21.1/.venv/bin/python docs/evidence/2026-11-24-m3-axolotl/run.py`
+- Unsloth environment: `cd envs/unsloth-2026.11.10 && uv sync`, then from the repo root `envs/unsloth-2026.11.10/.venv/bin/python -m pytest -q` (includes `tests/test_adapter_unsloth.py`; CPU fallback, see `environment.json`)
+- Six checks on the real Unsloth adapter, both modes (M3 evidence): `envs/unsloth-2026.11.10/.venv/bin/python docs/evidence/2026-11-24-m3-unsloth/run.py` (`--relink` re-links saved verdicts)
 - Six checks in both serving modes, with root-cause linking (current evidence): `envs/trl-1.18.2/.venv/bin/python docs/evidence/2026-11-24-m3-rerun/run.py trl` (and `envs/axolotl-0.21.1/.venv/bin/python ... axolotl`, ~15 min). Add `--relink` to re-link saved verdicts to `findings/root_causes.json` without re-running the framework.
 - Structural-method agreement check: `uv run python docs/evidence/2026-11-24-structural-added-tokens/validate.py`
 - Run checks (planned): `uv run parity run --model <org/name@rev> --framework <name> --tier 1`
