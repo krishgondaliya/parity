@@ -14,6 +14,31 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-23: Tier 1 pass rules and planted faults (M2)
+- Decision: the six Tier 1 checks, as built. Every rule is exact; there are no numeric tolerances in Tier 1.
+
+  | Check | Compares against | Fails when | Planted faults | Not applicable |
+  | --- | --- | --- | --- | --- |
+  | `t1.template_parity` | model's own template | any token differs, unless a registry entry matches exactly (then `difference`) | drop the first newline token; swap the first stop token for another special token | never |
+  | `t1.assistant_mask` | declared template's zones | a must-train token has no loss, a must-not-train token has loss, or a trained label isn't its token | unmask the prompt; zero the mask; shift labels left by one; start each trained span one token late | never |
+  | `t1.end_of_turn` | declared template | a turn's closing stop token is missing, replaced, untrained or mislabelled | take the loss off every trained stop token | never |
+  | `t1.special_tokens` | declared template | leading specials or special-token counts differ; a must-train stop token loses its loss; in a padded batch from the framework's collator, padding isn't at one end, changes the row, uses another token, or has loss | an extra leading special token (second BOS, or the pad token when there's no BOS); pad with the turn-closing token and mask it everywhere | the padding part, when the framework packs |
+  | `t1.truncation` | declared template, cut by the framework's declared mode | the row isn't the cut reference, its loss doesn't follow the cut zones, or it drops/keeps against its mode | off-by-one at max length; keep the cut answer but lose its loss; re-append the stop token after cutting | never |
+  | `t1.multiturn_prefix` | declared template's prefix renders | at a boundary, the framework breaks the prefix where the template doesn't, or breaks it differently | re-render earlier tool-call arguments as a Python repr (`false` → `False`); re-render earlier assistant turns with one character changed | fixtures with fewer than two assistant turns (4 of 8) |
+
+  - Details:
+    - **Dropped with no length limit** is a `fail` in every check. The exception is the truncation check's no-limit step, where it is `inconclusive`, so truncation isn't blamed for it.
+    - **Truncation:** `long_answer` runs at its own `max_len` (128). The other seven fixtures run at their exact reference length, the boundary where nothing may be cut.
+    - **Special tokens:** each fixture is batched with the fixture whose length differs most, padded to the longer row + 8. A pad token that is also a stop token (Qwen3's `<|endoftext|>`) is recorded in the verdict, not failed.
+    - **Multi-turn prefix**, refining "Template properties are judged before frameworks" below:
+      - A break is anchored at both ends. It is recorded as its distance from the end of the prefix, the tokens removed, and the tokens inserted.
+      - A framework passes a boundary only if it keeps the prefix there, or breaks it exactly as its declared template does. The old rule, "a subset of the template's breaks", would have let any break through at a boundary where the template already breaks (on Qwen3 that is every boundary).
+      - A break inherited from the template is a `pass` with the template's breaks recorded (`template_breaks_at`), not a `difference`. `difference` stays reserved for registry entries.
+    - **Synthetic plants:** `history_edit` (multi-turn prefix) is synthetic so that every applicable fixture has a plant. The real-world plant, `history_false_as_python`, applies only to `tool_call`.
+- Why: hard rules 3 and 5, and the decisions of 2026-11-23 on truncation, `not_applicable`, marker cross-checks and padding.
+- Evidence: `src/parity/checks/tier1/`, `tests/test_check_*.py`. On the calibration model with both test stand-ins, every applicable verdict passes (KD-0001 aside), and every planted fault is caught (`tests/test_tier1_suite.py`).
+- Reversible? yes
+
 ## 2026-11-23: Check engine rules for Tier 1 (M2)
 - Decision:
   - **Adapters declare before they encode.** From the framework's own config and defaults, and before encoding anything, an adapter reports: the chat template the framework will render with, its label convention (`aligned` or `pre_shifted`), its truncation mode (`right`, `left` or `drop`), whether it pads or packs, and its pad token. `encode` always returns labels aligned with the input ids; an adapter for a pre-shifting framework shifts them back, and the verdict records which convention the framework uses.
