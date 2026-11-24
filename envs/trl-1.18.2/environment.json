@@ -1,0 +1,13 @@
+{
+  "framework": "trl",
+  "version": "1.18.2",
+  "lockfile": "envs/trl-1.18.2/uv.lock",
+  "install": {
+    "documented": "pip install trl",
+    "doc": "https://github.com/huggingface/trl/blob/v1.18.2/docs/source/installation.md",
+    "ours": "uv project depending on trl==1.18.2 and parity (editable, so the reference runs in this environment); every transitive version constrained to the 2026-11-23 WSL spike's resolution (docs/evidence/2026-11-23-m1-wsl-spike/freeze/trl.txt); pytest added for the adapter tests"
+  },
+  "deviations": [],
+  "platform": "WSL2 Ubuntu 22.04, x86_64, no GPU. TRL's installation docs state no platform or GPU requirement; the data path runs on CPU.",
+  "resolved": {"trl": "1.18.2", "transformers": "5.24.0", "tokenizers": "0.23.3", "torch": "2.15.0+cu132", "datasets": "5.2.0"}
+}

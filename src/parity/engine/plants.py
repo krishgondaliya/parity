@@ -45,6 +45,7 @@ class PlantedAdapter:
         self.version = inner.version
         self.release = inner.release
         self.env_lock = inner.env_lock
+        self.env_fingerprint = getattr(inner, "env_fingerprint", None)
         self._before_encode = before_encode
         self._after_encode = after_encode
         self._after_batch = after_batch

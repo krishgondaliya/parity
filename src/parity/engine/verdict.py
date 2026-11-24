@@ -60,6 +60,7 @@ class Verdict:
     template_properties: list[str] = field(default_factory=list)  # model-level template properties this verdict relies on
     flags: list[str] = field(default_factory=list)  # see FLAGS; each is shown on the report card
     env_lock: str | None = None
+    env_fingerprint: str | None = None  # sha256 of the lockfile the framework environment was built from
     repro: str | None = None
     schema: str = SCHEMA
 
@@ -100,6 +101,7 @@ def make_verdict(check_id: str, adapter: Any, fixture_id: str, result: str, **fi
         fixture=fixture_id,
         result=result,
         env_lock=adapter.env_lock,
+        env_fingerprint=getattr(adapter, "env_fingerprint", None),
         **fields,
     )
 

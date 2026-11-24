@@ -181,6 +181,7 @@ class Adapter(Protocol):
     version: str  # pinned in envs/
     release: LoadedRelease
     env_lock: str | None  # path of the lockfile the framework environment was built from
+    env_fingerprint: str | None  # sha256 of that lockfile, recorded in every verdict
 
     def declare(self, cfg: TrainCfg) -> Declaration: ...
 
