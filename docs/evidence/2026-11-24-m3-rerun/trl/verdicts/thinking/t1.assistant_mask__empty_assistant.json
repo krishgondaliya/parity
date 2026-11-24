@@ -127,6 +127,7 @@
     "batching": "padded",
     "pad_token_id": 151643,
     "tool_arguments": "passed_through",
+    "serving_mode_setting": "framework defaults (the model's default mode)",
     "sources": [
       "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
       "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",

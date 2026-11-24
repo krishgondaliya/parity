@@ -67,7 +67,7 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 ### Fails by root cause
 
-21 fail verdict(s) come from 2 root cause(s): 2 linked, 0 untriaged (each untriaged fail counts as its own).
+21 fail verdict(s) (8 of kind bug, 13 known differences; 17 thinking (primary), 4 non_thinking) come from 2 framework root cause(s): 2 linked, 0 untriaged (each untriaged fail counts as its own).
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |

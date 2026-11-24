@@ -82,6 +82,7 @@
     "batching": "padded",
     "pad_token_id": 151643,
     "tool_arguments": "passed_through",
+    "serving_mode_setting": "chat_template_kwargs={'enable_thinking': False} on every dataset row (per-example key documented in trl.apply_chat_template: https://github.com/huggingface/trl/blob/v1.18.2/trl/data_utils.py#L325-L327; read by SFTTrainer: https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1363-L1367; tested: https://github.com/huggingface/trl/blob/v1.18.2/tests/test_sft_trainer.py#L1366)",
     "sources": [
       "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
       "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",

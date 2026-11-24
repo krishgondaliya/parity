@@ -52,12 +52,12 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| trl@1.18.2 | t1.assistant_mask | fail | 8 of 8 | root cause: P-0003 |
+| trl@1.18.2 | t1.assistant_mask | inconclusive | 8 of 8 |  |
 | trl@1.18.2 | t1.end_of_turn | inconclusive | 8 of 8 |  |
 | trl@1.18.2 | t1.multiturn_prefix | inconclusive | 4 of 8 | not applicable on 4 fixture(s) |
 | trl@1.18.2 | t1.special_tokens | inconclusive | 8 of 8 |  |
 | trl@1.18.2 | t1.template_parity | inconclusive | 8 of 8 | known differences: KD-0001; root cause: KD-0001 |
-| trl@1.18.2 | t1.truncation | fail | 8 of 8 | root cause: P-0003 |
+| trl@1.18.2 | t1.truncation | inconclusive | 8 of 8 |  |
 
 ### Framework properties
 
@@ -67,9 +67,8 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 ### Fails by root cause
 
-21 fail verdict(s) come from 2 root cause(s): 2 linked, 0 untriaged (each untriaged fail counts as its own).
+7 fail verdict(s) (0 of kind bug, 7 known differences; 4 thinking (primary), 3 non_thinking) come from 1 framework root cause(s): 1 linked, 0 untriaged (each untriaged fail counts as its own).
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
 | KD-0001 | 7 | trl@1.18.2 t1.template_parity/empty_assistant; trl@1.18.2 t1.template_parity/empty_assistant (non_thinking); trl@1.18.2 t1.template_parity/multi_turn; trl@1.18.2 t1.template_parity/multi_turn (non_thinking); trl@1.18.2 t1.template_parity/reasoning; trl@1.18.2 t1.template_parity/tool_call; trl@1.18.2 t1.template_parity/tool_call (non_thinking) |
-| P-0003 | 14 | trl@1.18.2 t1.assistant_mask/empty_assistant (non_thinking); trl@1.18.2 t1.assistant_mask/long_answer (non_thinking); trl@1.18.2 t1.assistant_mask/multi_turn (non_thinking); trl@1.18.2 t1.assistant_mask/non_ascii (non_thinking); trl@1.18.2 t1.assistant_mask/single_turn (non_thinking); trl@1.18.2 t1.assistant_mask/system_prompt (non_thinking); trl@1.18.2 t1.assistant_mask/tool_call (non_thinking); trl@1.18.2 t1.truncation/empty_assistant (non_thinking); trl@1.18.2 t1.truncation/long_answer (non_thinking); trl@1.18.2 t1.truncation/multi_turn (non_thinking); trl@1.18.2 t1.truncation/non_ascii (non_thinking); trl@1.18.2 t1.truncation/single_turn (non_thinking); trl@1.18.2 t1.truncation/system_prompt (non_thinking); trl@1.18.2 t1.truncation/tool_call (non_thinking) |

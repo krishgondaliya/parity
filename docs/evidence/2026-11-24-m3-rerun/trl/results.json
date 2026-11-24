@@ -392,10 +392,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / single_turn": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -416,10 +416,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / single_turn": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -440,10 +440,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / multi_turn": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -464,10 +464,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / multi_turn": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -488,10 +488,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / system_prompt": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -512,10 +512,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / system_prompt": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -536,10 +536,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / tool_call": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -560,10 +560,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / tool_call": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -632,10 +632,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / empty_assistant": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -656,10 +656,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / empty_assistant": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -680,10 +680,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / long_answer": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -704,10 +704,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / long_answer": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -728,10 +728,10 @@
   "flags": []
  },
  "non_thinking / t1.assistant_mask / non_ascii": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },
@@ -752,10 +752,10 @@
   "flags": []
  },
  "non_thinking / t1.truncation / non_ascii": {
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "known_difference": null,
-  "root_cause": "P-0003",
+  "root_cause": null,
   "self_test": "caught",
   "flags": []
  },

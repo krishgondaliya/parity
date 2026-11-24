@@ -4,47 +4,22 @@
   "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
   "framework": "trl@1.18.2",
   "fixture": "single_turn",
-  "result": "fail",
-  "kind": "bug",
+  "result": "pass",
+  "kind": null,
   "self_test": "caught",
   "known_difference": null,
   "reason": null,
   "evidence": {
     "counts": {
       "must_train_unsupervised": 0,
-      "must_not_train_supervised": 4,
+      "must_not_train_supervised": 0,
       "label_mismatch": 0
     },
     "must_train_unsupervised": [],
-    "must_not_train_supervised": [
-      {
-        "index": 13,
-        "token": "<think>",
-        "zone": "must_not_train",
-        "label": 151667
-      },
-      {
-        "index": 14,
-        "token": "\n\n",
-        "zone": "must_not_train",
-        "label": 271
-      },
-      {
-        "index": 15,
-        "token": "</think>",
-        "zone": "must_not_train",
-        "label": 151668
-      },
-      {
-        "index": 16,
-        "token": "\n\n",
-        "zone": "must_not_train",
-        "label": 271
-      }
-    ],
+    "must_not_train_supervised": [],
     "label_mismatch": [],
     "must_train_tokens": 7,
-    "supervised_tokens": 12
+    "supervised_tokens": 8
   },
   "conventions": {
     "label_convention": "aligned",
@@ -142,6 +117,7 @@
     "batching": "padded",
     "pad_token_id": 151643,
     "tool_arguments": "passed_through",
+    "serving_mode_setting": "chat_template_kwargs={'enable_thinking': False} on every dataset row (per-example key documented in trl.apply_chat_template: https://github.com/huggingface/trl/blob/v1.18.2/trl/data_utils.py#L325-L327; read by SFTTrainer: https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1363-L1367; tested: https://github.com/huggingface/trl/blob/v1.18.2/tests/test_sft_trainer.py#L1366)",
     "sources": [
       "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
       "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
@@ -163,7 +139,7 @@
   "template_properties": [],
   "flags": [],
   "serving_mode": "non_thinking",
-  "root_cause": "P-0003",
+  "root_cause": null,
   "env_lock": "envs/trl-1.18.2/uv.lock",
   "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
   "repro": null

@@ -108,6 +108,7 @@
     "batching": "padded",
     "pad_token_id": 151643,
     "tool_arguments": "parsed_as_json",
+    "serving_mode_setting": "framework defaults (the model's default mode)",
     "sources": [
       "chat_template: get_chat_template_from_config(cfg, datasets[0]) with chat_template=<ChatTemplate.tokenizer_default: 'tokenizer_default'> (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd)",
       "objective: datasets[0].type='chat_template', roles_to_train=['assistant'], train_on_eos='turn', train_on_eot=None, train_on_inputs=False (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/datasets.py)",
@@ -115,7 +116,8 @@
       "truncation_mode: sequence_len=8192, excess_length_strategy=None; unset is treated as 'drop' (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/config.py; code: https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/data/utils.py#L347)",
       "batching: sample_packing=None",
       "pad_token_id: trainer.data_collator.tokenizer.pad_token_id=151643; collator DataCollatorForSeq2Seq(pad_to_multiple_of=64, label_pad_token_id=-100), padding_side='right'",
-      "tool_arguments: no option; a string is parsed with json.loads before rendering, and a parse error raises (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L1402-L1415)"
+      "tool_arguments: no option; a string is parsed with json.loads before rendering, and a parse error raises (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L1402-L1415)",
+      "serving_mode_setting: cfg.chat_template_kwargs=None (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/config.py#L1497-L1502)"
     ],
     "verified": {
       "chat_template": "consistent",
