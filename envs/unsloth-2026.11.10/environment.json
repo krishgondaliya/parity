@@ -12,7 +12,8 @@
   "GPU-only loader steps not exercised: the GPU loader's tokenizer repairs (unsloth/tokenizer_utils.py) and patched trainer don't run on CPU. Checked: the GPU path's post-load chat-template repair (_fix_chat_template_for_tokenizer) leaves Qwen3-0.6B's template unchanged, and Qwen3's pad token (<|endoftext|>) differs from its EOS, so the GPU pad-token repair would also leave it alone. Whether the GPU route's SFTTrainer patch changes TRL's EOS append or max_length is not verified.",
   "load_in_4bit=True (the notebook's value) loads 16-bit weights on CPU: Unsloth's CPU loader decides this itself and says so ('loading 16-bit weights instead'). Weights are random and tiny; not on the data path.",
   "Python 3.12, not the documented 3.13: Parity's core requires 3.12, and the spike resolved Unsloth on 3.12.",
-  "No --torch-backend=auto: the spike's plain install resolved torch 2.14.1 from PyPI's default Linux wheel."
+  "No --torch-backend=auto: the spike's plain install resolved torch 2.14.1 from PyPI's default Linux wheel.",
+  "The recommended Qwen3 notebook pins trl==0.22.2 and transformers==4.57.6 (its install cell); this environment has the spike's resolution of unsloth 2026.11.10: TRL 1.15.0 and transformers 5.17.0. TRL 0.22.2 has the same EOS append for text rows (P-0004)."
  ],
  "runtime_settings": [
   "UNSLOTH_DISABLE_STATISTICS=1, set by the adapter before importing Unsloth (Unsloth's documented opt-out of its usage statistics download; on CPU the statistics call is not reached anyway).",

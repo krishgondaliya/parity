@@ -1,0 +1,120 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.template_parity",
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "framework": "unsloth@2026.11.10",
+  "fixture": "multi_turn",
+  "result": "fail",
+  "kind": "bug",
+  "self_test": "caught",
+  "known_difference": null,
+  "reason": null,
+  "evidence": {
+    "first_divergence": 67,
+    "context_before": [
+      " has",
+      " more",
+      " people",
+      " than",
+      " Paris",
+      ".",
+      "<|im_end|>",
+      "\n"
+    ],
+    "expected": [],
+    "got": [
+      "<|im_end|>"
+    ],
+    "expected_len": 67,
+    "got_len": 68
+  },
+  "conventions": {},
+  "reference": {
+    "template_source": "model",
+    "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "official_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "marker_check": "no_markers",
+    "template_kwargs": {
+      "enable_thinking": true
+    },
+    "transformers": "5.17.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.15.0"
+  },
+  "plants": [
+    {
+      "plant": "drop_newline",
+      "description": "drop the first newline token",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "swap_stop_token",
+      "description": "replace the first <|im_end|> with <|endoftext|>",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "rstrip_render",
+      "description": "strip trailing whitespace from the rendered text (drops the final separator)",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    }
+  ],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null,
+      "serving_mode": "thinking"
+    },
+    "template_source": "model",
+    "template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "label_convention": "aligned",
+    "truncation_mode": "right",
+    "batching": "padded",
+    "pad_token_id": 151643,
+    "tool_arguments": "passed_through",
+    "serving_mode_setting": "framework defaults (the model's default mode)",
+    "sources": [
+      "chat_template: trainer.processing_class.chat_template, the tokenizer FastLanguageModel.from_pretrained returned (https://github.com/unslothai/notebooks/blob/ebe88117bb560d296910f6e733693294d630f024/nb/Qwen3_(14B)-Reasoning-Conversational.ipynb)",
+      "objective: assistant_only; train_on_responses_only(instruction_part='<|im_start|>user\\n', response_part='<|im_start|>assistant\\n') for assistant_only (https://github.com/unslothai/notebooks/blob/0c6268b8c23bb6e4377e0f8ccc4bbfce4876a3c4/nb/Qwen3_(4B)-Thinking.ipynb)",
+      "label_convention: the model's loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: trainer.args.truncation_mode='keep_start', max_length=1024 (TRL 1.15.0)",
+      "batching: trainer.args.packing=False, padding_free=False",
+      "pad_token_id: DataCollatorForSeq2Seq.tokenizer.pad_token_id=151643, pad_to_multiple_of=None, label_pad_token_id=-100, padding_side='right'",
+      "tool_arguments: no option; the recipe formats with tokenizer.apply_chat_template itself, so a string argument is rendered verbatim by the template (https://github.com/unslothai/notebooks/blob/0313a67513a87462ffdb78934f31d2181ba61b06/nb/Qwen3_(4B)-Tool_Calling.ipynb)",
+      "serving_mode_setting: framework defaults (the model's default mode)",
+      "note: TRL appends the EOS token to a text row that doesn't end with it (https://github.com/huggingface/trl/blob/v1.15.0/trl/trainer/sft_trainer.py#L1284-L1305)"
+    ],
+    "verified": {
+      "chat_template": "mismatch: the tokens match neither the declared template's render nor the model's own",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified",
+      "tool_arguments": "unverified"
+    }
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "thinking",
+  "root_cause": "P-0004",
+  "env_lock": "envs/unsloth-2026.11.10/uv.lock",
+  "env_fingerprint": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+  "repro": null
+}

@@ -90,7 +90,7 @@ DOCS = {
     "notebook": f"{NOTEBOOKS}/ebe88117bb560d296910f6e733693294d630f024/nb/Qwen3_(14B)-Reasoning-Conversational.ipynb",
     "assistant_only": f"{NOTEBOOKS}/0c6268b8c23bb6e4377e0f8ccc4bbfce4876a3c4/nb/Qwen3_(4B)-Thinking.ipynb",
     "tool_notebook": f"{NOTEBOOKS}/0313a67513a87462ffdb78934f31d2181ba61b06/nb/Qwen3_(4B)-Tool_Calling.ipynb",
-    "trl_add_eos": "https://github.com/huggingface/trl/blob/v1.15.0/trl/trainer/sft_trainer.py#L1284-L1305",
+    "trl_add_eos": "https://github.com/huggingface/trl/blob/v1.15.0/trl/trainer/sft_trainer.py#L1284-L1306",
 }
 INSTRUCTION_PART = "<|im_start|>user\n"
 RESPONSE_PART = "<|im_start|>assistant\n"

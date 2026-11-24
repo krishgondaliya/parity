@@ -14,6 +14,29 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: M3 Unsloth adapter, the run on Qwen3, and one candidate (P-0004, CPU backend only)
+- **Adapter** (`src/parity/adapters/unsloth.py`): Unsloth's recommended Qwen3 notebook, step by step, plus `train_on_responses_only` with the explicit ChatML parts (the recipe choice is logged below).
+  - It loads a local tiny `from_config` Qwen3 plus the real Qwen3-0.6B tokenizer files through `FastLanguageModel.from_pretrained`, as the human asked; Unsloth accepted it.
+  - `declare()` reads the live tokenizer, trainer args and collator. The serving mode reaches Unsloth as `enable_thinking=False` in the formatting `apply_chat_template` (citation level: docs page, inference example).
+  - Tests: `tests/test_adapter_unsloth.py`, 19 pass and 1 expected failure (strict). The contract "rows equal the declared render" fails, by P-0004.
+- **Environment:** `envs/unsloth-2026.11.10`, the spike's freeze. Deviations in `environment.json`:
+  - CPU fallback; the GPU loader steps are not exercised;
+  - 4-bit becomes 16-bit on CPU;
+  - Python 3.12;
+  - the notebook's own TRL/transformers pins differ.
+  - The statistics opt-out (`UNSLOTH_DISABLE_STATISTICS=1`) is set.
+- **Predictions first, with a disclosed slip:** `docs/evidence/2026-11-24-m3-unsloth/predictions.md` was committed before any check ran (`daba17e`), but after a data-path probe; it says which cells rest on the probe. 48 of 48 primary cells came out as predicted.
+- **Results** (`docs/evidence/2026-11-24-m3-unsloth/`):
+  - primary: 8 pass (`t1.end_of_turn`), 8 fail (`t1.template_parity`), 28 inconclusive, 4 n/a;
+  - secondary: 7 pass, 7 fail, 30 inconclusive, 4 n/a;
+  - 15 fail verdicts, 1 root cause, 0 untriaged.
+- **P-0004** (triaged, skeptic: real candidate, CPU backend only).
+  - On CPU, Unsloth runs stock TRL's dataset preparation, which appends a second `<|im_end|>` after Qwen3's `<|im_end|>\n`. Unsloth's GPU-route preparation (`unsloth_zoo.sft_prepare_dataset`, intent stated in unsloth-zoo PR #2558) leaves chat-formatted text alone: 16/16 equal the render.
+  - The extra token is the last one. Under assistant-only it gets no loss; under the notebook's all-token training it does, but generation never reaches it.
+  - Every other check is inconclusive or blocked because rows don't align, so **Unsloth's labels are not judged yet**.
+- **Also seen, untriaged:** `train_on_responses_only` drops `SFTConfig.pad_to_multiple_of` when it swaps the collator. By code reading this happens on both backends. The `special_tokens` padding part is inconclusive.
+- Reversible? yes
+
 ## 2026-11-24: Unsloth's assistant-only recipe: no original-Qwen3 notebook has one; the choice made
 - Finding while preparing M3 Unsloth: **Unsloth's Qwen3 docs and its notebooks for the original Qwen3 models show no assistant-only recipe.**
   - The Qwen3 page marks "Qwen3 (14B) Reasoning + Conversational" as the recommended notebook (`unslothai/notebooks@ebe88117`). It trains on every token: it formats text with `tokenizer.apply_chat_template(tokenize=False)`, and `SFTTrainer(dataset_text_field="text")` labels the whole text.
