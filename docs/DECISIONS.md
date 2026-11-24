@@ -14,6 +14,27 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Engine rules after the skeptic review (flags, blocking, declarations per config)
+- Decision (human):
+  - **Verdict flags**, shown on the report card even on a pass:
+    - `zero_trainable_tokens`: a truncation pass whose kept row has no token with loss, e.g. a cut that left only the prompt. It is still a pass if it matches the reference.
+    - `declared_actual_mismatch`: see below.
+    - `marker_disagreement`: also a model-level template property on the card, not just reason text.
+    - `blocked_by_template_parity`: see below.
+  - **One root cause, one finding** (`engine.runner.evaluate_suite`):
+    - When `t1.template_parity` fails (kind `bug`) on a fixture, the other checks' fails on that fixture become `inconclusive` with the `blocked_by_template_parity` flag, and their own result stays in the evidence.
+    - Their passes stay passes.
+    - A matched known difference (KD-0001) blocks nothing.
+  - **`declare()` describes the exact config of each encode call.**
+    - Truncation reads its mode from the declaration for the cut config.
+    - Special tokens reads batching and the pad token from the declaration for the padded config.
+    - Each verdict records the declaration for its main call (with the config), plus `other_calls` for any other config it encoded under.
+    - Adapters must read every declared value from the framework's live objects, never hardcode it. This is written into `adapters/base.py` and `/new-adapter`.
+  - **A packed declaration makes the padding part `inconclusive`**, not `not_applicable`. Phase 0 configs never ask for packing, and packing isolation is a Phase 2 check.
+  - **A declared/actual mismatch stays `inconclusive`, but is routed to `/triage`.** It means behavior that exactly matches a different declared value. It may be the adapter misreading the config, or the framework ignoring its own config (a real bug class). Such verdicts carry the flag and `evidence.triage = "declared/actual mismatch"`, and `/triage` now says how to decide.
+- Evidence: `tests/test_tier1_suite.py::test_one_root_cause_one_finding`, `tests/test_check_truncation.py` (zero trainable flag, per-config mode, contradiction flag), `tests/test_check_special_tokens.py` (packing, per-call records), `tests/test_report.py::test_marker_disagreements_go_on_the_report_card`.
+- Reversible? yes
+
 ## 2026-11-24: Harder planted faults; real-world needs a URL and the same mechanism
 - Decision (human, after the skeptic review):
   - **Five harder planted faults**, all synthetic:

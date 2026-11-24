@@ -91,7 +91,7 @@ def test_a_contradicted_template_declaration_is_an_adapter_error(qwen3, official
     """Renders exactly Qwen3's own template but declares TRL's: the declaration is contradicted."""
     lying = PlantedAdapter(official, "wrong-declaration", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
     v = CHECK.run(lying, qwen3, load_fixture("multi_turn"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch")
     assert v.declaration["verified"]["chat_template"].startswith("contradicted")
     assert v.evidence["first_divergence"] is not None
 

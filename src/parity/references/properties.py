@@ -20,7 +20,13 @@ from typing import Any
 
 from parity.engine.evidence import decode_each, first_divergence
 from parity.fixtures import Conversation
-from parity.references.template import template_sha256, template_token_ids
+from parity.references.template import (
+    MarkerDisagreementError,
+    TemplateReferenceError,
+    render_reference,
+    template_sha256,
+    template_token_ids,
+)
 from parity.release import LoadedRelease
 
 # (tokens from the break to the end of the prefix, tokens removed from the prefix, tokens inserted from the full)
@@ -122,3 +128,54 @@ def prefix_break_property(
         ),
         details=tuple(details),
     )
+
+
+def marker_disagreement_property_id(release: LoadedRelease, template_sha: str) -> str:
+    r = release.release
+    return f"{r.repo_id}@{r.revision[:12]}#marker-disagreement@{template_sha[:12]}"
+
+
+def marker_disagreement_property(
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+) -> TemplateProperty | None:
+    """Where the template's own generation markers disagree with the prefix diff on a non-neutral token.
+
+    Every check on such a fixture is inconclusive; this puts the disagreement on the report card as a
+    possible model-template finding instead of leaving it in reason text.
+    """
+    details = []
+    for conv in conversations:
+        try:
+            render_reference(release, conv, template, source)
+        except MarkerDisagreementError as exc:
+            details.append({"fixture": conv.id, "count": len(exc.positions), "positions": exc.positions[:16]})
+        except TemplateReferenceError:
+            continue  # refused for another reason: not a marker disagreement
+    if not details:
+        return None
+    sha = template_sha256(template)
+    return TemplateProperty(
+        id=marker_disagreement_property_id(release, sha),
+        model=release.release.spec,
+        template_source=source,
+        template_sha256=sha,
+        kind="marker_disagreement",
+        summary=(
+            f"The template's generation markers disagree with the prefix diff on {len(details)} fixture(s): "
+            "they mark a must-not-train token as trained, or leave a must-train token out. Every check on "
+            "those fixtures is inconclusive. Possible model-template finding: send to /triage."
+        ),
+        details=tuple(details),
+    )
+
+
+def template_properties_for(
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+) -> list[TemplateProperty]:
+    """Every model-level property of this template on these conversations, for the report."""
+    conversations = list(conversations)
+    found = [
+        prefix_break_property(release, template, source, conversations),
+        marker_disagreement_property(release, template, source, conversations),
+    ]
+    return [p for p in found if p is not None]

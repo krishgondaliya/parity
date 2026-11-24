@@ -65,7 +65,7 @@ def test_output_that_is_exactly_another_mode_is_an_adapter_error(qwen3, actual, 
     stub = TemplateStub(qwen3, truncation_mode=actual)
     lying = PlantedAdapter(stub, "wrong-mode", on_declare=lambda d: replace(d, truncation_mode=declared))
     v = CHECK.run(lying, qwen3, load_fixture("long_answer"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error"), v.evidence
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch"), v.evidence
     assert v.declaration["truncation_mode"] == declared
     assert v.declaration["verified"]["truncation_mode"] == (
         f"contradicted: the framework's row is exactly what {actual!r} truncation gives"
@@ -116,10 +116,51 @@ def test_a_drop_mode_framework_that_keeps_a_label_less_row_fails(qwen3):
 def test_tokens_that_differ_without_a_limit_are_inconclusive(qwen3, official, trl_qwen3_template):
     lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
     v = CHECK.run(lying, qwen3, load_fixture("multi_turn"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch")
     assert v.declaration["verified"]["chat_template"].startswith("contradicted")
 
 
 def test_long_answer_reference_is_long_enough_to_cut(qwen3):
     ref = official_reference(qwen3, load_fixture("long_answer"))
     assert len(ref.input_ids) == 537 and ref.spans[0].token_start == 23
+
+
+def test_a_cut_that_leaves_zero_trainable_tokens_passes_but_is_flagged(official):
+    """long_answer at max_len 20: the prompt (23 tokens) doesn't even fit, so a right cut keeps no answer."""
+    fx = replace(load_fixture("long_answer"), max_len=20)
+    v = evaluate(CHECK, official, fx)
+    assert (v.result, v.self_test) == ("pass", "caught"), (v.reason, v.plants)
+    assert v.flags == ["zero_trainable_tokens"] and v.evidence["supervised_tokens"] == 0
+
+
+class _DeclaresByConfig:
+    """Declares 'right' with no length limit and 'left' with one, and really cuts left."""
+
+    def __init__(self, inner):
+        self.inner, self.name, self.version = inner, inner.name, inner.version
+        self.release, self.env_lock = inner.release, inner.env_lock
+
+    def declare(self, cfg):
+        return replace(self.inner.declare(cfg), truncation_mode="left" if cfg.max_len is not None else "right")
+
+    def encode(self, conv, cfg):
+        return self.inner.encode(conv, cfg)
+
+    def encode_batch(self, convs, cfg):
+        return self.inner.encode_batch(convs, cfg)
+
+
+def test_the_mode_comes_from_the_declaration_for_the_cut_config(qwen3):
+    v = evaluate(CHECK, _DeclaresByConfig(TemplateStub(qwen3, truncation_mode="left")), load_fixture("long_answer"))
+    assert (v.result, v.self_test) == ("pass", "caught"), (v.reason, v.plants)
+    assert v.conventions["truncation_mode"] == "left"
+    assert v.declaration["cfg"]["max_len"] == 128 and v.declaration["truncation_mode"] == "left"
+    [uncut] = v.declaration["other_calls"]
+    assert uncut["cfg"]["max_len"] is None and uncut["truncation_mode"] == "right"
+
+
+def test_a_contradicted_mode_is_flagged_for_triage(qwen3):
+    stub = TemplateStub(qwen3, truncation_mode="left")
+    lying = PlantedAdapter(stub, "wrong-mode", on_declare=lambda d: replace(d, truncation_mode="right"))
+    v = CHECK.run(lying, qwen3, load_fixture("long_answer"))
+    assert v.flags == ["declared_actual_mismatch"] and v.evidence["triage"] == "declared/actual mismatch"

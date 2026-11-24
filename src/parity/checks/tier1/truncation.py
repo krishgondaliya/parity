@@ -27,8 +27,11 @@ t1.template_parity). Then, at the limit:
   loss, no must-not-train token with loss, labels equal to their tokens;
   neutral tokens free).
 A framework that doesn't match its declared mode fails, unless its output is
-exactly what a different mode gives: then the declaration is contradicted,
-an adapter error until shown otherwise, and the result is inconclusive.
+exactly what a different mode gives: then the declaration is contradicted, a
+declared/actual mismatch routed to /triage, and the result is inconclusive.
+The mode is read from the declaration for the cut config itself. A kept row
+that matches the reference but has no token with loss (a cut that left only
+the prompt) still passes, flagged `zero_trainable_tokens` for the report card.
 
 Planted faults (decided from the fixture, the reference length and the declared mode):
 - off_by_one: right/left: cut to max_len - 1 whenever a row reaches max_len (every fixture).
@@ -72,11 +75,15 @@ class Truncation(Tier1Check):
 
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         tokenizer = release.tokenizer
-        declaration = adapter.declare(self.base_cfg)
+        # Two encode calls, each with the declaration for its own config: no limit, then the limit.
+        base = adapter.declare(self.base_cfg)
+        base_ref = declared_reference(release, fixture, base)
+        max_len = limit_for(fixture, base_ref)
+        cut_cfg = replace(self.base_cfg, max_len=max_len)
+        declaration = adapter.declare(cut_cfg)
         mode = declaration.truncation_mode
         ref = declared_reference(release, fixture, declaration)
         info = reference_info(release, ref)
-        max_len = limit_for(fixture, ref)
         conventions = {
             "truncation_mode": mode,
             "max_len": max_len,
@@ -94,23 +101,23 @@ class Truncation(Tier1Check):
                 reason=f"dropped even with no length limit ({full.reason})",
                 reference=info,
                 conventions=conventions,
-                declared=declaration,
+                declared=base,
             )
-        if full.input_ids != ref.input_ids:
+        if full.input_ids != base_ref.input_ids:
             return unaligned_verdict(
                 self,
                 adapter,
                 release,
                 fixture,
-                declaration,
+                base,
                 full.input_ids,
-                ref.input_ids,
+                base_ref.input_ids,
                 reference=info,
                 conventions=conventions,
             )
+        uncut_call = base.record({"chat_template": CONSISTENT}, self.base_cfg)
 
         def verdict(result: str, mode_status: str, **fields: Any) -> Verdict:
-            verified = {"chat_template": CONSISTENT, "truncation_mode": mode_status}
             return self.verdict(
                 adapter,
                 fixture,
@@ -118,18 +125,22 @@ class Truncation(Tier1Check):
                 reference=info,
                 conventions=conventions,
                 declared=declaration,
-                verified=verified,
+                verified={"truncation_mode": mode_status},
+                cfg=cut_cfg,
+                other_calls=[uncut_call],
                 **fields,
             )
 
-        out = adapter.encode(fixture, replace(self.base_cfg, max_len=max_len))
+        out = adapter.encode(fixture, cut_cfg)
         ok, evidence = judge(tokenizer, ref, max_len, mode, out)
         if ok:
             status = CONSISTENT if conventions["cut"] else "unverified: nothing is cut at this limit"
-            return verdict("pass", status, evidence=evidence)
+            # Still a pass if it matches the reference, but a kept row with nothing to learn is shown on the card.
+            zero = isinstance(out, Encoded) and not any(label != LABEL_IGNORE for label in out.labels)
+            return verdict("pass", status, evidence=evidence, flags=["zero_trainable_tokens"] if zero else [])
 
         # Not what the declared mode gives. If it is exactly what another mode gives,
-        # the declaration is contradicted: an adapter error until shown otherwise.
+        # the declaration is contradicted: a declared/actual mismatch for /triage.
         others = [m for m in TRUNCATION_MODES if m != mode and judge(tokenizer, ref, max_len, m, out)[0]]
         if others:
             status = CONTRADICTED + f"the framework's row is exactly what {others[0]!r} truncation gives"

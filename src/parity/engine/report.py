@@ -22,7 +22,16 @@ from parity.engine.summary import summarize
 from parity.engine.verdict import Verdict
 from parity.references.properties import TemplateProperty
 
-INHERITED_NOTE = {"prefix_breaks": "prefix not preserved; the breaks are the template's"}
+INHERITED_NOTE = {
+    "prefix_breaks": "prefix not preserved; the breaks are the template's",
+    "marker_disagreement": "the template's generation markers disagree with the reference",
+}
+FLAG_NOTE = {
+    "zero_trainable_tokens": "kept a row with zero trainable tokens",
+    "declared_actual_mismatch": "declared/actual mismatch (route to /triage)",
+    "marker_disagreement": "template markers disagree",
+    "blocked_by_template_parity": "blocked by t1.template_parity",
+}
 
 
 def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplateProperty]) -> str:
@@ -48,13 +57,7 @@ def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplatePro
                 p.summary,
                 "",
             ]
-            for detail in p.details:
-                for b in detail["breaks"]:
-                    edit = b["edit"]
-                    lines.append(
-                        f"- `{detail['fixture']}`, boundary {b['boundary']}: removes {_shown(edit['removed'])}, "
-                        f"inserts {_shown(edit['inserted'])}"
-                    )
+            lines += _property_details(p)
             lines.append("")
 
         lines += [
@@ -70,6 +73,8 @@ def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplatePro
             for prop in c.template_properties:
                 note = INHERITED_NOTE.get(by_id[prop].kind, "inherits a template property")
                 notes.append(f"{note} (see [{prop}](#{anchor(prop)}))")
+            for flag, n in c.flags.items():
+                notes.append(f"{FLAG_NOTE.get(flag, flag)} on {n} fixture(s)")
             if c.not_applicable:
                 notes.append(f"not applicable on {c.not_applicable} fixture(s)")
             lines.append(
@@ -85,3 +90,24 @@ def anchor(property_id: str) -> str:
 
 def _shown(tokens: list[str]) -> str:
     return "nothing" if not tokens else f"`{json.dumps(''.join(tokens), ensure_ascii=False)}`"
+
+
+def _property_details(p: TemplateProperty) -> list[str]:
+    lines = []
+    for detail in p.details:
+        if p.kind == "prefix_breaks":
+            for b in detail["breaks"]:
+                edit = b["edit"]
+                lines.append(
+                    f"- `{detail['fixture']}`, boundary {b['boundary']}: removes {_shown(edit['removed'])}, "
+                    f"inserts {_shown(edit['inserted'])}"
+                )
+        elif p.kind == "marker_disagreement":
+            first = detail["positions"][0]
+            lines.append(
+                f"- `{detail['fixture']}`: {detail['count']} token(s) disagree; first at {first['index']} "
+                f"({json.dumps(first['token'], ensure_ascii=False)}, zone {first['zone']}, marked {first['marked']})"
+            )
+        else:
+            lines.append(f"- `{detail.get('fixture', '?')}`: {json.dumps(detail, ensure_ascii=False)}")
+    return lines

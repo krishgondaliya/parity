@@ -14,7 +14,7 @@ Cell result, first rule that applies:
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -35,6 +35,7 @@ class Cell:
     not_applicable: int
     known_differences: tuple[str, ...]
     template_properties: tuple[str, ...]  # model-level properties the cell's verdicts inherit
+    flags: dict[str, int]  # how many of the cell's verdicts carry each flag
     result: str
 
 
@@ -75,6 +76,7 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 not_applicable=not_applicable,
                 known_differences=tuple(sorted({v.known_difference for v in vs if v.known_difference})),
                 template_properties=tuple(sorted({p for v in vs for p in v.template_properties})),
+                flags=dict(sorted(Counter(f for v in vs for f in v.flags).items())),
                 result=result,
             )
         )

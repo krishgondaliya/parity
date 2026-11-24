@@ -15,12 +15,53 @@ Order of decisions:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import replace
 from typing import Any
 
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Fixture
+from parity.references.properties import marker_disagreement_property_id
 from parity.references.template import MarkerDisagreementError, TemplateReferenceError
+
+BLOCKING_CHECK = "t1.template_parity"
+
+
+def evaluate_suite(checks: Sequence[Any], adapter: Any, fixtures: Sequence[Fixture]) -> list[Verdict]:
+    """Every check on every fixture. One root cause, one finding.
+
+    When template parity fails (kind bug) on a fixture, the other checks'
+    fails on that fixture are held back as "blocked by t1.template_parity":
+    inconclusive, flagged, with their own result kept in the evidence. Their
+    passes stay passes. A matched known difference blocks nothing.
+    """
+    verdicts = []
+    for fixture in fixtures:
+        by_check = {check.id: evaluate(check, adapter, fixture) for check in checks}
+        parity = by_check.get(BLOCKING_CHECK)
+        blocking = parity is not None and parity.result == "fail" and parity.kind == "bug"
+        for check in checks:
+            v = by_check[check.id]
+            if blocking and check.id != BLOCKING_CHECK and v.result == "fail":
+                v = _blocked(v, parity)
+            verdicts.append(v)
+    return verdicts
+
+
+def _blocked(v: Verdict, parity: Verdict) -> Verdict:
+    at = parity.evidence.get("first_divergence")
+    return replace(
+        v,
+        result="inconclusive",
+        kind=None,
+        known_difference=None,
+        reason=(
+            f"blocked by {BLOCKING_CHECK}: template parity already fails on this fixture (first divergence at "
+            f"token {at}). One root cause, one finding; this check's own fail is kept in the evidence."
+        ),
+        flags=sorted(set(v.flags) | {"blocked_by_template_parity"}),
+        evidence={**v.evidence, "blocked_result": v.result, "blocked_kind": v.kind},
+    )
 
 
 def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
@@ -29,7 +70,7 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     if verdict.declaration:
         return verdict
     try:
-        record = adapter.declare(check.base_cfg).record()
+        record = adapter.declare(check.base_cfg).record(cfg=check.base_cfg)
     except Exception as exc:  # noqa: BLE001 - recorded, never hidden
         record = {"error": f"{type(exc).__name__}: {exc}"}
     return replace(verdict, declaration=record)
@@ -84,6 +125,8 @@ def run_safely(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
             "inconclusive",
             reason=f"reference: {exc}",
             evidence={"marker_disagreement": exc.positions[:16], "triage": "possible model-template finding"},
+            flags=["marker_disagreement"],
+            template_properties=[marker_disagreement_property_id(adapter.release, exc.template_sha256)],
         )
     except TemplateReferenceError as exc:
         return make_verdict(check.id, adapter, fixture.id, "inconclusive", reason=f"reference: {exc}")

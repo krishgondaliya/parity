@@ -11,6 +11,8 @@ import sys
 import pytest
 from stubs import trl_template_stub
 
+from parity.adapters.base import Encoded
+
 from parity.checks.tier1 import TIER1_CHECKS
 from parity.engine.runner import evaluate
 from parity.engine.summary import summarize
@@ -108,3 +110,31 @@ def test_every_check_documents_its_bug_class_reference_pass_rule_and_plants(chec
     module_doc = sys.modules[type(check).__module__].__doc__
     for heading in ("Bug class", "Reference", "Pass rule", "Planted fault"):
         assert heading in module_doc, (check.id, heading)
+
+
+def test_one_root_cause_one_finding(qwen3, official):
+    """A framework that prepends a stray special token fails template parity; special tokens' fail is blocked."""
+    from parity.engine.plants import encoded_plant
+    from parity.engine.runner import evaluate_suite
+
+    stray = qwen3.tokenizer.pad_token_id
+
+    def prepend(row):
+        return Encoded((stray,) + row.input_ids, (-100,) + row.labels, (1,) + row.attention_mask)
+
+    framework = encoded_plant("stray", "stray", prepend, origin="synthetic").apply(official)
+    verdicts = {v.check: v for v in evaluate_suite(TIER1_CHECKS, framework, [load_fixture("single_turn")])}
+    parity = verdicts["t1.template_parity"]
+    assert (parity.result, parity.kind, parity.flags) == ("fail", "bug", [])
+    blocked = verdicts["t1.special_tokens"]
+    assert blocked.result == "inconclusive" and blocked.reason.startswith("blocked by t1.template_parity")
+    assert blocked.flags == ["blocked_by_template_parity"] and blocked.evidence["blocked_result"] == "fail"
+    assert not any(v.result == "fail" for c, v in verdicts.items() if c != "t1.template_parity")
+
+
+def test_a_known_difference_blocks_nothing(qwen3, trl_qwen3_template):
+    from parity.engine.runner import evaluate_suite
+
+    trl = trl_template_stub(qwen3, trl_qwen3_template, name="trl", version="1.18.2")
+    verdicts = evaluate_suite(TIER1_CHECKS, trl, [load_fixture("multi_turn")])
+    assert not any("blocked_by_template_parity" in v.flags for v in verdicts)

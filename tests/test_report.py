@@ -59,3 +59,21 @@ def test_report_refuses_a_verdict_that_references_a_missing_property(official):
     verdicts = [evaluate(TIER1_CHECKS[-1], official, load_fixture("reasoning"))]
     with pytest.raises(ValueError, match="weren't provided"):
         render_summary(verdicts, [])
+
+
+def test_marker_disagreements_go_on_the_report_card(qwen3, trl_qwen3_template):
+    from stubs import TemplateStub, markers_moved_onto_the_header
+
+    from parity.references.properties import marker_disagreement_property
+
+    bad = markers_moved_onto_the_header(trl_qwen3_template)
+    stub = TemplateStub(qwen3, chat_template=bad, template_source="test:bad-markers", labels_from="markers")
+    prop = marker_disagreement_property(qwen3, bad, "test:bad-markers", load_all())
+    assert prop is not None and len(prop.details) == 8
+    v = evaluate(TIER1_CHECKS[1], stub, load_fixture("single_turn"))
+    assert v.result == "inconclusive" and v.flags == ["marker_disagreement"] and v.template_properties == [prop.id]
+    text = render_summary([v], [prop])
+    assert "marker_disagreement; template `test:bad-markers`" in text
+    assert '- `single_turn`: 3 token(s) disagree; first at 10 ("<|im_start|>", zone must_not_train, marked True)' in text
+    row = next(line for line in text.splitlines() if "| t1.assistant_mask |" in line)
+    assert "template markers disagree on 1 fixture(s)" in row and f"(#{anchor(prop.id)})" in row

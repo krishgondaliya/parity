@@ -9,12 +9,19 @@ checks are tested against stand-ins that live in `tests/`.
 Two kinds of information come back from an adapter, and checks keep them apart:
 
 - `declare(cfg)` returns what the framework's own configuration and defaults
-  say it will do (which chat template, how it truncates, whether it pads or
-  packs, how its labels are laid out). It is read before any encoding, so a
-  check can decide what to expect and which planted faults apply without
-  looking at the framework's output. A declaration is a claim: checks verify
-  it against behavior wherever behavior can show it, and every verdict
-  records it.
+  say it will do under exactly that config (which chat template, how it
+  truncates, whether it pads or packs, how its labels are laid out). It is
+  read before any encoding, so a check can decide what to expect and which
+  planted faults apply without looking at the framework's output. Checks call
+  it with the exact config of each encode call.
+  - Every value must be read from the framework's live objects (its config,
+    trainer, collator, tokenizer), never hardcoded in the adapter, and
+    `sources` must say which object and attribute each value came from.
+  - A declaration is a claim: checks verify it against behavior wherever
+    behavior can show it, and every verdict records it. Behavior that exactly
+    matches a different declared value is a "declared/actual mismatch",
+    routed to /triage: either the adapter misreads the config, or the
+    framework ignores its own config (a real bug class).
 - `encode` and `encode_batch` return what the framework actually produced.
 """
 
@@ -22,7 +29,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, ClassVar, Protocol
 
 from parity.fixtures import Conversation
@@ -139,11 +146,15 @@ class Declaration:
         "pad_token_id",
     )
 
-    def record(self, verified: dict[str, str] | None = None) -> dict[str, Any]:
-        """The declaration as it goes into a verdict. Fields a check didn't verify stay "unverified"."""
+    def record(self, verified: dict[str, str] | None = None, cfg: TrainCfg | None = None) -> dict[str, Any]:
+        """The declaration as it goes into a verdict, with the config it describes.
+
+        Fields a check didn't verify stay "unverified".
+        """
         status = {name: "unverified" for name in self.FIELDS}
         status.update(verified or {})
         return {
+            "cfg": None if cfg is None else asdict(cfg),
             "template_source": self.template_source,
             "template_sha256": hashlib.sha256(self.chat_template.encode("utf-8")).hexdigest(),
             "label_convention": self.label_convention,

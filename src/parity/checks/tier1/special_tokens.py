@@ -22,14 +22,16 @@ Pass rule, two parts, both exact:
      exactly as the unpadded row has them;
    - pad positions have no loss, and hold one token: the declared pad token;
    - every stop token in a must-train position keeps its loss in the batch too.
-   If the framework declares packing under our config, part 2 is not
-   applicable for that config and the verdict records it. A row that isn't
-   padded to `pad_to` makes part 2 inconclusive (check the adapter's mapping).
+   If the framework declares packing for the batch's config, part 2 is
+   inconclusive: Phase 0 configs never ask for packing, and packing isolation
+   is a Phase 2 check. A row that isn't padded to `pad_to` makes part 2
+   inconclusive (check the adapter's mapping). The row and the batch are each
+   judged against the declaration for their own config.
 
 Declarations are verified here: rows that show packing when padding was
 declared (a different number of rows, or position ids restarting inside a
 row), or pads that are all one token other than the declared pad token,
-contradict the declaration. That is an adapter error until shown otherwise,
+contradict the declaration: a declared/actual mismatch, routed to /triage,
 so the verdict is inconclusive. Pads holding several different tokens fail.
 
 Planted faults (each part of the check has one of its own):
@@ -51,7 +53,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 from typing import Any
 
-from parity.adapters.base import LABEL_IGNORE, Batch, Declaration, Dropped, Encoded
+from parity.adapters.base import LABEL_IGNORE, Batch, Declaration, Dropped, Encoded, TrainCfg
 from parity.checks.common import (
     CONSISTENT,
     CONTRADICTED,
@@ -83,12 +85,16 @@ class SpecialTokens(Tier1Check):
 
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         tokenizer = release.tokenizer
+        # Two encode calls, each with the declaration for its own config: the row, then the padded batch.
         declaration = adapter.declare(self.base_cfg)
         ref = declared_reference(release, fixture, declaration)
         info = reference_info(release, ref)
-        pad = declaration.pad_token_id
+        _, pad_to = batch_plan(release, fixture, declaration)
+        batch_cfg = replace(self.base_cfg, pad_to=pad_to)
+        batch_declaration = adapter.declare(batch_cfg)
+        pad = batch_declaration.pad_token_id
         conventions: dict[str, Any] = {
-            "batching": declaration.batching,
+            "batching": batch_declaration.batching,
             "pad_token_id": pad,
             "pad_token": None if pad is None else decode_each(tokenizer, [pad])[0],
             "pad_is_a_stop_token": pad in release.stop_token_ids,
@@ -135,21 +141,29 @@ class SpecialTokens(Tier1Check):
             )
         parts["special_tokens"] = "fail" if problems else ("unchecked" if open_questions else "pass")
 
-        if declaration.batching == "packed":
-            parts["padding"] = "not_applicable"
-            verified["batching"] = "unverified: the padding part doesn't run for a framework that declares packing"
+        batch_verified: dict[str, str] = {}
+        if batch_declaration.batching == "packed":
+            # Phase 0 configs never ask for packing. Until the Phase 2 packing-isolation check
+            # exists, a framework that packs anyway leaves this part open, never passed.
+            parts["padding"] = "inconclusive"
+            batch_verified["batching"] = "unverified: no Phase 0 check can confirm packing"
+            open_questions.append(
+                "the framework declares packing for a config that doesn't ask for it; the padding part can't "
+                "be judged until the Phase 2 packing-isolation check exists"
+            )
         else:
             n_before = len(problems)
             try:
-                pad = self._padding(adapter, release, fixture, declaration, ref, out)
+                pad = self._padding(adapter, release, fixture, batch_declaration, batch_cfg, ref, out)
             except Exception as exc:  # noqa: BLE001 - a padding crash leaves this part open, never passed
                 pad = _PaddingResult(question=f"padded batch failed: {type(exc).__name__}: {exc}")
             problems += pad.problems
             if pad.question:
                 open_questions.append(pad.question)
-            verified.update(pad.verified)
+            batch_verified.update(pad.verified)
             conventions["padding_side"] = pad.side
             parts["padding"] = "fail" if len(problems) > n_before else ("inconclusive" if pad.question else "pass")
+        batch_call = batch_declaration.record(batch_verified, batch_cfg)
 
         evidence = {"parts": parts, "problems": problems}
 
@@ -162,6 +176,7 @@ class SpecialTokens(Tier1Check):
                 conventions=conventions,
                 declared=declaration,
                 verified=verified,
+                other_calls=[batch_call],
                 evidence=evidence,
                 **fields,
             )
@@ -178,14 +193,16 @@ class SpecialTokens(Tier1Check):
         release: LoadedRelease,
         fixture: Fixture,
         declaration: Declaration,
+        cfg: TrainCfg,
         ref: TemplateReference,
         single: Encoded,
     ) -> _PaddingResult:
+        """Judge the padded batch. `declaration` is the adapter's declaration for `cfg`, the batch's config."""
         partner, pad_to = batch_plan(release, fixture, declaration)
-        cfg = replace(self.base_cfg, pad_to=pad_to)
+        assert cfg.pad_to == pad_to
         batch = adapter.encode_batch([fixture, partner], cfg)
 
-        # Declared padding, but the rows show packing: an adapter error, not a framework finding.
+        # Declared padding, but the rows show packing: a declared/actual mismatch for /triage.
         packed = None
         if len(batch.rows) != 2:
             packed = f"returned {len(batch.rows)} rows for 2 conversations"

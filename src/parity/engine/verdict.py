@@ -19,6 +19,7 @@ One verdict per (check, model, framework, fixture). Rules the record enforces:
 - `template_properties` names model-level template properties (shown once per
   model in the report) that a verdict depends on, e.g. a pass that inherits
   its template's prefix breaks.
+- `flags` mark things the report card must show even on a pass (see FLAGS).
 """
 
 from __future__ import annotations
@@ -32,6 +33,12 @@ SCHEMA = "parity.verdict/v0"
 RESULTS = ("pass", "fail", "inconclusive", "not_applicable")
 KINDS = ("bug", "difference")
 SELF_TESTS = ("caught", "missed")
+FLAGS = (
+    "zero_trainable_tokens",  # a kept row has no token with loss (e.g. a cut that left only the prompt)
+    "declared_actual_mismatch",  # behavior exactly matches a different declared value: route to /triage
+    "marker_disagreement",  # the template's generation markers disagree with the prefix diff
+    "blocked_by_template_parity",  # template parity fails on this fixture; this check's own fail is held back
+)
 
 
 @dataclass(frozen=True)
@@ -51,6 +58,7 @@ class Verdict:
     plants: list[dict[str, Any]] = field(default_factory=list)  # one record per planted fault run
     declaration: dict[str, Any] = field(default_factory=dict)  # what the adapter declared, and what was verified
     template_properties: list[str] = field(default_factory=list)  # model-level template properties this verdict relies on
+    flags: list[str] = field(default_factory=list)  # see FLAGS; each is shown on the report card
     env_lock: str | None = None
     repro: str | None = None
     schema: str = SCHEMA
@@ -71,6 +79,9 @@ class Verdict:
             raise ValueError(f"self_test must be one of {SELF_TESTS} or None, got {self.self_test!r}")
         if self.result in ("inconclusive", "not_applicable") and not self.reason:
             raise ValueError(f"a {self.result} verdict needs a reason")
+        unknown = [f for f in self.flags if f not in FLAGS]
+        if unknown:
+            raise ValueError(f"unknown flags {unknown}; known: {FLAGS}")
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)

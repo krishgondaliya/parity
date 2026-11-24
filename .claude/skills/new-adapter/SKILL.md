@@ -13,6 +13,9 @@ Rules:
 3. Map the framework's own option names onto `TrainCfg.objective` (`assistant_only`, `completion_only`, `all`). Document the mapping at the top of the adapter file, with links to the framework docs you used.
 4. Tier 1 needs only `encode()`. If the framework insists on a model object, pass a tiny random-weight model. Never download full weights.
 5. Read the framework's own tests for its data path first, and note what they already guard. That shows where its blind spots might be.
+6. **`declare(cfg)` describes exactly that config**, and every value comes from the framework's live objects (its config, trainer, collator, tokenizer), never hardcoded in the adapter. `Declaration.sources` names the object and attribute for each value, plus the doc link for the option that maps `TrainCfg.objective`.
+7. **The adapter never fixes framework output.** It reads the processed dataset and the collator's batches as they are. The only allowed conversion is turning pre-shifted labels into aligned ones, declared as `label_convention`.
+8. **Pin the environment** with a uv lockfile under `envs/<framework>-<version>/`, installed the way the framework's docs say. The adapter exposes `env_lock` and `env_fingerprint` (the lockfile's sha256), and every verdict records both.
 
 Deliverables:
 

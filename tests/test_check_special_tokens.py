@@ -35,11 +35,12 @@ def test_left_padding_passes(qwen3):
         assert (v.result, v.self_test, v.conventions["padding_side"]) == ("pass", "caught", "left"), fid
 
 
-def test_a_packing_framework_has_its_padding_part_not_applicable(qwen3):
+def test_a_packing_framework_leaves_the_padding_part_inconclusive(qwen3):
+    """Phase 0 never asks for packing; until the Phase 2 packing-isolation check exists, it can't pass."""
     for fid, v in run_on_all_fixtures(CHECK, TemplateStub(qwen3, batching="packed")).items():
-        assert (v.result, v.self_test) == ("pass", "caught"), (fid, v.reason, v.plants)
-        assert v.evidence["parts"]["padding"] == "not_applicable"
-        assert v.conventions["batching"] == "packed"
+        assert (v.result, v.self_test) == ("inconclusive", "caught"), (fid, v.reason, v.plants)
+        assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "inconclusive"}
+        assert "Phase 2" in v.reason and v.conventions["batching"] == "packed"
 
 
 @pytest.mark.parametrize("fid", FIXTURE_IDS)
@@ -129,8 +130,9 @@ def test_packed_rows_when_padding_was_declared_are_an_adapter_error(qwen3, offic
         return Batch((Encoded(ids, labels, (1,) * len(ids), positions),))
 
     v = CHECK.run(PlantedAdapter(official, "x", after_batch=pack), qwen3, load_fixture("single_turn"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
-    assert v.declaration["verified"]["batching"].startswith("contradicted")
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch")
+    assert v.declaration["other_calls"][0]["verified"]["batching"].startswith("contradicted")
+    assert "declared_actual_mismatch" in v.flags and v.evidence["triage"] == "declared/actual mismatch"
 
 
 def test_pads_that_are_all_another_token_are_an_adapter_error(qwen3, official):
@@ -140,8 +142,9 @@ def test_pads_that_are_all_another_token_are_an_adapter_error(qwen3, official):
         return replace(row, input_ids=tuple(t if a else im_start for t, a in zip(row.input_ids, row.attention_mask)))
 
     v = CHECK.run(_batch_edit(official, repad), qwen3, load_fixture("single_turn"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
-    assert v.declaration["verified"]["pad_token_id"].startswith("contradicted")
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch")
+    assert v.declaration["other_calls"][0]["verified"]["pad_token_id"].startswith("contradicted")
+    assert "declared_actual_mismatch" in v.flags
 
 
 def test_pads_with_several_different_tokens_fail(qwen3, official):
@@ -155,10 +158,13 @@ def test_pads_with_several_different_tokens_fail(qwen3, official):
     assert (v.result, v.kind) == ("fail", "bug") and "pad_token" in _rules(v)
 
 
-def test_a_consistent_padded_batch_verifies_batching_and_pad_token(official):
+def test_each_encode_call_records_the_declaration_for_its_own_config(official):
     v = evaluate(CHECK, official, load_fixture("single_turn"))
-    verified = v.declaration["verified"]
-    assert (verified["batching"], verified["pad_token_id"], verified["chat_template"]) == ("consistent",) * 3
+    row, [batch] = v.declaration, v.declaration["other_calls"]
+    assert row["cfg"]["pad_to"] is None and batch["cfg"]["pad_to"] == 537 + 8
+    assert row["verified"]["chat_template"] == "consistent"
+    assert (batch["verified"]["batching"], batch["verified"]["pad_token_id"]) == ("consistent", "consistent")
+    assert v.flags == []
 
 
 # Each part of the check is guarded by a planted fault of its own (found by the M2 skeptic review:

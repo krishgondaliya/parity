@@ -80,10 +80,29 @@ class Tier1Check:
         *,
         declared: Declaration | None = None,
         verified: dict[str, str] | None = None,
+        cfg: TrainCfg | None = None,
+        other_calls: list[dict[str, Any]] | None = None,
+        flags: list[str] | None = None,
         **fields: Any,
     ) -> Verdict:
+        """Build a verdict that records the declaration for `cfg` (default: this check's base config).
+
+        `other_calls` holds the declaration records of any other encode calls the check made
+        under a different config. A contradicted declaration anywhere flags the verdict as a
+        declared/actual mismatch for /triage.
+        """
+        flags = list(flags or [])
         if declared is not None:
-            fields["declaration"] = declared.record(verified)
+            record = declared.record(verified, cfg if cfg is not None else self.base_cfg)
+            if other_calls:
+                record["other_calls"] = other_calls
+            fields["declaration"] = record
+            statuses = list(record["verified"].values())
+            statuses += [s for call in other_calls or [] for s in call["verified"].values()]
+            if any(is_contradicted(s) for s in statuses):
+                flags.append("declared_actual_mismatch")
+                fields["evidence"] = {**fields.get("evidence", {}), "triage": "declared/actual mismatch"}
+        fields["flags"] = sorted(set(flags))
         return make_verdict(self.id, adapter, fixture.id, result, **fields)
 
 
@@ -102,9 +121,9 @@ def is_contradicted(status: str) -> bool:
 
 def adapter_error(field_name: str, status: str) -> str:
     return (
-        f"adapter error: the declared {field_name} is contradicted by what the framework did "
-        f"({status.removeprefix(CONTRADICTED)}). Check the adapter's declare() before treating this as a "
-        "framework finding (rule 4)."
+        f"declared/actual mismatch: the declared {field_name} is contradicted by what the framework did "
+        f"({status.removeprefix(CONTRADICTED)}). Route to /triage: either the adapter's declare() misreads "
+        "the framework's config (our bug, rule 4), or the framework ignores its own config (a real bug class)."
     )
 
 

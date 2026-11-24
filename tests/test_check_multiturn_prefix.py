@@ -112,7 +112,7 @@ def test_a_contradicted_template_declaration_is_an_adapter_error(qwen3, official
     """Renders exactly Qwen3's own template but declares TRL's."""
     lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
     v = CHECK.run(lying, qwen3, load_fixture("reasoning"))
-    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.result == "inconclusive" and v.reason.startswith("declared/actual mismatch")
 
 
 def test_an_inherited_break_passes_but_never_reads_as_prefix_preserved(qwen3, official):

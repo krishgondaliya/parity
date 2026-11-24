@@ -80,9 +80,10 @@ class TemplateReferenceError(RuntimeError):
 class MarkerDisagreementError(TemplateReferenceError):
     """The template's generation markers disagree with the prefix diff on a non-neutral token."""
 
-    def __init__(self, message: str, positions: list[dict[str, Any]]):
+    def __init__(self, message: str, positions: list[dict[str, Any]], template_sha256: str = ""):
         super().__init__(message)
         self.positions = positions
+        self.template_sha256 = template_sha256
 
 
 class Zone(IntEnum):
@@ -218,6 +219,7 @@ def _cross_check_markers(
             f"token(s); first at {first['index']} ({first['token']!r}, zone {first['zone']}, "
             f"marked {first['marked']}). Possible model-template finding: send to /triage.",
             positions,
+            template_sha256(template),
         )
 
 
