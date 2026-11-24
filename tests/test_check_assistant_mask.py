@@ -20,13 +20,18 @@ from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.template import Zone
 
 CHECK = AssistantMask()
-PLANTS = {"unmask_prompt", "zero_mask", "shift_labels_left", "late_start"}
+PLANTS = {"unmask_prompt", "zero_mask", "shift_labels_left", "late_start", "wrong_label_values", "span_starts_at_header"}
+
+
+def expected_plants(fid):
+    multi = len(load_fixture(fid).assistant_indices) >= 2
+    return PLANTS | ({"train_only_last_turn"} if multi else set())
 
 
 def test_passes_on_the_models_own_template_and_catches_every_plant(official):
     for fid, v in run_on_all_fixtures(CHECK, official).items():
         assert (v.result, v.self_test) == ("pass", "caught"), (fid, v.reason, v.plants)
-        assert {p["plant"] for p in v.plants} == PLANTS
+        assert {p["plant"] for p in v.plants} == expected_plants(fid)
         assert v.conventions["label_convention"] == "aligned"
         assert v.conventions["neutral"] == "not_trained"
 
@@ -46,7 +51,7 @@ def test_a_plant_that_does_nothing_makes_the_verdict_inconclusive(official, fid)
 
 def _planted_run(release, adapter, fid, name):
     fx = load_fixture(fid)
-    plant = plant_named(CHECK, release, fx, adapter.declare(TrainCfg()), name)
+    plant = plant_named(CHECK, release, fx, adapter.declare, name)
     return CHECK.run(plant.apply(adapter), release, fx)
 
 
@@ -114,3 +119,23 @@ def test_a_template_whose_markers_are_wrong_is_inconclusive_and_flagged(qwen3, t
     v = evaluate(CHECK, stub, load_fixture("single_turn"))
     assert v.result == "inconclusive"
     assert v.evidence["triage"] == "possible model-template finding"
+
+
+@pytest.mark.parametrize(
+    "name, rule",
+    [
+        ("wrong_label_values", "label_mismatch"),
+        ("train_only_last_turn", "must_train_unsupervised"),
+        ("span_starts_at_header", "must_not_train_supervised"),
+    ],
+)
+def test_each_harder_fault_is_caught_by_its_own_rule(qwen3, official, name, rule):
+    v = _planted_run(qwen3, official, "multi_turn", name)
+    assert (v.result, v.kind) == ("fail", "bug")
+    counts = v.evidence["counts"]
+    assert counts[rule] > 0
+    if name == "wrong_label_values":  # only the label values change, never which tokens get loss
+        assert counts["must_train_unsupervised"] == counts["must_not_train_supervised"] == 0
+    if name == "span_starts_at_header":
+        shown = "".join(p["token"] for p in v.evidence["must_not_train_supervised"])
+        assert shown.startswith("<|im_start|>assistant\n")

@@ -61,7 +61,7 @@ def _rules(v):
 
 def test_extra_leading_special_is_reported(qwen3, official):
     fx = load_fixture("single_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), "extra_leading_special")
+    plant = plant_named(CHECK, qwen3, fx, official.declare, "extra_leading_special")
     v = CHECK.run(plant.apply(official), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     lead = next(p for p in v.evidence["problems"] if p["rule"] == "leading_special_tokens")
@@ -74,7 +74,7 @@ def test_extra_leading_special_is_reported(qwen3, official):
 )
 def test_pad_equal_to_the_closing_token_reports_untrained_stop_tokens(qwen3, official, name, where):
     fx = load_fixture("multi_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), name)
+    plant = plant_named(CHECK, qwen3, fx, official.declare, name)
     v = CHECK.run(plant.apply(official), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     lost = [p for p in v.evidence["problems"] if p["rule"] == "stop_tokens_trained"]
@@ -167,7 +167,7 @@ def test_a_consistent_padded_batch_verifies_batching_and_pad_token(official):
 
 def test_the_collator_pad_fault_is_caught_only_by_the_padding_part(qwen3, official, monkeypatch):
     fx = load_fixture("single_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), "pad_is_closing_token_masked")
+    plant = plant_named(CHECK, qwen3, fx, official.declare, "pad_is_closing_token_masked")
     v = CHECK.run(plant.apply(official), qwen3, fx)
     assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "fail"}
 
@@ -180,7 +180,7 @@ def test_the_collator_pad_fault_is_caught_only_by_the_padding_part(qwen3, offici
 def test_the_per_row_pad_fault_guards_the_row_rule_when_the_framework_packs(qwen3, monkeypatch):
     packed = TemplateStub(qwen3, batching="packed")
     fx = load_fixture("multi_turn")
-    names = {p.name for p in CHECK.plants(qwen3, fx, packed.declare(TrainCfg()))}
+    names = {p.name for p in CHECK.plants(qwen3, fx, packed.declare)}
     assert names == {"extra_leading_special", "closing_token_masked_per_row"}  # no collator fault without padding
 
     original = special_tokens_module._untrained_stop_tokens

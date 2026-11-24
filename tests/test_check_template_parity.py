@@ -37,7 +37,7 @@ def test_passes_on_the_models_own_template_and_catches_both_plants(official):
     verdicts = run_on_all_fixtures(CHECK, official)
     for fid, v in verdicts.items():
         assert (v.result, v.self_test) == ("pass", "caught"), (fid, v.reason, v.plants)
-        assert {p["plant"] for p in v.plants} == {"drop_newline", "swap_stop_token"}
+        assert {p["plant"] for p in v.plants} == {"drop_newline", "swap_stop_token", "rstrip_render"}
 
 
 def test_trl_template_is_kd_0001_on_exactly_the_documented_fixtures(qwen3, trl_qwen3_template):
@@ -114,7 +114,7 @@ def test_dropping_the_conversation_without_a_limit_is_a_bug(official):
 
 def test_fail_evidence_shows_the_first_divergence(qwen3, official):
     fx = load_fixture("system_prompt")
-    planted = next(p for p in CHECK.plants(qwen3, fx, official.declare(TrainCfg())) if p.name == "swap_stop_token")
+    planted = next(p for p in CHECK.plants(qwen3, fx, official.declare) if p.name == "swap_stop_token")
     v = CHECK.run(planted.apply(official), qwen3, fx)
     ref = official_reference(qwen3, fx)
     first_stop = next(i for i, t in enumerate(ref.input_ids) if t in qwen3.stop_token_ids)
@@ -145,3 +145,13 @@ def test_the_trl_stand_ins_declaration_is_consistent_even_where_it_differs(qwen3
     v = evaluate(CHECK, trl, load_fixture("multi_turn"))
     assert v.known_difference == "KD-0001"
     assert v.declaration["verified"]["chat_template"] == "consistent"
+
+
+def test_rstrip_drops_only_the_final_separator(qwen3, official):
+    fx = load_fixture("single_turn")
+    planted = next(p for p in CHECK.plants(qwen3, fx, official.declare) if p.name == "rstrip_render")
+    v = CHECK.run(planted.apply(official), qwen3, fx)
+    ref = official_reference(qwen3, fx)
+    assert (v.result, v.kind) == ("fail", "bug")
+    assert (v.evidence["first_divergence"], v.evidence["got_len"]) == (len(ref.input_ids) - 1, len(ref.input_ids) - 1)
+    assert v.evidence["expected"] == ["\n"]

@@ -23,14 +23,19 @@ Planted faults (each must be caught on every fixture it applies to):
 - swap_stop_token: replace the first stop token with a different special
   token (Qwen3: <|im_end|> becomes <|endoftext|>). Applies when the declared
   template's render contains a stop token.
+- rstrip_render: strip trailing whitespace from the render, which drops only
+  the final separator (a neutral token every other check ignores). Applies
+  when the declared template's render ends in whitespace.
+All three are synthetic.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from parity.adapters.base import Declaration, Dropped, Encoded
+from parity.adapters.base import Dropped, Encoded
 from parity.checks.common import (
+    Declare,
     Tier1Check,
     adapter_error,
     declared_reference,
@@ -38,7 +43,7 @@ from parity.checks.common import (
     official_reference,
     official_template,
     reference_info,
-    special_ids,
+    replacement_special,
     template_status,
 )
 from parity.checks.known_differences import match_known_difference
@@ -101,9 +106,9 @@ class TemplateParity(Tier1Check):
             return verdict("fail", kind="difference", known_difference=entry.id, evidence=evidence)
         return verdict("fail", kind="bug", evidence=evidence)
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
-        ids = declared_reference(release, fixture, declaration).input_ids
+        ids = declared_reference(release, fixture, declare(self.base_cfg)).input_ids
         out = []
 
         newline_ids = {i for i in set(ids) if decode_each(tokenizer, [i])[0] == "\n"}
@@ -122,7 +127,7 @@ class TemplateParity(Tier1Check):
         stops = [t for t in ids if t in release.stop_token_ids]
         if stops:
             old = stops[0]
-            new = _replacement_special(release, old)
+            new = replacement_special(release, old)
 
             def swap_stop_token(row: Encoded) -> Encoded:
                 for i, t in enumerate(row.input_ids):
@@ -139,18 +144,35 @@ class TemplateParity(Tier1Check):
                     origin="synthetic",
                 )
             )
+
+        trailing = _trailing_whitespace(tokenizer, ids)
+        if trailing:
+
+            def rstrip_render(row: Encoded) -> Encoded:
+                n = _trailing_whitespace(tokenizer, row.input_ids)
+                end = len(row.input_ids) - n
+                return Encoded(row.input_ids[:end], row.labels[:end], row.attention_mask[:end])
+
+            out.append(
+                encoded_plant(
+                    "rstrip_render",
+                    "strip trailing whitespace from the rendered text (drops the final separator)",
+                    rstrip_render,
+                    origin="synthetic",
+                )
+            )
         return out
 
 
-def _replacement_special(release: LoadedRelease, old: int) -> int:
-    """Another special token to swap in: another stop token if there is one, else the pad token, else any special."""
-    others = sorted(release.stop_token_ids - {old})
-    if others:
-        return others[0]
-    pad = release.tokenizer.pad_token_id
-    if pad is not None and pad != old:
-        return pad
-    return min(special_ids(release.tokenizer) - {old})
+def _trailing_whitespace(tokenizer: Any, ids: tuple[int, ...]) -> int:
+    """How many tokens at the end decode to whitespace only."""
+    n = 0
+    for token in reversed(ids):
+        text = decode_each(tokenizer, [token])[0]
+        if not text or not text.isspace():
+            break
+        n += 1
+    return n
 
 
 def _without(row: Encoded, i: int) -> Encoded:

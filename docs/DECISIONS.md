@@ -14,6 +14,24 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Harder planted faults; real-world needs a URL and the same mechanism
+- Decision (human, after the skeptic review):
+  - **Five harder planted faults**, all synthetic:
+    - `t1.template_parity`: `rstrip_render`, which drops only the final separator.
+    - `t1.assistant_mask`:
+      - `train_only_last_turn`;
+      - `span_starts_at_header`, which also trains `<|im_start|>assistant\n`;
+      - `wrong_label_values`, which changes label values but not which tokens get loss. It guards the label-value rule, which no other planted fault reached on its own.
+    - `t1.end_of_turn`: `wrong_closing_token`, which closes each assistant turn with a different stop token, trained.
+  - **A `real-world` tag needs a public URL and a matching mechanism.** `Plant` refuses one without a URL. Two faults qualify:
+    - `mask_closing_tokens`: https://arxiv.org/pdf/2611.13393.
+    - `pad_is_closing_token_masked`: https://github.com/huggingface/transformers/blob/v5.24.0/src/transformers/data/data_collator.py#L798-L800. Lines checked by a read-only `gh api` lookup at the tag.
+  - **`history_false_as_python` is now synthetic.** It shares Prime Intellect's symptom, not their mechanism.
+  - That makes 20 planted faults, 2 of them real-world.
+  - **Planted faults read the declaration for their own config.** `plants()` now gets the adapter's `declare`, so truncation reads the mode under the cut config, and special tokens reads batching under the padded config.
+- Evidence: `tests/test_check_*.py` (one test per new fault, each showing the rule that catches it), `tests/test_tier1_suite.py`.
+- Reversible? yes
+
 ## 2026-11-24: M2 skeptic review: five bugs fixed
 - Decision: an independent review (the `skeptic` subagent) of everything M2 added found these. Each fix has a test that failed before it.
   1. **A pass without its self-test could be counted.** `summarize`, `write_verdict` and `read_verdict` now refuse a pass or fail unless its self-test was caught and every planted-fault record says caught. A raw `check.run` result, or a hand-edited JSON file, can't count (rule 3 at the record level).

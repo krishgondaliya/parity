@@ -74,10 +74,11 @@ ORIGINS = ("real-world", "synthetic")
 class Plant:
     """One planted fault.
 
-    origin: "real-world" when it reproduces a bug someone actually hit, named
-        in `source`; "synthetic" when it injects a fault of a plausible class
-        that we can't tie to one known incident. Catching a synthetic fault
-        says less about real bugs, and the verdict shows which kind it was.
+    origin: "real-world" only when it reproduces a bug someone actually hit,
+        with a public URL in `source` and the same mechanism; "synthetic"
+        otherwise, even if it shares a symptom with a known bug (say so in
+        `source`). Catching a synthetic fault says less about real bugs, and
+        the verdict shows which kind it was.
     """
 
     name: str
@@ -89,8 +90,8 @@ class Plant:
     def __post_init__(self) -> None:
         if self.origin not in ORIGINS:
             raise ValueError(f"plant {self.name}: origin must be one of {ORIGINS}, got {self.origin!r}")
-        if self.origin == "real-world" and not self.source:
-            raise ValueError(f"plant {self.name}: a real-world plant must name its source")
+        if self.origin == "real-world" and (not self.source or "https://" not in self.source):
+            raise ValueError(f"plant {self.name}: a real-world plant needs a public URL in its source")
 
 
 def encoded_plant(

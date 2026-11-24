@@ -45,11 +45,12 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from parity.adapters.base import TRUNCATION_MODES, LABEL_IGNORE, Declaration, Dropped, Encoded, TrainCfg
+from parity.adapters.base import LABEL_IGNORE, TRUNCATION_MODES, Dropped, Encoded, TrainCfg
 from parity.checks.common import (
     CONSISTENT,
     CONTRADICTED,
     MISMATCH,
+    Declare,
     Tier1Check,
     adapter_error,
     closing_token_id,
@@ -135,10 +136,10 @@ class Truncation(Tier1Check):
             return verdict("inconclusive", status, reason=adapter_error("truncation_mode", status), evidence=evidence)
         return verdict("fail", MISMATCH + "the row matches no truncation mode", kind="bug", evidence=evidence)
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
-        mode = declaration.truncation_mode
-        ref = declared_reference(release, fixture, declaration)
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
+        ref = declared_reference(release, fixture, declare(self.base_cfg))
         max_len = limit_for(fixture, ref)
+        mode = declare(replace(self.base_cfg, max_len=max_len)).truncation_mode  # the config the faults run under
         cut = len(ref.input_ids) > max_len
         out = []
 

@@ -31,10 +31,12 @@ property it inherits (`parity.references.properties`, shown once per model in
 the report), so the pass never reads as "prefix preserved".
 
 Planted faults:
-- history_false_as_python: re-render the tool-call arguments of every
-  assistant message that isn't the last as a Python repr (`false` becomes
-  `False`). Applies when a non-final assistant message calls a tool with a
-  boolean argument (the tool_call fixture).
+- history_false_as_python (synthetic): re-render the tool-call arguments of
+  every assistant message that isn't the last as a Python repr (`false`
+  becomes `False`). It shares a symptom with Prime Intellect's example, not
+  its mechanism. Applies when a non-final assistant message calls a tool with
+  a boolean argument (the tool_call fixture), and the declared template can
+  render string arguments.
 - history_edit: re-render every assistant message that isn't the last with
   one character changed (the first letter's case swapped, or "." for empty
   content). Synthetic, but applies to every applicable fixture.
@@ -47,6 +49,7 @@ from typing import Any
 
 from parity.adapters.base import Declaration, Dropped
 from parity.checks.common import (
+    Declare,
     Tier1Check,
     declared_reference,
     is_contradicted,
@@ -151,9 +154,10 @@ class MultiturnPrefix(Tier1Check):
             evidence=evidence,
         )
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         if not boundaries(fixture):
             return []
+        declaration = declare(self.base_cfg)
         out = []
         has_boolean = any(_has_boolean_tool_argument(m) for m in fixture.messages[:-1] if m["role"] == "assistant")
         if has_boolean and _renders(release, _rewrite_history(fixture, _arguments_as_python_repr), declaration):
@@ -164,8 +168,11 @@ class MultiturnPrefix(Tier1Check):
                     "history_false_as_python",
                     "re-render earlier tool-call arguments as a Python repr (false -> False)",
                     _arguments_as_python_repr,
-                    origin="real-world",
-                    source="Prime Intellect, May 2026: history re-rendered from Python objects turned JSON false into False",
+                    origin="synthetic",
+                    source=(
+                        "symptom seen by Prime Intellect (May 2026): history rendered with Python False; their "
+                        "mechanism (a parser round trip during RL rollouts) differs, so this is not a reproduction"
+                    ),
                 )
             )
         out.append(

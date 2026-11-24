@@ -75,7 +75,7 @@ def test_passes_on_trls_prefix_preserving_template(trl_markers):
 
 def test_plants_on_each_fixture(qwen3, official):
     for fid in APPLICABLE:
-        names = {p.name for p in CHECK.plants(qwen3, load_fixture(fid), official.declare(TrainCfg()))}
+        names = {p.name for p in CHECK.plants(qwen3, load_fixture(fid), official.declare)}
         expected = {"history_edit", "history_false_as_python"} if fid == "tool_call" else {"history_edit"}
         assert names == expected, fid
 
@@ -90,7 +90,7 @@ def test_a_plant_that_does_nothing_makes_the_verdict_inconclusive(official, fid)
 def test_false_rerendered_as_python_is_caught(request, qwen3, stub):
     adapter = request.getfixturevalue(stub)
     fx = load_fixture("tool_call")
-    plant = plant_named(CHECK, qwen3, fx, adapter.declare(TrainCfg()), "history_false_as_python")
+    plant = plant_named(CHECK, qwen3, fx, adapter.declare, "history_false_as_python")
     v = CHECK.run(plant.apply(adapter), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     [boundary] = v.evidence["boundaries"]
@@ -101,7 +101,7 @@ def test_false_rerendered_as_python_is_caught(request, qwen3, stub):
 def test_breaking_where_the_template_does_not_fails(qwen3, trl_markers):
     """TRL's template preserves every prefix, so any history re-render is the framework's own break."""
     fx = load_fixture("reasoning")
-    plant = plant_named(CHECK, qwen3, fx, trl_markers.declare(TrainCfg()), "history_edit")
+    plant = plant_named(CHECK, qwen3, fx, trl_markers.declare, "history_edit")
     v = CHECK.run(plant.apply(trl_markers), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     assert v.conventions["template_breaks_at"] == [] and v.conventions["framework_breaks_at"] == [2]
@@ -167,6 +167,6 @@ def test_a_plant_the_declared_template_cant_render_is_not_applied(qwen3):
     template = _rejects_string_arguments(official_template(qwen3))
     stub = TemplateStub(qwen3, chat_template=template, template_source="test:rejects-string-arguments")
     fx = load_fixture("tool_call")
-    assert {p.name for p in CHECK.plants(qwen3, fx, stub.declare(TrainCfg()))} == {"history_edit"}
+    assert {p.name for p in CHECK.plants(qwen3, fx, stub.declare)} == {"history_edit"}
     v = evaluate(CHECK, stub, fx)
     assert (v.result, v.self_test) == ("pass", "caught"), (v.reason, v.plants)

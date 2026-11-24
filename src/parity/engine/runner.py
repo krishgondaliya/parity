@@ -43,8 +43,7 @@ def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     release = adapter.release
     clean = run_safely(check, adapter, fixture)
     try:
-        declaration = adapter.declare(check.base_cfg)
-        plants = list(check.plants(release, fixture, declaration))
+        plants = list(check.plants(release, fixture, adapter.declare))
     except Exception as exc:  # noqa: BLE001 - any setup error must end inconclusive, never pass
         return _inconclusive(clean, [], f"could not set up the planted faults: {type(exc).__name__}: {exc}")
 

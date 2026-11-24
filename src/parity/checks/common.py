@@ -14,7 +14,7 @@ Which reference a check compares against:
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any, ClassVar
@@ -36,6 +36,8 @@ from parity.references.template import (
 )
 from parity.release import LoadedRelease
 
+Declare = Callable[[TrainCfg], Declaration]
+
 NO_ALIGNMENT = (
     "the framework's tokens differ from its own declared template's render, so this check can't line "
     "them up with the reference; see t1.template_parity"
@@ -48,9 +50,11 @@ class Tier1Check:
     run(adapter, release, fixture) -> Verdict
         The comparison for one fixture, with no self-test. The engine
         (`parity.engine.runner.evaluate`) adds the planted faults.
-    plants(release, fixture, declaration) -> list[Plant]
-        The planted faults that apply to this fixture. Each `plant.apply(adapter)`
-        is the contract's `plant(adapter) -> Adapter`.
+    plants(release, fixture, declare) -> list[Plant]
+        The planted faults that apply to this fixture. `declare` is the
+        adapter's declare(): a check asks it about the exact config each
+        planted fault will be encoded under. Each `plant.apply(adapter)` is
+        the contract's `plant(adapter) -> Adapter`.
     not_applicable(fixture) -> reason | None
         Decided from the fixture alone.
     """
@@ -65,7 +69,7 @@ class Tier1Check:
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         raise NotImplementedError
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         raise NotImplementedError
 
     def verdict(
@@ -201,6 +205,17 @@ def special_ids(tokenizer: PreTrainedTokenizerBase) -> frozenset[int]:
     ids = set(tokenizer.all_special_ids)
     ids.update(i for i, token in tokenizer.added_tokens_decoder.items() if token.special)
     return frozenset(ids)
+
+
+def replacement_special(release: LoadedRelease, old: int) -> int:
+    """Another special token to swap in: another stop token if there is one, else the pad token, else any special."""
+    others = sorted(release.stop_token_ids - {old})
+    if others:
+        return others[0]
+    pad = release.tokenizer.pad_token_id
+    if pad is not None and pad != old:
+        return pad
+    return min(special_ids(release.tokenizer) - {old})
 
 
 def closing_token_id(ref: TemplateReference) -> int:

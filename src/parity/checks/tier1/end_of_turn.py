@@ -16,20 +16,25 @@ reference fails as missing or replaced. If the tokens diverge earlier inside
 a turn, that turn and every later one can't be lined up: the result is
 inconclusive unless an earlier turn already failed (see t1.template_parity).
 
-Planted fault: mask_closing_tokens: take the loss off every supervised stop
-token. Applies to every fixture with an assistant turn.
+Planted faults (both apply to every fixture with an assistant turn):
+- mask_closing_tokens (real-world, Plumbline's GLM-5.3-Flash bug): take the
+  loss off every supervised stop token.
+- wrong_closing_token (synthetic): close every assistant turn with a different
+  stop or special token (Qwen3: <|endoftext|> instead of <|im_end|>), trained.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from parity.adapters.base import LABEL_IGNORE, Declaration, Dropped, Encoded
+from parity.adapters.base import LABEL_IGNORE, Dropped, Encoded
 from parity.checks.common import (
+    Declare,
     Tier1Check,
     declared_reference,
     is_contradicted,
     reference_info,
+    replacement_special,
     template_status,
     unaligned_verdict,
 )
@@ -109,7 +114,7 @@ class EndOfTurn(Tier1Check):
             return verdict("inconclusive", reason=reason, evidence=evidence)
         return verdict("pass", evidence=evidence)
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         if not fixture.assistant_indices:
             return []
         stops = release.stop_token_ids
@@ -129,6 +134,29 @@ class EndOfTurn(Tier1Check):
                 "take the loss off every supervised stop token",
                 mask_closing_tokens,
                 origin="real-world",
-                source="Plumbline (arXiv 2611.13393): GLM-5.3-Flash's turn-closing token was masked out of training",
-            )
+                source=(
+                    "Plumbline, https://arxiv.org/pdf/2611.13393: the loss mask of GLM-5.3-Flash left out the "
+                    "token that ends a reply"
+                ),
+            ),
+            encoded_plant(
+                "wrong_closing_token",
+                "close every assistant turn with a different stop/special token, trained",
+                _wrong_closing_token(release),
+                origin="synthetic",
+            ),
         ]
+
+
+def _wrong_closing_token(release: LoadedRelease):
+    stops = release.stop_token_ids
+
+    def mutate(row: Encoded) -> Encoded:
+        ids, labels = list(row.input_ids), list(row.labels)
+        for i, (token, label) in enumerate(zip(row.input_ids, row.labels)):
+            if label != LABEL_IGNORE and token in stops:
+                new = replacement_special(release, token)
+                ids[i], labels[i] = new, new
+        return Encoded(tuple(ids), tuple(labels), row.attention_mask)
+
+    return mutate

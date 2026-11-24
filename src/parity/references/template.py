@@ -103,6 +103,7 @@ class AssistantSpan:
     token_start: int  # first supervised token (right after the generation prompt)
     token_end: int  # one past the turn's last stop token
     token_message_end: int  # one past the whole rendered message (may include a separator)
+    token_message_start: int | None = None  # first token of the message (its role header); None if mid-token
 
 
 @dataclass(frozen=True)
@@ -292,7 +293,11 @@ def assistant_spans_by_prefix_diff(
         t_end = stops[-1] + 1
 
         _check_decodes_exactly(tokenizer, ids, offsets, full, t_content, t_end, k)
-        spans.append(AssistantSpan(k, t_content, t_end, t_msg_end))
+        try:
+            t_msg_start: int | None = _token_boundary(offsets, msg_start)
+        except TemplateReferenceError:
+            t_msg_start = None  # only the header planted fault needs it; it doesn't apply then
+        spans.append(AssistantSpan(k, t_content, t_end, t_msg_end, t_msg_start))
     return tuple(spans)
 
 

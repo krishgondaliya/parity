@@ -20,20 +20,27 @@ records whether the framework trains them, and the framework's native label
 convention. If the framework's tokens don't match its declared template's
 render, the result is inconclusive (see t1.template_parity).
 
-Planted faults (all apply to every fixture with a prompt before an assistant turn):
+Planted faults (all synthetic). These apply to every fixture with a prompt before an assistant turn:
 - unmask_prompt: give loss to everything before the first supervised token, user turn included.
 - zero_mask: no loss anywhere.
 - shift_labels_left: labels shifted left by one, as if pre-shifted labels were handed over as aligned.
 - late_start: every supervised span starts one token late.
+- wrong_label_values: every supervised label points at the next token id; which tokens get loss is
+  unchanged, so only the label-value rule can catch it.
+And these where the fixture allows:
+- train_only_last_turn: loss only on the last assistant turn (fixtures with two or more).
+- span_starts_at_header: each assistant span also trains its role header, e.g. <|im_start|>assistant\n
+  (when every span has a header in the declared template's render).
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from parity.adapters.base import LABEL_IGNORE, Declaration, Dropped, Encoded
+from parity.adapters.base import LABEL_IGNORE, Dropped, Encoded
 from parity.checks.common import (
     CONSISTENT,
+    Declare,
     Tier1Check,
     declared_reference,
     mask_report,
@@ -43,7 +50,7 @@ from parity.checks.common import (
 from parity.engine.plants import Plant, encoded_plant, supervised_runs, with_labels
 from parity.engine.verdict import Verdict
 from parity.fixtures import Fixture
-from parity.references.template import Zone
+from parity.references.template import AssistantSpan, Zone
 from parity.release import LoadedRelease
 
 
@@ -100,7 +107,7 @@ class AssistantMask(Tier1Check):
             evidence=evidence,
         )
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         if not fixture.assistant_indices or fixture.assistant_indices[0] == 0:
             return []
         faults = [
@@ -108,7 +115,19 @@ class AssistantMask(Tier1Check):
             ("zero_mask", "no loss anywhere", _zero_mask),
             ("shift_labels_left", "labels shifted left by one", _shift_labels_left),
             ("late_start", "every supervised span starts one token late", _late_start),
+            (
+                "wrong_label_values",
+                "supervised labels point at a different token; which tokens get loss is unchanged",
+                _wrong_label_values(len(release.tokenizer)),
+            ),
         ]
+        if len(fixture.assistant_indices) >= 2:
+            faults.append(("train_only_last_turn", "loss only on the last assistant turn", _train_only_last_turn))
+        spans = declared_reference(release, fixture, declare(self.base_cfg)).spans
+        if spans and all(s.token_message_start is not None and s.token_message_start < s.token_start for s in spans):
+            faults.append(
+                ("span_starts_at_header", "each assistant span also trains its role header", _starts_at_header(spans))
+            )
         return [encoded_plant(name, about, mutate, origin="synthetic") for name, about, mutate in faults]
 
 
@@ -130,3 +149,32 @@ def _late_start(row: Encoded) -> Encoded:
     for start, _ in supervised_runs(row):
         labels[start] = LABEL_IGNORE
     return with_labels(row, labels)
+
+
+def _wrong_label_values(vocab_size: int):
+    def mutate(row: Encoded) -> Encoded:
+        return with_labels(
+            row,
+            [label if label == LABEL_IGNORE else (label + 1) % vocab_size for label in row.labels],
+        )
+
+    return mutate
+
+
+def _train_only_last_turn(row: Encoded) -> Encoded:
+    runs = supervised_runs(row)
+    labels = list(row.labels)
+    for start, end in runs[:-1]:
+        labels[start:end] = [LABEL_IGNORE] * (end - start)
+    return with_labels(row, labels)
+
+
+def _starts_at_header(spans: tuple[AssistantSpan, ...]):
+    def mutate(row: Encoded) -> Encoded:
+        labels = list(row.labels)
+        for span in spans:
+            for i in range(span.token_message_start, min(span.token_start, len(labels))):
+                labels[i] = row.input_ids[i]
+        return with_labels(row, labels)
+
+    return mutate

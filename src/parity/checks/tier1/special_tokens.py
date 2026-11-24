@@ -56,6 +56,7 @@ from parity.checks.common import (
     CONSISTENT,
     CONTRADICTED,
     MISMATCH,
+    Declare,
     Tier1Check,
     adapter_error,
     closing_token_id,
@@ -243,9 +244,12 @@ class SpecialTokens(Tier1Check):
             problems += _untrained_stop_tokens(release.tokenizer, release, ref, body, where="padded batch")
         return _PaddingResult(side=side, problems=problems, question=question, verified=verified)
 
-    def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
+    def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
+        declaration = declare(self.base_cfg)
         ref = declared_reference(release, fixture, declaration)
+        _, pad_to = batch_plan(release, fixture, declaration)
+        batch_declaration = declare(replace(self.base_cfg, pad_to=pad_to))  # the config the batch runs under
         out = []
 
         extra = next(
@@ -277,7 +281,7 @@ class SpecialTokens(Tier1Check):
             def masked_batch(batch: Batch, convs: Any, cfg: Any) -> Batch:
                 return Batch(tuple(_mask_token(_repad_with(r, closing), closing) for r in batch.rows))
 
-            if declaration.batching == "padded":
+            if batch_declaration.batching == "padded":
                 # The real mechanism masks pad ids while collating, so only the padded batch shows it:
                 # this fault guards the padding part of the check.
                 out.append(
@@ -292,10 +296,10 @@ class SpecialTokens(Tier1Check):
                         ),
                         origin="real-world",
                         source=(
-                            "pad_token set to the EOS token, with id-based pad masking at collation as in "
-                            "transformers 5.24.0 DataCollatorForLanguageModeling(mlm=False), data_collator.py "
-                            "lines 797-800: labels = input_ids.clone(); labels[labels == pad_token_id] = -100, "
-                            "which also takes the loss off every real EOS"
+                            "pad_token set to the EOS token, with id-based pad masking at collation: "
+                            "https://github.com/huggingface/transformers/blob/v5.24.0/src/transformers/data/"
+                            "data_collator.py#L798-L800 (DataCollatorForLanguageModeling, mlm=False: "
+                            "labels[labels == pad_token_id] = -100 also takes the loss off every real EOS)"
                         ),
                     )
                 )

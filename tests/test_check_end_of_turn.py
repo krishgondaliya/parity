@@ -17,7 +17,7 @@ CHECK = EndOfTurn()
 def test_passes_on_both_stand_ins_and_catches_the_plant(request, stub):
     for fid, v in run_on_all_fixtures(CHECK, request.getfixturevalue(stub)).items():
         assert (v.result, v.self_test) == ("pass", "caught"), (fid, v.reason, v.plants)
-        assert [p["plant"] for p in v.plants] == ["mask_closing_tokens"]
+        assert [p["plant"] for p in v.plants] == ["mask_closing_tokens", "wrong_closing_token"]
         assert {t["status"] for t in v.evidence["turns"]} == {"trained"}
         assert len(v.evidence["turns"]) == len(load_fixture(fid).assistant_indices)
 
@@ -30,7 +30,7 @@ def test_a_plant_that_does_nothing_makes_the_verdict_inconclusive(official, fid)
 
 def test_the_plant_reports_every_turn_untrained(qwen3, official):
     fx = load_fixture("multi_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare(TrainCfg()), "mask_closing_tokens")
+    plant = plant_named(CHECK, qwen3, fx, official.declare, "mask_closing_tokens")
     v = CHECK.run(plant.apply(official), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     assert [t["status"] for t in v.evidence["turns"]] == ["not_trained"] * 3
@@ -79,3 +79,11 @@ def test_a_divergence_inside_the_content_is_inconclusive(qwen3, official):
     v = CHECK.run(encoded_plant("x", "x", _edit_at(start + 1, other), origin="synthetic").apply(official), qwen3, fx)
     assert v.result == "inconclusive" and "t1.template_parity" in v.reason
     assert v.evidence["turns"][0]["status"] == "unchecked"
+
+
+def test_a_wrong_closing_token_is_caught_as_replaced(qwen3, official):
+    fx = load_fixture("single_turn")
+    plant = plant_named(CHECK, qwen3, fx, official.declare, "wrong_closing_token")
+    v = CHECK.run(plant.apply(official), qwen3, fx)
+    [turn] = v.evidence["turns"]
+    assert (v.result, turn["status"], turn["got_token"]) == ("fail", "missing_or_replaced", "<|endoftext|>")

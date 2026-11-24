@@ -114,7 +114,7 @@ class FakeCheck(Tier1Check):
         caught = self.catches[int(plant.removeprefix("p"))]
         return self.verdict(adapter, fixture, "fail" if caught else "pass", kind="bug" if caught else None)
 
-    def plants(self, release, fixture, declaration):
+    def plants(self, release, fixture, declare):
         return [
             Plant(f"p{i}", "fake", lambda a, i=i: PlantedAdapter(a, f"p{i}"), origin="synthetic") for i in range(len(self.catches))
         ]

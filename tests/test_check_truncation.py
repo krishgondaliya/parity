@@ -87,7 +87,7 @@ def test_the_mode_is_verified_only_when_something_is_cut(official):
 
 def _planted(qwen3, adapter, fid, name):
     fx = load_fixture(fid)
-    plant = plant_named(CHECK, qwen3, fx, adapter.declare(TrainCfg()), name)
+    plant = plant_named(CHECK, qwen3, fx, adapter.declare, name)
     return CHECK.run(plant.apply(adapter), qwen3, fx)
 
 

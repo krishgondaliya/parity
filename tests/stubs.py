@@ -172,13 +172,13 @@ def with_a_plant_that_does_nothing(check):
     """The same check whose only planted fault changes nothing, so its self-test must miss."""
 
     class NoOpPlant(type(check)):
-        def plants(self, release, fixture, declaration):
+        def plants(self, release, fixture, declare):
             return [Plant("noop", "changes nothing", lambda adapter: adapter, origin="synthetic")]
 
     return NoOpPlant()
 
 
-def plant_named(check, release, fixture, declaration, name: str) -> Plant:
-    matches = [p for p in check.plants(release, fixture, declaration) if p.name == name]
+def plant_named(check, release, fixture, declare, name: str) -> Plant:
+    matches = [p for p in check.plants(release, fixture, declare) if p.name == name]
     assert len(matches) == 1, f"{check.id}: expected one plant named {name!r} for {fixture.id}"
     return matches[0]
