@@ -2,7 +2,7 @@
 
 - Status: candidate
 - Date found: 2026-11-24
-- Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
+- Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (found here; also reproduced with SmolLM2, Llama 3.2, Mistral v0.3 and Gemma 3 chat templates)
 - Framework: axolotl@0.21.1   (lockfile: findings/P-0002/uv.lock, a copy of envs/axolotl-0.21.1/uv.lock; findings/P-0002/requirements.txt is the same resolution without Parity)
 - Check: t1.end_of_turn, t1.special_tokens   Fixture: empty_assistant   Kind: bug
 - Verdict files: docs/evidence/2026-11-24-m3-axolotl/verdicts/t1.end_of_turn__empty_assistant.json, t1.special_tokens__empty_assistant.json
@@ -51,11 +51,16 @@
 - **Next:** `/shrink-repro P-0002`, using an empty *last* turn (independent of thinking mode, and the whole turn goes untrained).
 
 ## Repro
-- **Shrunk** (`/shrink-repro`, 2026-11-24): `findings/P-0002/repro.py`, 26 lines, no Parity code. It builds the strategy with `axolotl.prompt_strategies.chat_template.load` and calls `tokenize_prompt`, which is the code `type: chat_template` runs and the entry point Axolotl's own tests use. It downloads Qwen3-0.6B tokenizer and config files only (no weights), runs in a few seconds on CPU, and exits 1 when the empty turn's `<|im_end|>` is unlabeled.
-  - Conversation: `[user, assistant "Hi.", user, assistant ""]`, an empty *last* turn. Expected trained `<|im_end|>`s `[False, True, False, True]`; actual `[False, True, False, False]`. No token of the empty turn has a label.
+- **Repro (template-agnostic, 2026-11-24):** `findings/P-0002/repro.py`, 30 lines, no Parity code. It runs Axolotl's `chat_template` strategy (`load` then `tokenize_prompt`, what `type: chat_template` runs) on three pinned, ungated chat-template families: ChatML (`HuggingFaceTB/SmolLM2-135M-Instruct@12fd25f7`), Llama 3.2 (`unsloth/Llama-3.2-1B-Instruct@5a8abab4`) and Mistral v0.3 (`mistralai/Mistral-7B-Instruct-v0.3@c170c708`).
+  - Conversation: `[user "Say hi.", assistant "Hi.", user, assistant ""]`. On every template, the empty turn's end-of-turn token is unlabeled, and so is every other token of that turn. The script exits 1.
+  - Checked: the last end-of-turn token in each row closes the empty turn, and each row equals `apply_chat_template`.
+  - How to run it: `findings/P-0002/HOW-TO-RUN.md`. Those exact commands were run from a scratch folder and exit 1 on 0.21.1 and on main.
+- **Not Qwen-specific.** An empty middle turn and an empty last turn were both tested on Qwen3, SmolLM2 (ChatML), Llama 3.2, Mistral v0.3 and Gemma 3: the end token is unlabeled on all five. Phi-3.5 couldn't be measured this way, because its prefix renders aren't prefixes.
+  - Why both kinds of template ending lose it: the search starts at `input_ids[-1]`. A row that ends with the end token (Llama, Mistral) returns `-1`, which the caller treats as "not found". A row that ends with `\n` (ChatML, Gemma 3, Qwen3) returns the first end token in the row, which the distance check rejects.
+- Earlier, Qwen3-only versions of the repro (29, then 26 lines) also failed 3/3 on 0.21.1 and main.
   - Strategy-level labels are identical, input ids and labels, to the full `load_datasets` path that `axolotl preprocess` runs, on every variant below (checked).
-- **Fresh environment, pinned versions** (`uv venv` + `uv pip install -r requirements.txt`, Parity not importable): fails 3/3 (exit 1), both before and after the issue reviewer's shortening. axolotl 0.21.1, transformers 5.20.1, tokenizers 0.23.3, torch 2.14.1, Python 3.12.13.
-- **Main** (`axolotl @ git+…@de8549a4406327ab5311f7187a8afaa232645487`, 2026-11-20, resolves to 0.21.2.dev0 with transformers 5.22.0 and torch 2.15.0, fresh env): fails 3/3, same output. Not fixed.
+- **Fresh environment, pinned versions** (`uv venv` + `uv pip install -r requirements.txt`, Parity not importable): the template-agnostic repro fails 3/3 (exit 1). axolotl 0.21.1, transformers 5.20.1, tokenizers 0.23.3, torch 2.14.1, Python 3.12.13.
+- **Main** (`axolotl @ git+…@de8549a4406327ab5311f7187a8afaa232645487`, 2026-11-20, resolves to 0.21.2.dev0 with transformers 5.22.0 and torch 2.15.0, fresh env): fails 3/3, same output. Not fixed. The issue links the cause as permalinks at `de8549a` (chat_template.py L742, L800-L808, L847-L852, L970-L971, L1150-L1151; the main file is byte-identical to the installed one).
   - No release after v0.21.1. Main is 69 commits ahead; three touch `chat_template.py` (a998b3d34c, 8b51899b0d, 5fe10dc541): an import, type hints and docstrings, and the `chat_template_kwargs` conversion. The labeling loop (`_tokenize_single_prompt` through `find_first_eos_token`) is byte-identical on main.
   - No open PR or issue covers it (searched PRs and issues: "empty turn", "empty assistant", "train_on_eos", "find_turn", "empty content eos"; the issue reviewer ran 10 more queries). Open PR #4132 changes the turn locator, but only after a span is found; the `char_end <= char_start` return that empty turns take is untouched (checked).
 - **Only log line:** an unrelated torchao `SyntaxWarning`. Nothing mentions the empty turn.
@@ -92,3 +97,9 @@
   - torch versions;
   - the shorter repro (re-run 3/3 on both fresh environments);
   - the middle-turn output and the concrete EOT/EOS arithmetic (both checked by me).
+- Revised 2026-11-24 at the human's request:
+  - template-agnostic: three template families in the repro, five checked;
+  - permalinks at `de8549a`;
+  - a plain sentence-case title ("End-of-turn token of an empty assistant turn is never labeled with train_on_eos: turn");
+  - a closing line offering a PR with a fix and a test;
+  - `HOW-TO-RUN.md`.
