@@ -9,7 +9,7 @@
       "Bash(git diff *)",
       "Bash(git log *)",
       "Bash(git add *)",
-      "vBash(git commit *)",
+      "Bash(git commit *)",
       "Bash(git switch *)",
       "Bash(gh issue list *)",
       "Bash(gh issue view *)",
@@ -23,15 +23,21 @@
       "Bash(gh pr create *)",
       "Bash(gh pr comment *)",
       "Bash(git push --force *)",
+      "PowerShell(gh issue create *)",
+      "PowerShell(gh issue comment *)",
+      "PowerShell(gh pr create *)",
+      "PowerShell(gh pr comment *)",
+      "PowerShell(git push --force *)",
       "Read(./.env)"
     ]
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Read|Grep|Glob|Edit|Write",
+        "matcher": "Bash|PowerShell|Read|Grep|Glob|Edit|Write",
         "hooks": [
           {
+            "type": "command",
             "command": "uv run --no-project python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\""
           }
         ]

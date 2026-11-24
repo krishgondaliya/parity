@@ -15,11 +15,18 @@ import sys
 
 HIDDEN_VAULT_MARKER = "parity-vault-hidden"
 
+# Tools that run shell commands. On Windows, Claude Code has a PowerShell tool
+# alongside Bash, so both must be checked.
+SHELL_TOOLS = ("Bash", "PowerShell")
+
+# "gh" or "gh.exe" (Windows), as a command word.
+GH = r"\bgh(?:\.exe)?"
+
 UPSTREAM_WRITE_PATTERNS = [
-    r"\bgh\s+issue\s+(create|comment|edit|close|reopen|delete|transfer|lock)\b",
-    r"\bgh\s+pr\s+(create|comment|review|merge|edit|close|reopen)\b",
-    r"\bgh\s+api\b.*(-X|--method)\s*(POST|PATCH|PUT|DELETE)\b",
-    r"\bgh\s+api\b.*\s(-f|-F|--field|--raw-field)\s",
+    GH + r"\s+issue\s+(create|comment|edit|close|reopen|delete|transfer|lock)\b",
+    GH + r"\s+pr\s+(create|comment|review|merge|edit|close|reopen)\b",
+    GH + r"\s+api\b.*(-X|--method)\s*(POST|PATCH|PUT|DELETE)\b",
+    GH + r"\s+api\b.*\s(-f|-F|--field|--raw-field)\s",
 ]
 
 
@@ -51,7 +58,7 @@ def main() -> None:
             "reference it."
         )
 
-    if tool == "Bash":
+    if tool in SHELL_TOOLS:
         command = str(tool_input.get("command", ""))
         for pattern in UPSTREAM_WRITE_PATTERNS:
             if re.search(pattern, command, flags=re.IGNORECASE):
