@@ -37,6 +37,7 @@ This is a solo, career-first portfolio project. Correctness and honesty matter m
 - End every session with `/wrap-session` so `docs/STATUS.md` stays true.
 - When a fail shows up: `/triage` first, then `/shrink-repro`, then `/draft-issue`. Use the `skeptic` subagent before any finding leaves the repo.
 - Gates are decided by evidence files, not by feel: `/gate-check <A|B|C>`.
+- GitHub lookups are read-only. Use `gh search ...`, or `gh api "search/issues?q=..."` with the query in the URL. Never use `gh api -f` / `-F` / `--field`: with fields, `gh api` sends a POST, and the guard hook rightly blocks it (rule 1).
 
 ## Repo layout (target, grows by phase)
 

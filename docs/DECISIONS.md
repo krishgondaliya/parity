@@ -12,6 +12,53 @@ Format:
 - Reversible? yes/no
 ```
 
+## 2026-11-23: Open items for M4 (adapters), from the platform spike
+- No code yet. Each item becomes a decision when M4 settles it.
+  1. **Reference per framework environment.** Each framework brings its own TRL and transformers (see the version table in the entry below). The reference runs inside each framework's own environment, and every verdict records the transformers, tokenizers and TRL versions it ran with (TRL is `none` when the env has none). The core env's transformers 5.24.0 is used only for the reference's own tests.
+  2. **Registry entries only from evidence.** A known-differences entry is added only when calibration actually hits a difference and it has been checked against the framework's docs. No entries ahead of time for the TRL inside Unsloth (1.15.0) or Axolotl (1.14.1), since they may not use TRL's training-template swap at all. KD-0001 covers only TRL `==1.18.2` used directly.
+  3. **Unsloth without a GPU.** Unsloth takes its CPU fallback: stock transformers + PEFT + TRL, per `unsloth/_cpu_init.py`. That's fine for Tier 1 data checks. Tier 2 numerics on Unsloth will need a GPU, to cover the code paths users actually run.
+- Reversible? yes
+
+## 2026-11-23: Develop and run Parity in WSL2 Ubuntu, not native Windows (M1 platform spike)
+- Decision:
+  - All development, framework environments, runs and Claude Code sessions move to WSL2 Ubuntu-22.04.
+  - The repo lives in the Linux filesystem (`~/parity`), not under `/mnt/c`.
+  - The Windows checkout stays only as a backup, and we never edit both copies.
+  - Next step: re-run this spike inside WSL with real installs, then M3.
+- Spike setup:
+  - Native Windows 11, no NVIDIA GPU (Intel UHD), Python 3.12 via uv.
+  - The latest PyPI release of each framework on 2026-11-23, each in its own environment (`uv venv`, then `uv pip install <pkg>==<version>`).
+  - A probe then imported only the data-path modules an adapter needs.
+
+  | Framework | Installs on native Windows | Data path imports | Exact error | Docs on Windows |
+  | --- | --- | --- | --- | --- |
+  | TRL 1.18.2 | yes | yes: `SFTTrainer`, `SFTConfig`, `trl.data_utils`, `trl.chat_template_utils.get_training_chat_template` | — | no platform statement ([installation.md @ v1.18.2](https://github.com/huggingface/trl/blob/v1.18.2/docs/source/installation.md)) |
+  | Axolotl 0.21.1 | **no** | not reachable | `Because triton{sys_platform != 'darwin'}>=3.4.0 has no wheels with a matching platform tag (e.g., win_amd64) and axolotl>=0.21.1 depends on triton{sys_platform != 'darwin'}>=3.4.0, we can conclude that axolotl>=0.21.1 cannot be used.` | "### Windows: We recommend using WSL2 (Windows Subsystem for Linux) or Docker." ([installation.qmd @ v0.21.1](https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/installation.qmd)). A dry-run resolve for Linux x86_64 succeeds (triton 3.8.0). |
+  | Unsloth 2026.11.10 | yes (installs `triton-windows`, `xformers`, `bitsandbytes`) | yes: `unsloth`, `unsloth.chat_templates` (`get_chat_template`, `train_on_responses_only`), `unsloth_zoo.dataset_utils`, all through its CPU fallback | — | native Windows supported: PowerShell installer, winget, a `windows` extra ([README on PyPI](https://pypi.org/project/unsloth/2026.11.10/)) |
+  | verl 0.9.1 | yes | yes: `MultiTurnSFTDataset`, `RLHFDataset` | — | requires CUDA ≥ 12.8; "The uv workflow targets **Linux** with Python 3.12" ([install.rst @ v0.9.1](https://github.com/volcengine/verl/blob/v0.9.1/docs/start/install.rst)) |
+  | SkyRL 0.5.0 (`skyrl`, the successor of `skyrl-train`) | yes | only with the `[skyrl-train]` extra. Without it: `ModuleNotFoundError: No module named 'loguru'` | — | requires CUDA 13.0 and NVIDIA's Docker GPU images ([installation.mdx @ skyrl-v0.5.0](https://github.com/NovaSky-AI/SkyRL/blob/skyrl-v0.5.0/docs/content/docs/getting-started/installation.mdx)) |
+
+- Versions each framework brought into its own environment. These are uv's resolutions on 2026-11-23; the real pins will come from each environment's lockfile in M4.
+
+  | Environment | TRL | transformers | tokenizers | torch |
+  | --- | --- | --- | --- | --- |
+  | trl 1.18.2 | 1.18.2 | 5.24.0 | 0.23.3 | 2.15.0 |
+  | unsloth 2026.11.10 | 1.15.0 | 5.17.0 | 0.23.3 | 2.14.1 |
+  | axolotl 0.21.1 (Linux dry-run resolve, not installed) | 1.14.1 | 5.20.1 | 0.23.3 | 2.14.1 |
+  | verl 0.9.1 | none | 5.10.4 | 0.22.2 | 2.15.0 |
+  | skyrl 0.5.0 [skyrl-train] | none | 5.16.1 | 0.23.3 | 2.15.0 |
+
+- Why:
+  - Axolotl is one of the three Phase 0 frameworks, and it can't install on native Windows; its own docs recommend WSL2. A hybrid setup (Axolotl in WSL, the rest on Windows) would put verdicts on two operating systems, and triage would have to rule out the OS every time.
+  - Unsloth runs Windows-only code. It installs `triton-windows` instead of `triton`. On Windows it also disables `sentencepiece` (`import_fixes.disable_sentencepiece_on_windows`), so transformers behaves as if sentencepiece weren't installed. Verdicts produced on Windows could differ from what Linux users get, and those would be our artifacts, not framework bugs (rule 4).
+  - Everything later runs on Linux: GitHub Actions, verl and SkyRL (Linux plus CUDA), and the rented GPUs for Tier 3. SETUP.md already lists Windows with WSL as a supported setup.
+  - It's cheapest now: there are no runs and no `envs/` yet, and the repo can be cloned straight from the Windows checkout.
+  - It also removes Windows friction seen during setup: PowerShell 5.1 mangling quotes, the cp1252 console crashing on emoji, CRLF line endings.
+- Also learned: the Phase 0 playbook says Unsloth needs an NVIDIA GPU just to import. That's out of date for 2026.11.10. With no accelerator it takes a CPU route (`unsloth/_cpu_init.py`) and prints "no GPU found, training on CPU".
+- Not verified yet: nothing has been installed inside WSL. Axolotl was only dry-run resolved for Linux, and Unsloth's CPU route in WSL is assumed.
+- Evidence: the spike logs lived in the session scratchpad and were deleted afterwards. The commands above reproduce them.
+- Reversible? yes
+
 ## 2026-11-23: Open note for Tier 3: TRL trains Qwen3 with think blocks that serving strips
 - Note (not a decision, not a finding):
   - TRL 1.18.2 trains Qwen3 through `qwen3_training.jinja`, which keeps the think block in every assistant turn.
