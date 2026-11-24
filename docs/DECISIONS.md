@@ -14,6 +14,25 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: M3 TRL adapter, and the first run on a real framework
+- Decision:
+  - **Adapter.** `src/parity/adapters/trl.py` builds an `SFTTrainer` the way a user would and reads `trainer.train_dataset` through `trainer.data_collator`. It never tokenizes or applies a template itself.
+    - The trainer gets a tiny Qwen3 built with `from_config` from the release's config.json, a fresh tokenizer, `SFTConfig(assistant_only_loss=True)`, and a `datasets.Dataset` of `messages` (plus `tools` where present).
+    - `TrainCfg.objective` maps as `assistant_only` → `assistant_only_loss=True`, which is TRL's documented recipe (sft_trainer.md, "Train on assistant messages only"). `all` → loss on everything, TRL's documented default.
+    - `declare()` reads `trainer.chat_template`, `trainer.args`, `trainer.padding_free`, `trainer.data_collator.pad_token_id` and `trainer.model.loss_function`.
+  - **Environment.** `envs/trl-1.18.2` is installed the way TRL's docs say, with every version held at the WSL spike's freeze (`environment.json`: no deviations). Every verdict records the lockfile and its sha256.
+- **Run** (`docs/evidence/2026-11-24-m3-trl/`): Qwen3-0.6B, 6 checks × 8 fixtures, through `evaluate_suite`.
+  - 40 pass, 4 `not_applicable` (multi-turn prefix on single-assistant fixtures), and 4 `difference` (KD-0001 on exactly `multi_turn`, `tool_call`, `reasoning` and `empty_assistant`).
+  - All 131 planted-fault runs caught, no flags.
+  - As predicted, so nothing went to `/triage`.
+- **Behavior worth knowing (not a finding):**
+  - TRL trains the neutral newline after `<|im_end|>`. It's recorded as a convention.
+  - The `datasets` round trip, which fills missing message keys with None, changed no token on the fixtures.
+  - TRL drops any example left with no trainable token after `keep_start` truncation (in its code and its tests). Our fixtures don't reach that: `long_answer` keeps 105 answer tokens at 128.
+  - If a future fixture does, our truncation check would see a drop under a declared right cut. It would call that a declared/actual mismatch (inconclusive) instead of the documented behavior. Settle it before such a fixture is added; probably as a TRL-specific truncation mode ("right, then drop if nothing trains").
+- **Adapter tests** (run in TRL's environment, skipped in the core one): `declare()` matches TRL's documented defaults for our config. `encode` and `encode_batch` run on all 8 fixtures, and the rows equal TRL's declared template's render with loss exactly where its generation markers put it.
+- Reversible? yes
+
 ## 2026-11-24: Narrow pre-fill anchoring in the reference; DeepSeek V4.1 still refuses on history turns
 - Decision (human): anchor assistant content where the generation-prompt render and the full render stop agreeing, only when the difference is exactly the generation prompt's trailing pre-fill. Anything else still refuses.
   - The prompt must be the tokens it shares with the full render, followed by the pre-fill's own tokens, token for token.

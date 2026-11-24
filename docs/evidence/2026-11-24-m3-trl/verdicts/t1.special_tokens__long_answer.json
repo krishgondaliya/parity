@@ -1,0 +1,134 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.special_tokens",
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "framework": "trl@1.18.2",
+  "fixture": "long_answer",
+  "result": "pass",
+  "kind": null,
+  "self_test": "caught",
+  "known_difference": null,
+  "reason": null,
+  "evidence": {
+    "parts": {
+      "special_tokens": "pass",
+      "padding": "pass"
+    },
+    "problems": []
+  },
+  "conventions": {
+    "batching": "padded",
+    "pad_token_id": 151643,
+    "pad_token": "<|endoftext|>",
+    "pad_is_a_stop_token": true,
+    "padding_side": "right"
+  },
+  "reference": {
+    "template_source": "trl@1.18.2:qwen3_training.jinja",
+    "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+    "official_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+    "marker_check": "agrees",
+    "transformers": "5.24.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.18.2"
+  },
+  "plants": [
+    {
+      "plant": "extra_leading_special",
+      "description": "prepend <|endoftext|> to every row",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "pad_is_closing_token_masked",
+      "description": "collator pads with <|im_end|> and takes the loss off every <|im_end|>",
+      "origin": "real-world",
+      "source": "pad_token set to the EOS token, with id-based pad masking at collation: https://github.com/huggingface/transformers/blob/v5.24.0/src/transformers/data/data_collator.py#L798-L800 (DataCollatorForLanguageModeling, mlm=False: labels[labels == pad_token_id] = -100 also takes the loss off every real EOS)",
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "closing_token_masked_per_row",
+      "description": "pad id set to <|im_end|> and every <|im_end|> masked in each row before batching",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    }
+  ],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null
+    },
+    "template_source": "trl@1.18.2:qwen3_training.jinja",
+    "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+    "label_convention": "aligned",
+    "truncation_mode": "right",
+    "batching": "padded",
+    "pad_token_id": 151643,
+    "sources": [
+      "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
+      "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
+      "label_convention: SFTTrainer.compute_loss passes the dataset labels to the model unchanged and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: SFTConfig.truncation_mode='keep_start', max_length=None (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py); TRL also drops examples left with no trainable token after truncation",
+      "batching: SFTTrainer.padding_free=False, SFTConfig.packing=False",
+      "pad_token_id: SFTTrainer.data_collator.pad_token_id=151643; pad_to_multiple_of=None"
+    ],
+    "verified": {
+      "chat_template": "consistent",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified"
+    },
+    "other_calls": [
+      {
+        "cfg": {
+          "objective": "assistant_only",
+          "max_len": null,
+          "packing": false,
+          "grad_accum": 1,
+          "pad_to": 545
+        },
+        "template_source": "trl@1.18.2:qwen3_training.jinja",
+        "template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+        "label_convention": "aligned",
+        "truncation_mode": "right",
+        "batching": "padded",
+        "pad_token_id": 151643,
+        "sources": [
+          "chat_template: SFTTrainer.chat_template (TRL's training template, set because assistant_only_loss=True); template_source: matched against trl/chat_templates/*.jinja",
+          "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
+          "label_convention: SFTTrainer.compute_loss passes the dataset labels to the model unchanged and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+          "truncation_mode: SFTConfig.truncation_mode='keep_start', max_length=None (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py); TRL also drops examples left with no trainable token after truncation",
+          "batching: SFTTrainer.padding_free=False, SFTConfig.packing=False",
+          "pad_token_id: SFTTrainer.data_collator.pad_token_id=151643; pad_to_multiple_of=545"
+        ],
+        "verified": {
+          "chat_template": "unverified",
+          "label_convention": "unverified",
+          "truncation_mode": "unverified",
+          "batching": "consistent",
+          "pad_token_id": "consistent"
+        }
+      }
+    ]
+  },
+  "template_properties": [],
+  "flags": [],
+  "env_lock": "envs/trl-1.18.2/uv.lock",
+  "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
+  "repro": null
+}

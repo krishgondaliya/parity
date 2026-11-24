@@ -20,5 +20,5 @@ Rules:
 Deliverables:
 
 - `src/parity/adapters/$0.py`
-- Tests: on the known-good calibration model (Qwen3 family), `encode()` of every fixture returns input_ids that match `apply_chat_template` exactly. If they don't match, stop and report: it's either our bug or a finding, and `/triage` decides which.
+- Tests (run inside the framework's environment, skipped elsewhere): on the known-good calibration model (Qwen3 family), `declare()` matches the framework's documented defaults for our config, and `encode()`/`encode_batch()` run on every fixture. The rows' input_ids must match `apply_chat_template` exactly with the template the framework *declares*: a framework may swap in its own training template (TRL does; KD-0001). Comparing against the model's own template is `t1.template_parity`'s job. If they don't match, stop and report: it's either our bug or a finding, and `/triage` decides which.
 - A short note in `docs/DECISIONS.md` if anything about the framework's behavior surprised you.

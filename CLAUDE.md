@@ -66,7 +66,10 @@ docs/           plan, phases, gates, status, decisions
 Fill these in as they come to exist. Keep this list accurate.
 
 - Install / sync: `uv sync`
-- Tests: `uv run pytest -q`
+- Tests: `uv run pytest -q` (framework adapter tests skip here)
+- TRL environment: `cd envs/trl-1.18.2 && uv sync`, then from the repo root `envs/trl-1.18.2/.venv/bin/python -m pytest -q` (all tests, including `tests/test_adapter_trl.py`)
+- Six checks on the real TRL adapter (M3 evidence): `envs/trl-1.18.2/.venv/bin/python docs/evidence/2026-11-24-m3-trl/run.py`
+- Golden review by eye: `uv run python docs/evidence/golden_review.py`
 - Run checks (planned): `uv run parity run --model <org/name@rev> --framework <name> --tier 1`
 - Build report card (planned): `uv run parity card`
 
