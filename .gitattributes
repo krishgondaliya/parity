@@ -1,0 +1,7 @@
+# Keep LF line endings in the repo and in checkouts, on every OS.
+# A carriage return inside a chat template or fixture changes the rendered
+# text, and so the tokens, which would look like a framework bug.
+* text=auto eol=lf
+*.jinja text eol=lf
+*.json text eol=lf
+*.png binary

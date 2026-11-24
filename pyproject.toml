@@ -7,7 +7,11 @@ authors = [
     { name = "Krish Gondaliya", email = "k.gondaliya@rutgers.edu" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "huggingface-hub>=2.4.0",
+    "jinja2>=3.1.6",
+    "transformers>=5.24.0",
+]
 
 [project.scripts]
 parity = "parity:main"
@@ -15,3 +19,11 @@ parity = "parity:main"
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
