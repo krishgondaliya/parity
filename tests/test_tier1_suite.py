@@ -73,6 +73,37 @@ def test_trl_template_stand_in_is_green_with_kd_0001_only(qwen3, trl_qwen3_templ
     assert {c.result for check, c in cells.items() if check != "t1.template_parity"} == {"pass"}
 
 
+def test_every_verdict_records_the_declaration_and_every_plant_its_origin(official):
+    for v in _run_all(official):
+        assert set(v.declaration["verified"]) == {
+            "chat_template",
+            "label_convention",
+            "truncation_mode",
+            "batching",
+            "pad_token_id",
+        }, (v.check, v.fixture)
+        for p in v.plants:
+            assert p["origin"] in ("real-world", "synthetic")
+            assert (p["origin"] == "real-world") == bool(p["source"]), p
+
+
+def test_real_world_and_synthetic_plants(qwen3, official):
+    """Which planted faults reproduce a bug someone actually hit, and which are synthetic."""
+    declaration = official.declare(TIER1_CHECKS[0].base_cfg)
+    origins = {}
+    for check in TIER1_CHECKS:
+        for fid in FIXTURE_IDS:
+            if check.not_applicable(load_fixture(fid)) is None:
+                for p in check.plants(qwen3, load_fixture(fid), declaration):
+                    origins[p.name] = p.origin
+    assert {name for name, origin in origins.items() if origin == "real-world"} == {
+        "mask_closing_tokens",
+        "pad_is_closing_token_masked",
+        "history_false_as_python",
+    }
+    assert len(origins) == 14
+
+
 @pytest.mark.parametrize("check", TIER1_CHECKS, ids=lambda c: c.id)
 def test_every_check_documents_its_bug_class_reference_pass_rule_and_plants(check):
     module_doc = sys.modules[type(check).__module__].__doc__

@@ -60,12 +60,29 @@ def test_the_kept_answer_is_trained_after_a_right_cut(official):
     "actual, declared",
     [("left", "right"), ("right", "left"), ("right", "drop"), ("drop", "right")],
 )
-def test_a_framework_that_doesnt_match_its_declared_mode_fails(qwen3, actual, declared):
+def test_output_that_is_exactly_another_mode_is_an_adapter_error(qwen3, actual, declared):
+    """The declaration is a claim: behavior that is exactly another mode contradicts it (rule 4)."""
     stub = TemplateStub(qwen3, truncation_mode=actual)
     lying = PlantedAdapter(stub, "wrong-mode", on_declare=lambda d: replace(d, truncation_mode=declared))
     v = CHECK.run(lying, qwen3, load_fixture("long_answer"))
-    assert (v.result, v.kind) == ("fail", "bug"), v.evidence
-    assert v.conventions["truncation_mode"] == declared
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error"), v.evidence
+    assert v.declaration["truncation_mode"] == declared
+    assert v.declaration["verified"]["truncation_mode"] == (
+        f"contradicted: the framework's row is exactly what {actual!r} truncation gives"
+    )
+
+
+def test_output_that_matches_no_mode_fails(qwen3, official):
+    v = _planted(qwen3, official, "long_answer", "off_by_one")
+    assert (v.result, v.kind) == ("fail", "bug")
+    assert v.declaration["verified"]["truncation_mode"].startswith("mismatch")
+
+
+def test_the_mode_is_verified_only_when_something_is_cut(official):
+    cut = evaluate(CHECK, official, load_fixture("long_answer"))
+    boundary = evaluate(CHECK, official, load_fixture("single_turn"))
+    assert cut.declaration["verified"]["truncation_mode"] == "consistent"
+    assert boundary.declaration["verified"]["truncation_mode"].startswith("unverified")
 
 
 def _planted(qwen3, adapter, fid, name):
@@ -99,7 +116,8 @@ def test_a_drop_mode_framework_that_keeps_a_label_less_row_fails(qwen3):
 def test_tokens_that_differ_without_a_limit_are_inconclusive(qwen3, official, trl_qwen3_template):
     lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
     v = CHECK.run(lying, qwen3, load_fixture("multi_turn"))
-    assert v.result == "inconclusive" and "t1.template_parity" in v.reason
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.declaration["verified"]["chat_template"].startswith("contradicted")
 
 
 def test_long_answer_reference_is_long_enough_to_cut(qwen3):

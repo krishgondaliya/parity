@@ -11,10 +11,10 @@ from stubs import (
     with_a_plant_that_does_nothing,
 )
 
-from parity.adapters.base import TrainCfg
+from parity.adapters.base import Encoded, TrainCfg
 from parity.checks.common import official_reference
 from parity.checks.tier1.assistant_mask import AssistantMask
-from parity.engine.plants import PlantedAdapter
+from parity.engine.plants import PlantedAdapter, encoded_plant
 from parity.engine.runner import evaluate
 from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.template import Zone
@@ -82,12 +82,30 @@ def test_label_convention_is_recorded(qwen3):
     assert v.result == "pass" and v.conventions["label_convention"] == "pre_shifted"
 
 
-def test_tokens_that_differ_from_the_declared_template_are_inconclusive(qwen3, official, trl_qwen3_template):
-    """Renders with the official template but declares TRL's: the mask can't be lined up."""
+def test_a_contradicted_template_declaration_is_an_adapter_error(qwen3, official, trl_qwen3_template):
+    """Renders exactly Qwen3's own template but declares TRL's: the declaration is contradicted."""
     lying = PlantedAdapter(official, "wrong-declaration", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
     v = CHECK.run(lying, qwen3, load_fixture("multi_turn"))
-    assert v.result == "inconclusive" and "t1.template_parity" in v.reason
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.declaration["verified"]["chat_template"].startswith("contradicted")
     assert v.evidence["first_divergence"] is not None
+
+
+def test_tokens_that_match_no_template_are_inconclusive_and_point_to_template_parity(qwen3, official):
+    def change_prompt(row: Encoded) -> Encoded:
+        return replace(row, input_ids=(row.input_ids[0], row.input_ids[1] + 1) + row.input_ids[2:])
+
+    v = CHECK.run(encoded_plant("x", "x", change_prompt, origin="synthetic").apply(official), qwen3, load_fixture("single_turn"))
+    assert v.result == "inconclusive" and "t1.template_parity" in v.reason
+    assert v.declaration["verified"]["chat_template"].startswith("mismatch")
+
+
+def test_every_verdict_records_the_declaration(official):
+    v = evaluate(CHECK, official, load_fixture("single_turn"))
+    assert v.declaration["template_source"] == "model"
+    assert v.declaration["label_convention"] == "aligned"
+    assert v.declaration["verified"]["chat_template"] == "consistent"
+    assert v.declaration["verified"]["label_convention"] == "unverified"
 
 
 def test_a_template_whose_markers_are_wrong_is_inconclusive_and_flagged(qwen3, trl_qwen3_template):

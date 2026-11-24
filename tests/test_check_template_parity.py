@@ -5,6 +5,8 @@ from Qwen3's own template on exactly the four fixtures with more than one
 assistant turn, and only by the documented think block.
 """
 
+from dataclasses import replace
+
 import pytest
 from stubs import (
     TRL_QWEN3_TRAINING_SHA256,
@@ -128,3 +130,18 @@ def test_verdict_records_the_reference_and_versions(official):
     assert {"transformers", "tokenizers", "trl"} <= set(v.reference)
     assert v.model == CALIBRATION.spec
     assert v.framework == "stub-official@0"
+
+
+def test_a_contradicted_template_declaration_is_an_adapter_error(qwen3, official, trl_qwen3_template):
+    """Renders exactly Qwen3's own template but declares TRL's: an adapter error, not a pass."""
+    lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
+    v = CHECK.run(lying, qwen3, load_fixture("multi_turn"))
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.declaration["verified"]["chat_template"].startswith("contradicted")
+
+
+def test_the_trl_stand_ins_declaration_is_consistent_even_where_it_differs(qwen3, trl_qwen3_template):
+    trl = trl_template_stub(qwen3, trl_qwen3_template, name="trl", version="1.18.2")
+    v = evaluate(CHECK, trl, load_fixture("multi_turn"))
+    assert v.known_difference == "KD-0001"
+    assert v.declaration["verified"]["chat_template"] == "consistent"

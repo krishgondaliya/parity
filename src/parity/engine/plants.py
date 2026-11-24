@@ -67,20 +67,52 @@ class PlantedAdapter:
         return self._after_batch(out, convs, cfg) if self._after_batch else out
 
 
+ORIGINS = ("real-world", "synthetic")
+
+
 @dataclass(frozen=True)
 class Plant:
+    """One planted fault.
+
+    origin: "real-world" when it reproduces a bug someone actually hit, named
+        in `source`; "synthetic" when it injects a fault of a plausible class
+        that we can't tie to one known incident. Catching a synthetic fault
+        says less about real bugs, and the verdict shows which kind it was.
+    """
+
     name: str
     description: str
     apply: Callable[[Any], Any]  # adapter -> planted adapter
+    origin: str
+    source: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.origin not in ORIGINS:
+            raise ValueError(f"plant {self.name}: origin must be one of {ORIGINS}, got {self.origin!r}")
+        if self.origin == "real-world" and not self.source:
+            raise ValueError(f"plant {self.name}: a real-world plant must name its source")
 
 
-def encoded_plant(name: str, description: str, mutate: Callable[[Encoded], Encoded]) -> Plant:
+def encoded_plant(
+    name: str,
+    description: str,
+    mutate: Callable[[Encoded], Encoded],
+    *,
+    origin: str,
+    source: str | None = None,
+) -> Plant:
     """A fault that rewrites every encoded row (dropped conversations pass through unchanged)."""
 
     def after(out: Encoded | Dropped, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
         return mutate(out) if isinstance(out, Encoded) else out
 
-    return Plant(name, description, lambda adapter: PlantedAdapter(adapter, name, after_encode=after))
+    return Plant(
+        name,
+        description,
+        lambda adapter: PlantedAdapter(adapter, name, after_encode=after),
+        origin=origin,
+        source=source,
+    )
 
 
 def with_labels(row: Encoded, labels: Sequence[int]) -> Encoded:

@@ -34,6 +34,7 @@ class Cell:
     inconclusive: int
     not_applicable: int
     known_differences: tuple[str, ...]
+    template_properties: tuple[str, ...]  # model-level properties the cell's verdicts inherit
     result: str
 
 
@@ -73,6 +74,7 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 inconclusive=inconclusive,
                 not_applicable=not_applicable,
                 known_differences=tuple(sorted({v.known_difference for v in vs if v.known_difference})),
+                template_properties=tuple(sorted({p for v in vs for p in v.template_properties})),
                 result=result,
             )
         )

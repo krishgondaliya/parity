@@ -11,11 +11,13 @@ from stubs import plant_named, run_on_all_fixtures, with_a_plant_that_does_nothi
 
 from parity.adapters.base import Dropped, TrainCfg
 from parity.checks.common import official_reference, official_template
-from parity.checks.tier1.multiturn_prefix import MultiturnPrefix, boundaries, break_signature
+from parity.checks.tier1.multiturn_prefix import MultiturnPrefix
 from parity.engine.plants import PlantedAdapter
 from parity.engine.runner import evaluate
 from parity.engine.summary import summarize
 from parity.fixtures import FIXTURE_IDS, load_fixture
+from parity.references.properties import boundaries, break_signature, prefix_break_property_id
+from parity.references.template import template_sha256
 
 CHECK = MultiturnPrefix()
 APPLICABLE = {"multi_turn": [2, 4], "tool_call": [2], "reasoning": [2], "empty_assistant": [2]}
@@ -96,12 +98,29 @@ def test_false_rerendered_as_python_is_caught(request, qwen3, stub):
     assert "false" in "".join(boundary["framework_edits"]["removed"])
 
 
-def test_breaking_where_the_template_does_not_fails(qwen3, official, trl_qwen3_template):
-    """Renders with Qwen3's template but declares TRL's prefix-preserving one."""
-    lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
-    v = CHECK.run(lying, qwen3, load_fixture("reasoning"))
+def test_breaking_where_the_template_does_not_fails(qwen3, trl_markers):
+    """TRL's template preserves every prefix, so any history re-render is the framework's own break."""
+    fx = load_fixture("reasoning")
+    plant = plant_named(CHECK, qwen3, fx, trl_markers.declare(TrainCfg()), "history_edit")
+    v = CHECK.run(plant.apply(trl_markers), qwen3, fx)
     assert (v.result, v.kind) == ("fail", "bug")
     assert v.conventions["template_breaks_at"] == [] and v.conventions["framework_breaks_at"] == [2]
+    assert v.template_properties == []
+
+
+def test_a_contradicted_template_declaration_is_an_adapter_error(qwen3, official, trl_qwen3_template):
+    """Renders exactly Qwen3's own template but declares TRL's."""
+    lying = PlantedAdapter(official, "x", on_declare=lambda d: replace(d, chat_template=trl_qwen3_template))
+    v = CHECK.run(lying, qwen3, load_fixture("reasoning"))
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+
+
+def test_an_inherited_break_passes_but_never_reads_as_prefix_preserved(qwen3, official):
+    v = evaluate(CHECK, official, load_fixture("reasoning"))
+    assert v.result == "pass"
+    assert v.conventions["prefix_preserved"] is False
+    assert v.template_properties == [prefix_break_property_id(qwen3, template_sha256(official_template(qwen3)))]
+    assert "NOT preserved" in v.evidence["inherited_from_template"]
 
 
 def test_preserving_the_prefix_where_the_template_breaks_passes(qwen3, trl_markers):

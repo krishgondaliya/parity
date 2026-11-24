@@ -173,7 +173,7 @@ def with_a_plant_that_does_nothing(check):
 
     class NoOpPlant(type(check)):
         def plants(self, release, fixture, declaration):
-            return [Plant("noop", "changes nothing", lambda adapter: adapter)]
+            return [Plant("noop", "changes nothing", lambda adapter: adapter, origin="synthetic")]
 
     return NoOpPlant()
 

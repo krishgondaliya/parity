@@ -12,15 +12,18 @@ Two kinds of information come back from an adapter, and checks keep them apart:
   say it will do (which chat template, how it truncates, whether it pads or
   packs, how its labels are laid out). It is read before any encoding, so a
   check can decide what to expect and which planted faults apply without
-  looking at the framework's output.
+  looking at the framework's output. A declaration is a claim: checks verify
+  it against behavior wherever behavior can show it, and every verdict
+  records it.
 - `encode` and `encode_batch` return what the framework actually produced.
 """
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, ClassVar, Protocol
 
 from parity.fixtures import Conversation
 from parity.release import LoadedRelease
@@ -127,6 +130,29 @@ class Declaration:
     batching: str
     pad_token_id: int | None
     sources: tuple[str, ...] = ()
+
+    FIELDS: ClassVar[tuple[str, ...]] = (
+        "chat_template",
+        "label_convention",
+        "truncation_mode",
+        "batching",
+        "pad_token_id",
+    )
+
+    def record(self, verified: dict[str, str] | None = None) -> dict[str, Any]:
+        """The declaration as it goes into a verdict. Fields a check didn't verify stay "unverified"."""
+        status = {name: "unverified" for name in self.FIELDS}
+        status.update(verified or {})
+        return {
+            "template_source": self.template_source,
+            "template_sha256": hashlib.sha256(self.chat_template.encode("utf-8")).hexdigest(),
+            "label_convention": self.label_convention,
+            "truncation_mode": self.truncation_mode,
+            "batching": self.batching,
+            "pad_token_id": self.pad_token_id,
+            "sources": list(self.sources),
+            "verified": status,
+        }
 
     def __post_init__(self) -> None:
         if self.label_convention not in LABEL_CONVENTIONS:

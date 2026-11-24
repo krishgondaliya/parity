@@ -25,8 +25,10 @@ the end of P, the tokens of P removed (P[c:] before that tail), and the
 tokens of F inserted (F[c:m]). No break when P is a prefix of F. The
 framework passes a boundary if it doesn't break there, or if its break
 signature is exactly the template's. Any other break fails. Breaks the
-framework inherits from its template are recorded in the verdict and
-attributed to the template, not to the framework.
+framework inherits from its template are attributed to the template: the
+verdict records `prefix_preserved: false` and names the model-level template
+property it inherits (`parity.references.properties`, shown once per model in
+the report), so the pass never reads as "prefix preserved".
 
 Planted faults:
 - history_false_as_python: re-render the tool-call arguments of every
@@ -41,19 +43,29 @@ Planted faults:
 from __future__ import annotations
 
 import copy
-from collections.abc import Sequence
 from typing import Any
 
 from parity.adapters.base import Declaration, Dropped
-from parity.checks.common import Tier1Check, declared_reference, reference_info, token_ids_on
-from parity.engine.evidence import decode_each, first_divergence
+from parity.checks.common import (
+    Tier1Check,
+    declared_reference,
+    is_contradicted,
+    reference_info,
+    template_status,
+    token_ids_on,
+    unaligned_verdict,
+)
 from parity.engine.plants import Plant, PlantedAdapter
 from parity.engine.verdict import Verdict
 from parity.fixtures import Conversation, Fixture
+from parity.references.properties import (
+    boundaries,
+    break_signature,
+    describe_break,
+    prefix_break_property_id,
+)
+from parity.references.template import template_sha256
 from parity.release import LoadedRelease
-
-# (tokens from the break to the end of the prefix, tokens removed from the prefix, tokens inserted from the full)
-Break = tuple[int, tuple[int, ...], tuple[int, ...]]
 
 
 class MultiturnPrefix(Tier1Check):
@@ -68,11 +80,23 @@ class MultiturnPrefix(Tier1Check):
         tokenizer = release.tokenizer
         declaration = adapter.declare(self.base_cfg)
         template = declaration.chat_template
-        info = reference_info(release, declaration, declared_reference(release, fixture, declaration))
+        ref = declared_reference(release, fixture, declaration)
+        info = reference_info(release, ref)
         full = adapter.encode(fixture, self.base_cfg)
         if isinstance(full, Dropped):
             return self.verdict(
-                adapter, fixture, "fail", kind="bug", reference=info, evidence={"dropped": full.reason, "at": "full"}
+                adapter,
+                fixture,
+                "fail",
+                kind="bug",
+                reference=info,
+                declared=declaration,
+                evidence={"dropped": full.reason, "at": "full"},
+            )
+        status = template_status(release, fixture, declaration, full.input_ids)
+        if is_contradicted(status):
+            return unaligned_verdict(
+                self, adapter, release, fixture, declaration, full.input_ids, ref.input_ids, reference=info
             )
 
         template_full = token_ids_on(release, fixture, template)
@@ -88,20 +112,31 @@ class MultiturnPrefix(Tier1Check):
             checked.append(
                 {
                     "boundary": j,
-                    "ok": not framework_break or framework_break == template_break,
-                    "template_breaks": bool(template_break),
-                    "framework_breaks": bool(framework_break),
+                    "ok": framework_break is None or framework_break == template_break,
+                    "template_breaks": template_break is not None,
+                    "framework_breaks": framework_break is not None,
                     "same_break_as_template": framework_break == template_break,
-                    "template_edits": describe(tokenizer, template_break),
-                    "framework_edits": describe(tokenizer, framework_break),
+                    "template_edits": describe_break(tokenizer, template_break),
+                    "framework_edits": describe_break(tokenizer, framework_break),
                 }
             )
 
+        inherited = [c["boundary"] for c in checked if c.get("framework_breaks") and c["ok"]]
         conventions = {
             "boundaries": [c["boundary"] for c in checked],
             "template_breaks_at": [c["boundary"] for c in checked if c.get("template_breaks")],
             "framework_breaks_at": [c["boundary"] for c in checked if c.get("framework_breaks")],
+            "prefix_preserved": not any(c.get("framework_breaks") for c in checked),
         }
+        evidence: dict[str, Any] = {"boundaries": checked}
+        properties = []
+        if inherited:
+            prop = prefix_break_property_id(release, template_sha256(template))
+            properties.append(prop)
+            evidence["inherited_from_template"] = (
+                f"The prefix is NOT preserved at boundaries {inherited}. The framework breaks it exactly as its "
+                f"declared template does, so this is attributed to the template: see template property {prop}."
+            )
         result = "pass" if all(c["ok"] for c in checked) else "fail"
         return self.verdict(
             adapter,
@@ -110,7 +145,10 @@ class MultiturnPrefix(Tier1Check):
             kind="bug" if result == "fail" else None,
             reference=info,
             conventions=conventions,
-            evidence={"boundaries": checked},
+            declared=declaration,
+            verified={"chat_template": status},
+            template_properties=properties,
+            evidence=evidence,
         )
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
@@ -123,59 +161,22 @@ class MultiturnPrefix(Tier1Check):
                     "history_false_as_python",
                     "re-render earlier tool-call arguments as a Python repr (false -> False)",
                     _arguments_as_python_repr,
+                    origin="real-world",
+                    source="Prime Intellect, May 2026: history re-rendered from Python objects turned JSON false into False",
                 )
             )
         out.append(
-            _history_plant("history_edit", "re-render earlier assistant turns with one character changed", _edit_one_char)
+            _history_plant(
+                "history_edit",
+                "re-render earlier assistant turns with one character changed",
+                _edit_one_char,
+                origin="synthetic",
+            )
         )
         return out
 
 
-def boundaries(conv: Conversation) -> list[int]:
-    """Prefix lengths j < len(messages) whose last message is an assistant turn."""
-    return [j for j in range(1, len(conv.messages)) if conv.messages[j - 1]["role"] == "assistant"]
-
-
-def break_signature(prefix: Sequence[int], full: Sequence[int]) -> Break | None:
-    """How `full` re-renders `prefix`, or None when `prefix` is exactly the start of `full`.
-
-    The later turns appended after the prefix are never part of a break.
-    """
-    prefix, full = tuple(prefix), tuple(full)
-    c = first_divergence(prefix, full)
-    if c is None or c == len(prefix):
-        return None
-    tail = prefix[c:]
-    kept, m = 0, c
-    for size in range(len(tail), 0, -1):  # longest tail first, then its earliest occurrence
-        found = _find(full, tail[-size:], start=c)
-        if found is not None:
-            kept, m = size, found
-            break
-    return (len(prefix) - c, tail[: len(tail) - kept], full[c:m])
-
-
-def _find(haystack: tuple[int, ...], needle: tuple[int, ...], start: int) -> int | None:
-    last = len(haystack) - len(needle)
-    first = needle[0]
-    for i in range(start, last + 1):
-        if haystack[i] == first and haystack[i : i + len(needle)] == needle:
-            return i
-    return None
-
-
-def describe(tokenizer: Any, signature: Break | None) -> dict[str, Any] | None:
-    if signature is None:
-        return None
-    from_end, removed, inserted = signature
-    return {
-        "tokens_from_end": from_end,
-        "removed": decode_each(tokenizer, removed),
-        "inserted": decode_each(tokenizer, inserted),
-    }
-
-
-def _history_plant(name: str, description: str, rewrite: Any) -> Plant:
+def _history_plant(name: str, description: str, rewrite: Any, *, origin: str, source: str | None = None) -> Plant:
     """A fault in how history is re-rendered: rewrite every assistant message that isn't the last one."""
 
     def before(conv: Conversation) -> Conversation:
@@ -185,7 +186,13 @@ def _history_plant(name: str, description: str, rewrite: Any) -> Plant:
                 messages[i] = rewrite(message)
         return conv.with_messages(messages)
 
-    return Plant(name, description, lambda adapter: PlantedAdapter(adapter, name, before_encode=before))
+    return Plant(
+        name,
+        description,
+        lambda adapter: PlantedAdapter(adapter, name, before_encode=before),
+        origin=origin,
+        source=source,
+    )
 
 
 def _has_boolean_tool_argument(message: dict[str, Any]) -> bool:

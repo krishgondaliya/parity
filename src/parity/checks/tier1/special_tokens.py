@@ -20,11 +20,17 @@ Pass rule, two parts, both exact:
    it, and every row is padded to `pad_to` = the longer row + 8 tokens:
    - padding sits at one end of the row and leaves the row's tokens and labels
      exactly as the unpadded row has them;
-   - pad positions hold the declared pad token and have no loss;
+   - pad positions have no loss, and hold one token: the declared pad token;
    - every stop token in a must-train position keeps its loss in the batch too.
-   If the framework packs instead of padding under our config, part 2 is
-   not applicable for that config and the verdict records it. A row that isn't
+   If the framework declares packing under our config, part 2 is not
+   applicable for that config and the verdict records it. A row that isn't
    padded to `pad_to` makes part 2 inconclusive (check the adapter's mapping).
+
+Declarations are verified here: rows that show packing when padding was
+declared (a different number of rows, or position ids restarting inside a
+row), or pads that are all one token other than the declared pad token,
+contradict the declaration. That is an adapter error until shown otherwise,
+so the verdict is inconclusive. Pads holding several different tokens fail.
 
 Planted faults (both apply to every fixture):
 - extra_leading_special: prepend one more special token: a second BOS when
@@ -37,17 +43,24 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Sequence
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from parity.adapters.base import LABEL_IGNORE, Batch, Declaration, Dropped, Encoded
 from parity.checks.common import (
+    CONSISTENT,
+    CONTRADICTED,
+    MISMATCH,
     Tier1Check,
+    adapter_error,
     closing_token_id,
     declared_reference,
+    is_contradicted,
     reference_info,
     special_ids,
+    template_status,
     token_ids_on,
+    unaligned_verdict,
 )
 from parity.engine.evidence import decode_each
 from parity.engine.plants import Plant, PlantedAdapter
@@ -66,7 +79,7 @@ class SpecialTokens(Tier1Check):
         tokenizer = release.tokenizer
         declaration = adapter.declare(self.base_cfg)
         ref = declared_reference(release, fixture, declaration)
-        info = reference_info(release, declaration, ref)
+        info = reference_info(release, ref)
         pad = declaration.pad_token_id
         conventions: dict[str, Any] = {
             "batching": declaration.batching,
@@ -83,12 +96,27 @@ class SpecialTokens(Tier1Check):
                 kind="bug",
                 reference=info,
                 conventions=conventions,
+                declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
+            )
+        template = template_status(release, fixture, declaration, out.input_ids)
+        if is_contradicted(template):
+            return unaligned_verdict(
+                self,
+                adapter,
+                release,
+                fixture,
+                declaration,
+                out.input_ids,
+                ref.input_ids,
+                reference=info,
+                conventions=conventions,
             )
 
         problems: list[dict[str, Any]] = []
         open_questions: list[str] = []
         parts: dict[str, str] = {}
+        verified = {"chat_template": template}
 
         specials = special_ids(tokenizer)
         problems += _special_token_problems(tokenizer, specials, ref.input_ids, out.input_ids)
@@ -103,34 +131,40 @@ class SpecialTokens(Tier1Check):
 
         if declaration.batching == "packed":
             parts["padding"] = "not_applicable"
+            verified["batching"] = "unverified: the padding part doesn't run for a framework that declares packing"
         else:
             n_before = len(problems)
             try:
-                side, pad_problems, pad_question = self._padding(adapter, release, fixture, declaration, ref, out)
+                pad = self._padding(adapter, release, fixture, declaration, ref, out)
             except Exception as exc:  # noqa: BLE001 - a padding crash leaves this part open, never passed
-                side, pad_problems, pad_question = None, [], f"padded batch failed: {type(exc).__name__}: {exc}"
-            problems += pad_problems
-            if pad_question:
-                open_questions.append(pad_question)
-            conventions["padding_side"] = side
-            parts["padding"] = "fail" if len(problems) > n_before else ("inconclusive" if pad_question else "pass")
+                pad = _PaddingResult(question=f"padded batch failed: {type(exc).__name__}: {exc}")
+            problems += pad.problems
+            if pad.question:
+                open_questions.append(pad.question)
+            verified.update(pad.verified)
+            conventions["padding_side"] = pad.side
+            parts["padding"] = "fail" if len(problems) > n_before else ("inconclusive" if pad.question else "pass")
 
         evidence = {"parts": parts, "problems": problems}
-        if problems:
-            return self.verdict(
-                adapter, fixture, "fail", kind="bug", reference=info, conventions=conventions, evidence=evidence
-            )
-        if open_questions:
+
+        def verdict(result: str, **fields: Any) -> Verdict:
             return self.verdict(
                 adapter,
                 fixture,
-                "inconclusive",
-                reason="; ".join(open_questions),
+                result,
                 reference=info,
                 conventions=conventions,
+                declared=declaration,
+                verified=verified,
                 evidence=evidence,
+                **fields,
             )
-        return self.verdict(adapter, fixture, "pass", reference=info, conventions=conventions, evidence=evidence)
+
+        if problems:
+            return verdict("fail", kind="bug")
+        if open_questions:
+            return verdict("inconclusive", reason="; ".join(open_questions))
+        return verdict("pass")
 
     def _padding(
         self,
@@ -140,28 +174,41 @@ class SpecialTokens(Tier1Check):
         declaration: Declaration,
         ref: TemplateReference,
         single: Encoded,
-    ) -> tuple[str | None, list[dict[str, Any]], str | None]:
-        """Returns (padding side, problems, open question)."""
+    ) -> _PaddingResult:
         partner, pad_to = batch_plan(release, fixture, declaration)
         cfg = replace(self.base_cfg, pad_to=pad_to)
-        row = adapter.encode_batch([fixture, partner], cfg).rows[0]
+        batch = adapter.encode_batch([fixture, partner], cfg)
+
+        # Declared padding, but the rows show packing: an adapter error, not a framework finding.
+        packed = None
+        if len(batch.rows) != 2:
+            packed = f"returned {len(batch.rows)} rows for 2 conversations"
+        elif _positions_restart(batch.rows[0]):
+            packed = "position ids restart inside the row"
+        if packed:
+            status = CONTRADICTED + packed + ", so the framework packed"
+            return _PaddingResult(question=adapter_error("batching", status), verified={"batching": status})
+
+        row = batch.rows[0]
         if len(row.input_ids) != pad_to:
             question = (
                 f"the padded row has {len(row.input_ids)} tokens, not pad_to={pad_to}; "
                 "check the adapter's mapping of pad_to"
             )
-            return None, [], question
+            return _PaddingResult(question=question)
 
         content = [i for i, a in enumerate(row.attention_mask) if a == 1]
         if not content or content != list(range(content[0], content[-1] + 1)):
             problem = {"rule": "padding_at_one_end", "detail": "attended positions are not one contiguous block"}
-            return None, [problem], None
+            return _PaddingResult(problems=[problem])
         start, end = content[0], content[-1] + 1
         if start > 0 and end < len(row.input_ids):
-            return None, [{"rule": "padding_at_one_end", "detail": "padding on both sides of the row"}], None
+            return _PaddingResult(problems=[{"rule": "padding_at_one_end", "detail": "padding on both sides of the row"}])
         side = "left" if start > 0 else "right"
 
         problems = []
+        verified = {"batching": CONSISTENT}
+        question = None
         body = Encoded(row.input_ids[start:end], row.labels[start:end], row.attention_mask[start:end])
         if (body.input_ids, body.labels) != (single.input_ids, single.labels):
             pairs = zip(zip(body.input_ids, body.labels), zip(single.input_ids, single.labels))
@@ -174,17 +221,22 @@ class SpecialTokens(Tier1Check):
                 }
             )
         pads = [i for i in range(len(row.input_ids)) if not start <= i < end]
-        wrong_id = [i for i in pads if row.input_ids[i] != declaration.pad_token_id]
+        pad_tokens = sorted({row.input_ids[i] for i in pads})
+        if pad_tokens == [declaration.pad_token_id]:
+            verified["pad_token_id"] = CONSISTENT
+        elif len(pad_tokens) == 1:
+            shown = decode_each(release.tokenizer, pad_tokens)[0]
+            verified["pad_token_id"] = CONTRADICTED + f"the framework pads with {shown!r} (id {pad_tokens[0]})"
+            question = adapter_error("pad_token_id", verified["pad_token_id"])
+        else:
+            verified["pad_token_id"] = MISMATCH + "pad positions hold several different tokens"
+            problems.append({"rule": "pad_token", "detail": "pad positions hold several different tokens"})
         trained = [i for i in pads if row.labels[i] != LABEL_IGNORE]
-        if wrong_id:
-            problems.append(
-                {"rule": "pad_token", "detail": "pad positions hold a different token", "positions": wrong_id[:16]}
-            )
         if trained:
             problems.append({"rule": "pads_untrained", "detail": "pad positions have loss", "positions": trained[:16]})
         if body.input_ids == ref.input_ids:
             problems += _untrained_stop_tokens(release.tokenizer, release, ref, body, where="padded batch")
-        return side, problems, None
+        return _PaddingResult(side=side, problems=problems, question=question, verified=verified)
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         tokenizer = release.tokenizer
@@ -209,6 +261,7 @@ class SpecialTokens(Tier1Check):
                             tuple(_prepend_in_padded(r, extra) for r in batch.rows)
                         ),
                     ),
+                    origin="synthetic",
                 )
             )
 
@@ -228,9 +281,31 @@ class SpecialTokens(Tier1Check):
                             tuple(_mask_token(_repad_with(r, closing), closing) for r in batch.rows)
                         ),
                     ),
+                    origin="real-world",
+                    source=(
+                        "pad_token set to the EOS token, with id-based pad masking as in transformers' "
+                        "DataCollatorForLanguageModeling (mlm=False): labels[labels == pad_token_id] = -100 "
+                        "also takes the loss off every real EOS"
+                    ),
                 )
             )
         return out
+
+
+@dataclass
+class _PaddingResult:
+    side: str | None = None
+    problems: list[dict[str, Any]] = field(default_factory=list)
+    question: str | None = None  # why the padding part can't be judged (makes the verdict inconclusive)
+    verified: dict[str, str] = field(default_factory=dict)
+
+
+def _positions_restart(row: Encoded) -> bool:
+    """True if position ids go back down inside the attended part of the row: several sequences packed together."""
+    if row.position_ids is None:
+        return False
+    attended = [p for p, a in zip(row.position_ids, row.attention_mask) if a == 1]
+    return any(b <= a for a, b in zip(attended, attended[1:]))
 
 
 def batch_plan(release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> tuple[Conversation, int]:

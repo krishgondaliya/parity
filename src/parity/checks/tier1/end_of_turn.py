@@ -25,7 +25,14 @@ from __future__ import annotations
 from typing import Any
 
 from parity.adapters.base import LABEL_IGNORE, Declaration, Dropped, Encoded
-from parity.checks.common import Tier1Check, declared_reference, reference_info
+from parity.checks.common import (
+    Tier1Check,
+    declared_reference,
+    is_contradicted,
+    reference_info,
+    template_status,
+    unaligned_verdict,
+)
 from parity.engine.evidence import decode_each, first_divergence, token_evidence
 from parity.engine.plants import Plant, encoded_plant, with_labels
 from parity.engine.verdict import Verdict
@@ -42,7 +49,7 @@ class EndOfTurn(Tier1Check):
         tokenizer = release.tokenizer
         declaration = adapter.declare(self.base_cfg)
         ref = declared_reference(release, fixture, declaration)
-        info = reference_info(release, declaration, ref)
+        info = reference_info(release, ref)
         out = adapter.encode(fixture, self.base_cfg)
         if isinstance(out, Dropped):
             return self.verdict(
@@ -51,8 +58,18 @@ class EndOfTurn(Tier1Check):
                 "fail",
                 kind="bug",
                 reference=info,
+                declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
+        status = template_status(release, fixture, declaration, out.input_ids)
+        if is_contradicted(status):
+            return unaligned_verdict(
+                self, adapter, release, fixture, declaration, out.input_ids, ref.input_ids, reference=info
+            )
+
+        def verdict(result: str, **fields: Any) -> Verdict:
+            verified = {"chat_template": status}
+            return self.verdict(adapter, fixture, result, reference=info, declared=declaration, verified=verified, **fields)
 
         d = first_divergence(ref.input_ids, out.input_ids)
         turns = []
@@ -82,15 +99,15 @@ class EndOfTurn(Tier1Check):
         if d is not None:
             evidence["divergence"] = token_evidence(tokenizer, ref.input_ids, out.input_ids)
         if any(t["status"] in FAILING for t in turns):
-            return self.verdict(adapter, fixture, "fail", kind="bug", reference=info, evidence=evidence)
+            return verdict("fail", kind="bug", evidence=evidence)
         unchecked = [t["message_index"] for t in turns if t["status"] == "unchecked"]
         if unchecked:
             reason = (
                 f"the framework's tokens differ from its declared template's render before the closing token of "
                 f"message(s) {unchecked}, so they can't be lined up; see t1.template_parity"
             )
-            return self.verdict(adapter, fixture, "inconclusive", reason=reason, reference=info, evidence=evidence)
-        return self.verdict(adapter, fixture, "pass", reference=info, evidence=evidence)
+            return verdict("inconclusive", reason=reason, evidence=evidence)
+        return verdict("pass", evidence=evidence)
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         if not fixture.assistant_indices:
@@ -106,4 +123,12 @@ class EndOfTurn(Tier1Check):
                 ],
             )
 
-        return [encoded_plant("mask_closing_tokens", "take the loss off every supervised stop token", mask_closing_tokens)]
+        return [
+            encoded_plant(
+                "mask_closing_tokens",
+                "take the loss off every supervised stop token",
+                mask_closing_tokens,
+                origin="real-world",
+                source="Plumbline (arXiv 2611.13393): GLM-5.3-Flash's turn-closing token was masked out of training",
+            )
+        ]

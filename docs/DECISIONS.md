@@ -14,6 +14,34 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-23: M2 follow-ups: declarations are verified, planted faults are tagged, template properties are reported
+- Decision:
+  - **Declarations are claims, and checks verify them.** Every verdict records the adapter's declaration and, per field, whether behavior confirmed it.
+    - `consistent`: the behavior confirms the declared value.
+    - `contradicted`: the behavior is exactly what a different value gives. That is an adapter error until shown otherwise (rule 4), so the verdict is `inconclusive`.
+    - `mismatch`: the behavior matches no value. It is judged normally, so it can fail.
+    - `unverified`: the behavior can't show the field.
+  - What the checks verify:
+    - **Chat template** (every check): the tokens are exactly the model's own template's render while another template is declared.
+    - **Truncation mode**: the row is exactly what another mode gives (right, left or drop). This is verified only when something is cut.
+    - **Batching**: rows show packing (a different row count, or position ids restarting inside a row) when padding was declared.
+    - **Pad token**: every pad holds one other token. Pads holding several different tokens fail.
+    - The **label convention** is recorded but not verified. A shifted-label pattern must stay a `fail`, or the `shift_labels_left` planted fault could never be caught.
+  - This refines "a framework fails only when it doesn't match its own declared mode" (truncation). Output that is exactly another mode is now `inconclusive` (adapter error). Output that matches no mode (off-by-one, lost loss, re-appended stop token) still fails.
+  - **Planted faults carry an origin:** `real-world` (with a source) or `synthetic`. Three of the 14 are real-world:
+    - `mask_closing_tokens`: Plumbline's GLM-5.3-Flash bug.
+    - `pad_is_closing_token_masked`: pad = EOS with id-based pad masking. transformers 5.24.0's `DataCollatorForLanguageModeling(mlm=False)` does `labels[labels == pad_token_id] = -100`.
+    - `history_false_as_python`: Prime Intellect, May 2026.
+    - The other 11 are synthetic.
+  - **Template properties are reported at the model level.**
+    - A template's prefix breaks are computed once per model and template (`parity.references.properties`).
+    - A multi-turn prefix pass that inherits them names the property (`Verdict.template_properties`) and records `prefix_preserved: false`.
+    - The report shows each property once per model and links to it from the cell (`parity.engine.report`). The Phase 1 card does the same.
+- Heads-up for M4: frameworks may skip `empty_assistant` on purpose. If that's documented, it becomes a known-differences entry; if not, it's a candidate finding.
+- Why: the human's review of M2 (2026-11-23).
+- Evidence: `tests/test_check_*.py` (the contradiction tests), `tests/test_report.py`, `tests/test_tier1_suite.py`.
+- Reversible? yes
+
 ## 2026-11-23: Tier 1 pass rules and planted faults (M2)
 - Decision: the six Tier 1 checks, as built. Every rule is exact; there are no numeric tolerances in Tier 1.
 

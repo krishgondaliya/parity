@@ -22,7 +22,7 @@ from typing import Any, ClassVar
 from transformers import PreTrainedTokenizerBase
 
 from parity.adapters.base import LABEL_IGNORE, Declaration, Encoded, TrainCfg
-from parity.engine.evidence import decode_each
+from parity.engine.evidence import decode_each, token_evidence
 from parity.engine.plants import Plant
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Conversation, Fixture
@@ -68,8 +68,76 @@ class Tier1Check:
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         raise NotImplementedError
 
-    def verdict(self, adapter: Any, fixture: Fixture, result: str, **fields: Any) -> Verdict:
+    def verdict(
+        self,
+        adapter: Any,
+        fixture: Fixture,
+        result: str,
+        *,
+        declared: Declaration | None = None,
+        verified: dict[str, str] | None = None,
+        **fields: Any,
+    ) -> Verdict:
+        if declared is not None:
+            fields["declaration"] = declared.record(verified)
         return make_verdict(self.id, adapter, fixture.id, result, **fields)
+
+
+# Verifying declarations against behavior. A declaration is contradicted only when
+# the behavior exactly matches a different value of the same field; that is an
+# adapter error until proven otherwise (rule 4), so the verdict is inconclusive.
+
+CONSISTENT = "consistent"
+CONTRADICTED = "contradicted: "
+MISMATCH = "mismatch: "
+
+
+def is_contradicted(status: str) -> bool:
+    return status.startswith(CONTRADICTED)
+
+
+def adapter_error(field_name: str, status: str) -> str:
+    return (
+        f"adapter error: the declared {field_name} is contradicted by what the framework did "
+        f"({status.removeprefix(CONTRADICTED)}). Check the adapter's declare() before treating this as a "
+        "framework finding (rule 4)."
+    )
+
+
+def template_status(release: LoadedRelease, conv: Conversation, declaration: Declaration, ids: Sequence[int]) -> str:
+    """Do the framework's tokens confirm the declared chat template?"""
+    ids = tuple(ids)
+    if ids == token_ids_on(release, conv, declaration.chat_template):
+        return CONSISTENT
+    official = official_template(release)
+    if declaration.chat_template != official and ids == token_ids_on(release, conv, official):
+        return CONTRADICTED + "the tokens are exactly the model's own template's render, not the declared template's"
+    return MISMATCH + "the tokens match neither the declared template's render nor the model's own"
+
+
+def unaligned_verdict(
+    check: Tier1Check,
+    adapter: Any,
+    release: LoadedRelease,
+    fixture: Fixture,
+    declaration: Declaration,
+    ids: Sequence[int],
+    expected: Sequence[int],
+    **fields: Any,
+) -> Verdict:
+    """Inconclusive: the framework's tokens don't line up with its declared template's render."""
+    status = template_status(release, fixture, declaration, ids)
+    reason = adapter_error("chat_template", status) if is_contradicted(status) else NO_ALIGNMENT
+    return check.verdict(
+        adapter,
+        fixture,
+        "inconclusive",
+        reason=reason,
+        declared=declaration,
+        verified={"chat_template": status},
+        evidence=token_evidence(release.tokenizer, expected, ids),
+        **fields,
+    )
 
 
 # References, cached per (release, template, conversation content). They are pure functions of those.
@@ -117,19 +185,15 @@ def library_versions() -> dict[str, str]:
     return out
 
 
-def reference_info(release: LoadedRelease, declaration: Declaration | None, ref: TemplateReference) -> dict[str, Any]:
-    info: dict[str, Any] = {
+def reference_info(release: LoadedRelease, ref: TemplateReference) -> dict[str, Any]:
+    """What the verdict was compared against. The declaration is recorded separately (Verdict.declaration)."""
+    return {
         "template_source": ref.template_source,
         "template_sha256": ref.template_sha256,
         "official_template_sha256": template_sha256(official_template(release)),
         "marker_check": ref.marker_check,
         **library_versions(),
     }
-    if declaration is not None:
-        info["declared_template_source"] = declaration.template_source
-        info["declared_template_sha256"] = template_sha256(declaration.chat_template)
-        info["declaration_sources"] = list(declaration.sources)
-    return info
 
 
 def special_ids(tokenizer: PreTrainedTokenizerBase) -> frozenset[int]:

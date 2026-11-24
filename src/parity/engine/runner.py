@@ -24,6 +24,18 @@ from parity.references.template import MarkerDisagreementError, TemplateReferenc
 
 
 def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
+    """Every verdict this returns records the adapter's declaration (or why it couldn't be read)."""
+    verdict = _evaluate(check, adapter, fixture)
+    if verdict.declaration:
+        return verdict
+    try:
+        record = adapter.declare(check.base_cfg).record()
+    except Exception as exc:  # noqa: BLE001 - recorded, never hidden
+        record = {"error": f"{type(exc).__name__}: {exc}"}
+    return replace(verdict, declaration=record)
+
+
+def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     reason = check.not_applicable(fixture)
     if reason is not None:
         return make_verdict(check.id, adapter, fixture.id, "not_applicable", reason=reason)
@@ -43,6 +55,8 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
             {
                 "plant": plant.name,
                 "description": plant.description,
+                "origin": plant.origin,
+                "source": plant.source,
                 "caught": planted.result == "fail" and planted.kind == "bug",
                 "result": planted.result,
                 "kind": planted.kind,

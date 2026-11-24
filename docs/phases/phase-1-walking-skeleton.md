@@ -25,6 +25,8 @@ Done when `uv run parity run --model <org/name@rev> --framework trl --tier 1 --c
 ### M3. Report card
 Done when `uv run parity card` builds `site/index.html` from verdict files: rows are models (newest first), columns are frameworks, and each cell shows counts and links to its verdicts and lockfile. The card states its scope (tiers run).
 
+Each model also gets a **template properties** section, shown once per model: facts about the chat templates its frameworks use, such as Qwen3's prefix breaks (`parity.references.properties`). A cell whose verdicts inherit a property links to it, so a pass that inherits prefix breaks never reads as "prefix preserved". Each cell also shows how many fixtures each check ran on, and which planted faults were real-world or synthetic. `parity.engine.report.render_summary` already does the Markdown version.
+
 ```
 Build the static report card generator (plain HTML + a little CSS, no framework).
 Every cell links to its verdict JSON and lockfile. Add a scope line: which tiers ran, and that Tier 2 uses tiny models.

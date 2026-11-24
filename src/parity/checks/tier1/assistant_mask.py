@@ -32,8 +32,14 @@ from __future__ import annotations
 from typing import Any
 
 from parity.adapters.base import LABEL_IGNORE, Declaration, Dropped, Encoded
-from parity.checks.common import NO_ALIGNMENT, Tier1Check, declared_reference, mask_report, reference_info
-from parity.engine.evidence import token_evidence
+from parity.checks.common import (
+    CONSISTENT,
+    Tier1Check,
+    declared_reference,
+    mask_report,
+    reference_info,
+    unaligned_verdict,
+)
 from parity.engine.plants import Plant, encoded_plant, supervised_runs, with_labels
 from parity.engine.verdict import Verdict
 from parity.fixtures import Fixture
@@ -47,7 +53,7 @@ class AssistantMask(Tier1Check):
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         declaration = adapter.declare(self.base_cfg)
         ref = declared_reference(release, fixture, declaration)
-        info = reference_info(release, declaration, ref)
+        info = reference_info(release, ref)
         conventions: dict[str, Any] = {"label_convention": declaration.label_convention}
         out = adapter.encode(fixture, self.base_cfg)
         if isinstance(out, Dropped):
@@ -58,19 +64,24 @@ class AssistantMask(Tier1Check):
                 kind="bug",
                 reference=info,
                 conventions=conventions,
+                declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
         if out.input_ids != ref.input_ids:
-            return self.verdict(
+            return unaligned_verdict(
+                self,
                 adapter,
+                release,
                 fixture,
-                "inconclusive",
-                reason=NO_ALIGNMENT,
+                declaration,
+                out.input_ids,
+                ref.input_ids,
                 reference=info,
                 conventions=conventions,
-                evidence=token_evidence(release.tokenizer, ref.input_ids, out.input_ids),
             )
 
+        # The label convention is recorded, not verified: a pre-shifted pattern
+        # handed over as aligned is judged as a bug here (see shift_labels_left).
         report = mask_report(ref.zones, out)
         conventions.update(report.conventions())
         evidence = report.evidence(release.tokenizer, out, ref.zones)
@@ -84,18 +95,21 @@ class AssistantMask(Tier1Check):
             kind="bug" if report.violated else None,
             reference=info,
             conventions=conventions,
+            declared=declaration,
+            verified={"chat_template": CONSISTENT},
             evidence=evidence,
         )
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         if not fixture.assistant_indices or fixture.assistant_indices[0] == 0:
             return []
-        return [
-            encoded_plant("unmask_prompt", "give loss to everything before the first supervised token", _unmask_prompt),
-            encoded_plant("zero_mask", "no loss anywhere", _zero_mask),
-            encoded_plant("shift_labels_left", "labels shifted left by one", _shift_labels_left),
-            encoded_plant("late_start", "every supervised span starts one token late", _late_start),
+        faults = [
+            ("unmask_prompt", "give loss to everything before the first supervised token", _unmask_prompt),
+            ("zero_mask", "no loss anywhere", _zero_mask),
+            ("shift_labels_left", "labels shifted left by one", _shift_labels_left),
+            ("late_start", "every supervised span starts one token late", _late_start),
         ]
+        return [encoded_plant(name, about, mutate, origin="synthetic") for name, about, mutate in faults]
 
 
 def _unmask_prompt(row: Encoded) -> Encoded:

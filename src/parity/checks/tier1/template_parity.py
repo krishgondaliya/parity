@@ -12,7 +12,10 @@ Pass rule: exact. The framework's input ids must equal the reference ids
 token for token. Any divergence is a fail. It is a fail of kind `difference`
 only when a known-differences entry matches it exactly (framework, version,
 both template hashes, and the full token sequence); otherwise it is kind
-`bug`. Dropping the conversation with no length limit is a fail.
+`bug`. Dropping the conversation with no length limit is a fail. If the
+framework declares a template of its own but its tokens are exactly the
+model's own template's render, the declaration is contradicted: an adapter
+error, so the result is inconclusive.
 
 Planted faults (each must be caught on every fixture it applies to):
 - drop_newline: drop the first newline token. Applies when the declared
@@ -29,11 +32,14 @@ from typing import Any
 from parity.adapters.base import Declaration, Dropped, Encoded
 from parity.checks.common import (
     Tier1Check,
+    adapter_error,
     declared_reference,
+    is_contradicted,
     official_reference,
     official_template,
     reference_info,
     special_ids,
+    template_status,
 )
 from parity.checks.known_differences import match_known_difference
 from parity.engine.evidence import decode_each, token_evidence
@@ -49,7 +55,7 @@ class TemplateParity(Tier1Check):
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         declaration = adapter.declare(self.base_cfg)
         ref = official_reference(release, fixture)
-        info = reference_info(release, declaration, ref)
+        info = reference_info(release, ref)
         out = adapter.encode(fixture, self.base_cfg)
         if isinstance(out, Dropped):
             return self.verdict(
@@ -58,10 +64,26 @@ class TemplateParity(Tier1Check):
                 "fail",
                 kind="bug",
                 reference=info,
+                declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
+
+        status = template_status(release, fixture, declaration, out.input_ids)
+        verified = {"chat_template": status}
+
+        def verdict(result: str, **fields: Any) -> Verdict:
+            return self.verdict(
+                adapter, fixture, result, reference=info, declared=declaration, verified=verified, **fields
+            )
+
+        if is_contradicted(status):
+            return verdict(
+                "inconclusive",
+                reason=adapter_error("chat_template", status),
+                evidence=token_evidence(release.tokenizer, ref.input_ids, out.input_ids),
+            )
         if out.input_ids == ref.input_ids:
-            return self.verdict(adapter, fixture, "pass", reference=info, evidence={"tokens": len(ref.input_ids)})
+            return verdict("pass", evidence={"tokens": len(ref.input_ids)})
 
         evidence = token_evidence(release.tokenizer, ref.input_ids, out.input_ids)
         entry = match_known_difference(
@@ -76,10 +98,8 @@ class TemplateParity(Tier1Check):
         )
         if entry is not None:
             evidence["known_difference"] = {"id": entry.id, "signature": entry.signature, "docs": list(entry.docs)}
-            return self.verdict(
-                adapter, fixture, "fail", kind="difference", known_difference=entry.id, reference=info, evidence=evidence
-            )
-        return self.verdict(adapter, fixture, "fail", kind="bug", reference=info, evidence=evidence)
+            return verdict("fail", kind="difference", known_difference=entry.id, evidence=evidence)
+        return verdict("fail", kind="bug", evidence=evidence)
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         tokenizer = release.tokenizer
@@ -95,7 +115,9 @@ class TemplateParity(Tier1Check):
                         return _without(row, i)
                 return row
 
-            out.append(encoded_plant("drop_newline", "drop the first newline token", drop_newline))
+            out.append(
+                encoded_plant("drop_newline", "drop the first newline token", drop_newline, origin="synthetic")
+            )
 
         stops = [t for t in ids if t in release.stop_token_ids]
         if stops:
@@ -110,7 +132,12 @@ class TemplateParity(Tier1Check):
 
             names = decode_each(tokenizer, [old, new])
             out.append(
-                encoded_plant("swap_stop_token", f"replace the first {names[0]} with {names[1]}", swap_stop_token)
+                encoded_plant(
+                    "swap_stop_token",
+                    f"replace the first {names[0]} with {names[1]}",
+                    swap_stop_token,
+                    origin="synthetic",
+                )
             )
         return out
 

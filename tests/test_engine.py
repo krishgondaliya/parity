@@ -111,7 +111,7 @@ class FakeCheck(Tier1Check):
 
     def plants(self, release, fixture, declaration):
         return [
-            Plant(f"p{i}", "fake", lambda a, i=i: PlantedAdapter(a, f"p{i}")) for i in range(len(self.catches))
+            Plant(f"p{i}", "fake", lambda a, i=i: PlantedAdapter(a, f"p{i}"), origin="synthetic") for i in range(len(self.catches))
         ]
 
 

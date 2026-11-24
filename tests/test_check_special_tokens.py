@@ -111,3 +111,46 @@ def test_a_row_not_padded_to_pad_to_is_inconclusive(qwen3, official):
     v = CHECK.run(_batch_edit(official, strip_pads), qwen3, load_fixture("single_turn"))
     assert v.result == "inconclusive" and "pad_to" in v.reason
     assert v.evidence["parts"]["padding"] == "inconclusive"
+
+
+def test_packed_rows_when_padding_was_declared_are_an_adapter_error(qwen3, official):
+    def pack(batch, convs, cfg):
+        a, b = batch.rows
+        keep_a = [i for i, m in enumerate(a.attention_mask) if m]
+        keep_b = [i for i, m in enumerate(b.attention_mask) if m]
+        ids = tuple(a.input_ids[i] for i in keep_a) + tuple(b.input_ids[i] for i in keep_b)
+        labels = tuple(a.labels[i] for i in keep_a) + tuple(b.labels[i] for i in keep_b)
+        positions = tuple(range(len(keep_a))) + tuple(range(len(keep_b)))
+        return Batch((Encoded(ids, labels, (1,) * len(ids), positions),))
+
+    v = CHECK.run(PlantedAdapter(official, "x", after_batch=pack), qwen3, load_fixture("single_turn"))
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.declaration["verified"]["batching"].startswith("contradicted")
+
+
+def test_pads_that_are_all_another_token_are_an_adapter_error(qwen3, official):
+    im_start = qwen3.tokenizer.convert_tokens_to_ids("<|im_start|>")
+
+    def repad(row: Encoded) -> Encoded:
+        return replace(row, input_ids=tuple(t if a else im_start for t, a in zip(row.input_ids, row.attention_mask)))
+
+    v = CHECK.run(_batch_edit(official, repad), qwen3, load_fixture("single_turn"))
+    assert v.result == "inconclusive" and v.reason.startswith("adapter error")
+    assert v.declaration["verified"]["pad_token_id"].startswith("contradicted")
+
+
+def test_pads_with_several_different_tokens_fail(qwen3, official):
+    def mixed(row: Encoded) -> Encoded:
+        pads = [i for i, a in enumerate(row.attention_mask) if not a]
+        ids = list(row.input_ids)
+        ids[pads[0]] = qwen3.tokenizer.convert_tokens_to_ids("<|im_start|>")
+        return replace(row, input_ids=tuple(ids))
+
+    v = CHECK.run(_batch_edit(official, mixed), qwen3, load_fixture("single_turn"))
+    assert (v.result, v.kind) == ("fail", "bug") and "pad_token" in _rules(v)
+
+
+def test_a_consistent_padded_batch_verifies_batching_and_pad_token(official):
+    v = evaluate(CHECK, official, load_fixture("single_turn"))
+    verified = v.declaration["verified"]
+    assert (verified["batching"], verified["pad_token_id"], verified["chat_template"]) == ("consistent",) * 3

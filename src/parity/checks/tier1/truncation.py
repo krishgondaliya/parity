@@ -26,7 +26,9 @@ t1.template_parity). Then, at the limit:
   its loss must follow the cut reference's zones (no must-train token without
   loss, no must-not-train token with loss, labels equal to their tokens;
   neutral tokens free).
-A framework fails only when it doesn't match its own declared mode.
+A framework that doesn't match its declared mode fails, unless its output is
+exactly what a different mode gives: then the declaration is contradicted,
+an adapter error until shown otherwise, and the result is inconclusive.
 
 Planted faults (decided from the fixture, the reference length and the declared mode):
 - off_by_one: right/left: cut to max_len - 1 whenever a row reaches max_len (every fixture).
@@ -43,14 +45,18 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Any
 
-from parity.adapters.base import LABEL_IGNORE, Declaration, Dropped, Encoded, TrainCfg
+from parity.adapters.base import TRUNCATION_MODES, LABEL_IGNORE, Declaration, Dropped, Encoded, TrainCfg
 from parity.checks.common import (
-    NO_ALIGNMENT,
+    CONSISTENT,
+    CONTRADICTED,
+    MISMATCH,
     Tier1Check,
+    adapter_error,
     closing_token_id,
     declared_reference,
     mask_report,
     reference_info,
+    unaligned_verdict,
 )
 from parity.engine.evidence import token_evidence
 from parity.engine.plants import Plant, PlantedAdapter
@@ -68,7 +74,7 @@ class Truncation(Tier1Check):
         declaration = adapter.declare(self.base_cfg)
         mode = declaration.truncation_mode
         ref = declared_reference(release, fixture, declaration)
-        info = reference_info(release, declaration, ref)
+        info = reference_info(release, ref)
         max_len = limit_for(fixture, ref)
         conventions = {
             "truncation_mode": mode,
@@ -78,45 +84,56 @@ class Truncation(Tier1Check):
             "limit": "fixture" if fixture.max_len is not None else "boundary (exact reference length)",
         }
 
-        def verdict(result: str, **fields: Any) -> Verdict:
-            return self.verdict(adapter, fixture, result, reference=info, conventions=conventions, **fields)
-
         full = adapter.encode(fixture, self.base_cfg)
         if isinstance(full, Dropped):
-            return verdict("inconclusive", reason=f"dropped even with no length limit ({full.reason})")
-        if full.input_ids != ref.input_ids:
-            return verdict(
+            return self.verdict(
+                adapter,
+                fixture,
                 "inconclusive",
-                reason=NO_ALIGNMENT,
-                evidence=token_evidence(tokenizer, ref.input_ids, full.input_ids),
+                reason=f"dropped even with no length limit ({full.reason})",
+                reference=info,
+                conventions=conventions,
+                declared=declaration,
+            )
+        if full.input_ids != ref.input_ids:
+            return unaligned_verdict(
+                self,
+                adapter,
+                release,
+                fixture,
+                declaration,
+                full.input_ids,
+                ref.input_ids,
+                reference=info,
+                conventions=conventions,
+            )
+
+        def verdict(result: str, mode_status: str, **fields: Any) -> Verdict:
+            verified = {"chat_template": CONSISTENT, "truncation_mode": mode_status}
+            return self.verdict(
+                adapter,
+                fixture,
+                result,
+                reference=info,
+                conventions=conventions,
+                declared=declaration,
+                verified=verified,
+                **fields,
             )
 
         out = adapter.encode(fixture, replace(self.base_cfg, max_len=max_len))
-        expected = cut_reference(ref, max_len, mode)
-        if expected is None:
-            if isinstance(out, Dropped):
-                return verdict("pass", evidence={"dropped": out.reason})
-            return verdict(
-                "fail",
-                kind="bug",
-                evidence={"rule": "declared drop, but the framework kept a row", "got_len": len(out.input_ids)},
-            )
+        ok, evidence = judge(tokenizer, ref, max_len, mode, out)
+        if ok:
+            status = CONSISTENT if conventions["cut"] else "unverified: nothing is cut at this limit"
+            return verdict("pass", status, evidence=evidence)
 
-        expected_ids, expected_zones = expected
-        if isinstance(out, Dropped):
-            rule = f"declared {mode} truncation, but the framework dropped the conversation"
-            return verdict("fail", kind="bug", evidence={"rule": rule, "dropped": out.reason})
-        if out.input_ids != expected_ids:
-            evidence = token_evidence(tokenizer, expected_ids, out.input_ids)
-            evidence["rule"] = f"the row isn't the reference cut {mode} at {max_len}"
-            return verdict("fail", kind="bug", evidence=evidence)
-        report = mask_report(expected_zones, out)
-        evidence = report.evidence(tokenizer, out, expected_zones)
-        evidence["supervised_tokens"] = sum(label != LABEL_IGNORE for label in out.labels)
-        if report.violated:
-            evidence["rule"] = "the kept row's loss doesn't follow the reference zones"
-            return verdict("fail", kind="bug", evidence=evidence)
-        return verdict("pass", evidence=evidence)
+        # Not what the declared mode gives. If it is exactly what another mode gives,
+        # the declaration is contradicted: an adapter error until shown otherwise.
+        others = [m for m in TRUNCATION_MODES if m != mode and judge(tokenizer, ref, max_len, m, out)[0]]
+        if others:
+            status = CONTRADICTED + f"the framework's row is exactly what {others[0]!r} truncation gives"
+            return verdict("inconclusive", status, reason=adapter_error("truncation_mode", status), evidence=evidence)
+        return verdict("fail", MISMATCH + "the row matches no truncation mode", kind="bug", evidence=evidence)
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> list[Plant]:
         mode = declaration.truncation_mode
@@ -138,6 +155,33 @@ class Truncation(Tier1Check):
             reappend = _reappend(closing_token_id(ref))
             out.append(_plant("reappend_stop", "put the stop token back as the last token, with loss", reappend))
         return out
+
+
+def judge(
+    tokenizer: Any, ref: TemplateReference, max_len: int, mode: str, out: Encoded | Dropped
+) -> tuple[bool, dict[str, Any]]:
+    """Is `out` exactly what `mode` truncation gives at `max_len`? Returns (ok, evidence)."""
+    expected = cut_reference(ref, max_len, mode)
+    if expected is None:
+        if isinstance(out, Dropped):
+            return True, {"dropped": out.reason}
+        rule = f"{mode}: the conversation should be dropped, but a row was kept"
+        return False, {"rule": rule, "got_len": len(out.input_ids)}
+    expected_ids, expected_zones = expected
+    if isinstance(out, Dropped):
+        rule = f"{mode}: a row should be kept, but the conversation was dropped"
+        return False, {"rule": rule, "dropped": out.reason}
+    if out.input_ids != expected_ids:
+        evidence = token_evidence(tokenizer, expected_ids, out.input_ids)
+        evidence["rule"] = f"{mode}: the row isn't the reference cut at {max_len}"
+        return False, evidence
+    report = mask_report(expected_zones, out)
+    evidence = report.evidence(tokenizer, out, expected_zones)
+    evidence["supervised_tokens"] = sum(label != LABEL_IGNORE for label in out.labels)
+    if report.violated:
+        evidence["rule"] = f"{mode}: the kept row's loss doesn't follow the reference zones"
+        return False, evidence
+    return True, evidence
 
 
 def limit_for(fixture: Fixture, ref: TemplateReference) -> int:
@@ -163,7 +207,13 @@ def _cut_is_inside_an_assistant_turn(ref: TemplateReference, max_len: int, mode:
 
 
 def _plant(name: str, description: str, after_encode: Any) -> Plant:
-    return Plant(name, description, lambda adapter: PlantedAdapter(adapter, name, after_encode=after_encode))
+    """All three truncation faults are synthetic: plausible classes, not tied to one known incident."""
+    return Plant(
+        name,
+        description,
+        lambda adapter: PlantedAdapter(adapter, name, after_encode=after_encode),
+        origin="synthetic",
+    )
 
 
 def _at_limit(out: Encoded | Dropped, cfg: TrainCfg) -> bool:

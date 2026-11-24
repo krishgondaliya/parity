@@ -28,6 +28,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## Open questions
 
+- M4 heads-up: if a framework skips `empty_assistant` on purpose and documents it, that's a known-differences entry; if it's undocumented, it's a candidate finding.
 - The Hy4 license hasn't been reviewed (human). Do it before any Hy4 results are published.
 - M3 (adapter) open items: reference per framework environment, registry entries only from evidence, Unsloth's CPU fallback, and the metadata format for install deviations. See `docs/DECISIONS.md` (the first three were logged under the old number, "M4").
 - Before Phase 3 (human): close the `docker` group and WSL interop routes to root; edit the lines that name the vault path in `vault/README.md`, SETUP.md and Phase 3 M3. See the Phase 3 prerequisite in `docs/DECISIONS.md`.

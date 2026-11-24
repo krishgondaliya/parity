@@ -11,6 +11,14 @@ One verdict per (check, model, framework, fixture). Rules the record enforces:
 - `self_test` is `caught` only if every planted fault that applies to this
   fixture was caught in the same run. Otherwise it is `missed` and the result
   is inconclusive (hard rule 3). It is None only for not_applicable.
+- `declaration` records what the adapter declared and, per field, whether the
+  framework's behavior confirmed it (`consistent`), exactly matched a
+  different value (`contradicted: ...`, an adapter error, so the verdict is
+  inconclusive), matched no value (`mismatch: ...`), or couldn't show it
+  (`unverified`).
+- `template_properties` names model-level template properties (shown once per
+  model in the report) that a verdict depends on, e.g. a pass that inherits
+  its template's prefix breaks.
 """
 
 from __future__ import annotations
@@ -41,6 +49,8 @@ class Verdict:
     conventions: dict[str, Any] = field(default_factory=dict)  # the framework's recorded choices, e.g. truncation mode
     reference: dict[str, Any] = field(default_factory=dict)  # template source and hashes, library versions
     plants: list[dict[str, Any]] = field(default_factory=list)  # one record per planted fault run
+    declaration: dict[str, Any] = field(default_factory=dict)  # what the adapter declared, and what was verified
+    template_properties: list[str] = field(default_factory=list)  # model-level template properties this verdict relies on
     env_lock: str | None = None
     repro: str | None = None
     schema: str = SCHEMA
