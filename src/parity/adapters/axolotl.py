@@ -53,6 +53,7 @@ import json  # noqa: E402
 import logging  # noqa: E402
 import tempfile  # noqa: E402
 from collections.abc import Sequence  # noqa: E402
+from dataclasses import replace  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
@@ -73,6 +74,7 @@ import parity  # noqa: E402
 from parity.adapters.base import Batch, Declaration, Dropped, Encoded, TrainCfg  # noqa: E402
 from parity.fixtures import Conversation  # noqa: E402
 from parity.release import LoadedRelease, fetch_release_files  # noqa: E402
+from parity.serving import framework_mode, template_kwargs  # noqa: E402
 
 VERSION = "0.21.1"
 if axolotl.__version__ != VERSION:
@@ -87,6 +89,7 @@ DOCS = {
     "excess_length": f"{BLOB}/src/axolotl/utils/schemas/config.py",
     "excess_length_default": f"{BLOB}/src/axolotl/utils/data/utils.py#L347",
     "tool_arguments": f"{BLOB}/src/axolotl/prompt_strategies/chat_template.py#L1402-L1415",
+    "chat_template_kwargs": f"{BLOB}/src/axolotl/utils/schemas/config.py#L1497-L1502",
 }
 EXCESS_LENGTH_MODES = {"drop": "drop", "truncate": "right"}
 NO_LIMIT = 8192
@@ -152,6 +155,8 @@ class AxolotlAdapter:
             config["sample_packing"] = True
         if cfg.pad_to is not None:
             config["pad_to_multiple_of"] = cfg.pad_to
+        if cfg.serving_mode:  # a non-default serving mode: Axolotl's documented chat_template_kwargs option
+            config["chat_template_kwargs"] = template_kwargs(self.release, cfg.serving_mode)
         (run / "config.yml").write_text(yaml.safe_dump(config, allow_unicode=True))
         return run / "config.yml"
 
@@ -190,7 +195,7 @@ class AxolotlAdapter:
 
     def declare(self, cfg: TrainCfg) -> Declaration:
         """Read Axolotl's loaded config and live objects for exactly this config. Nothing here is hardcoded."""
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         if cfg not in self._declarations:
             axolotl_cfg, dataset, steps = self._prepare([{"messages": copy.deepcopy(PROBE)}], cfg)
             trainer = self._trainer(axolotl_cfg, dataset, steps)
@@ -198,7 +203,7 @@ class AxolotlAdapter:
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         key = (conv.id, conv.content_key, cfg)
         if key not in self._encoded:
             axolotl_cfg, dataset, _ = self._prepare(self._rows([conv]), cfg)
@@ -213,7 +218,7 @@ class AxolotlAdapter:
         return self._encoded[key]
 
     def encode_batch(self, convs: Sequence[Conversation], cfg: TrainCfg) -> Batch:
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         key = (tuple(f"{conv.id}:{conv.content_key}" for conv in convs), cfg)
         if key not in self._batches:
             axolotl_cfg, dataset, steps = self._prepare(self._rows(convs), cfg, micro_batch_size=len(convs))
@@ -271,6 +276,12 @@ def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
         batching="packed" if packed else "padded",
         pad_token_id=pad,
         tool_arguments="parsed_as_json",
+        serving_mode_setting=(
+            f"chat_template_kwargs={dict(axolotl_cfg.chat_template_kwargs)!r} in the config "
+            f"({DOCS['chat_template_kwargs']})"
+            if axolotl_cfg.chat_template_kwargs
+            else "framework defaults (the model's default mode)"
+        ),
         sources=(
             f"chat_template: get_chat_template_from_config(cfg, datasets[0]) with chat_template={choice!r} "
             f"({DOCS['chat_template']})",
@@ -288,5 +299,7 @@ def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
             f"padding_side={tokenizer.padding_side!r}",
             f"tool_arguments: no option; a string is parsed with json.loads before rendering, and a parse error "
             f"raises ({DOCS['tool_arguments']})",
+            f"serving_mode_setting: cfg.chat_template_kwargs={axolotl_cfg.chat_template_kwargs!r} "
+            f"({DOCS['chat_template_kwargs']})",
         ),
     )

@@ -14,6 +14,22 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Non-default serving modes get each framework's documented mode setting; P-0003 is a harness error
+- Decision (human): "Same rows" assumed a framework's output doesn't depend on the mode, and that was wrong. This revises the earlier serving-mode entry.
+  - **Primary (the model's default mode, thinking):** frameworks still get nothing, so they encode with their own defaults. The kill test stays at 432 runs.
+  - **Secondary (any other mode):** the adapter gives the framework its documented setting for the mode, with the model's chat-template arguments (`parity.serving.framework_mode`, `template_kwargs`). These are extra runs, for the secondary table only.
+    - TRL 1.18.2: a `chat_template_kwargs` key on every dataset row. It is documented in the public `trl.apply_chat_template` docstring (`trl/data_utils.py#L325-L327`), read by SFTTrainer (`sft_trainer.py#L1363-L1367`), and tested (`tests/test_sft_trainer.py#L1366`). It isn't on the SFT docs page; `SFTConfig` has no field for it.
+    - Axolotl 0.21.1: the top-level `chat_template_kwargs` config option (`utils/schemas/config.py#L1497-L1502`, the generated config reference).
+  - **A framework with no documented way to set the mode** raises `ModeNotConfigurable`. The verdict is `not_configurable`, with the reason, never a fail, and the summary shows "not configurable" cells.
+  - Each declaration records how the mode reached the framework (`serving_mode_setting`).
+- **P-0003 stays in the ledger as a harness error** (H-9 in `findings/LEDGER.md`), never counted against a framework.
+  - `root_causes.json` marks it `harness error`. The report shows harness-error fails separately and never counts them as framework root causes.
+  - `findings/LEDGER.md` keeps the running count of harness errors caught. It is 9, counted from this decision log.
+- **Result of the re-run:** TRL's secondary table now has 0 bug fails (35 pass, 3 KD-0001, 6 inconclusive on `reasoning`, 4 n/a). Its primary table is unchanged: 40 pass, 4 KD-0001, 4 n/a.
+- The report's fail line now splits bugs from known differences and primary from secondary. The earlier "21 fail verdicts" for TRL counted 7 KD-0001 differences as fails, which read as if TRL's primary table had fails. It had none.
+- Evidence: `src/parity/serving.py`, `src/parity/adapters/{trl,axolotl}.py`, `tests/test_serving_mode.py`, `tests/test_root_causes.py`, `docs/evidence/2026-11-24-m3-rerun/`.
+- Reversible? yes
+
 ## 2026-11-24: Re-run in both modes; P-0003 is ours (secondary rows never encoded in that mode); open decision for the human
 - What the re-run shows (`docs/evidence/2026-11-24-m3-rerun/`):
   - **TRL primary (thinking):** 40 pass, 4 KD-0001, 4 not applicable. Unchanged.

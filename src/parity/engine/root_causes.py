@@ -12,6 +12,10 @@ How a verdict gets its root cause (`Verdict.root_cause`):
   A pin is written after /triage and the skeptic, from the verdict itself (`pin()`).
 - No wildcards. If the failure changes in any way, its evidence hash changes, the link breaks, and the cell is
   untriaged again. Untriaged fails are counted one per cell, so nothing is hidden by grouping.
+
+A root cause with status "harness error" is our own error (the reference, a check, an adapter or the evaluation
+design). Its fails are shown separately and never counted against a framework. findings/LEDGER.md keeps the running
+count of harness errors caught.
 """
 
 from __future__ import annotations
@@ -19,7 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +31,7 @@ from parity.checks.known_differences import load_registry
 from parity.engine.verdict import Verdict
 
 SCHEMA = "parity.root_causes/v0"
+HARNESS_ERROR = "harness error"
 DEFAULT_PATH = Path(__file__).resolve().parents[3] / "findings" / "root_causes.json"
 
 
@@ -110,29 +115,45 @@ def link_root_causes(verdicts: Iterable[Verdict], root_causes: Iterable[RootCaus
 
 @dataclass(frozen=True)
 class FailCount:
-    root_causes: dict[str, int]  # root cause id -> how many fail verdicts it explains
+    root_causes: dict[str, int]  # framework root cause id -> how many fail verdicts it explains
     untriaged: tuple[str, ...]  # "<framework> <check>/<fixture> (<mode>)" for each fail with no root cause
-    cells: int  # fail verdicts in all
+    cells: int  # fail verdicts in all (bugs and known differences)
+    bugs: int = 0  # fail verdicts of kind bug
+    differences: int = 0  # fail verdicts of kind difference (known differences)
+    harness_errors: dict[str, int] = field(default_factory=dict)  # our own errors: never counted against a framework
 
     @property
     def total(self) -> int:
-        """Root causes, with every untriaged fail counted as its own."""
+        """Framework root causes, with every untriaged fail counted as its own. Harness errors are not counted."""
         return len(self.root_causes) + len(self.untriaged)
 
 
-def count_fails(verdicts: Iterable[Verdict]) -> FailCount:
+def harness_error_ids(causes: Iterable[RootCause] | None = None) -> frozenset[str]:
+    causes = tuple(causes) if causes is not None else load_root_causes()
+    return frozenset(r.id for r in causes if r.status == HARNESS_ERROR)
+
+
+def count_fails(verdicts: Iterable[Verdict], harness_errors: Iterable[str] = ()) -> FailCount:
+    ours = set(harness_errors)
     causes: dict[str, int] = {}
+    harness: dict[str, int] = {}
     untriaged = []
-    cells = 0
+    cells = bugs = differences = 0
     for v in verdicts:
         if v.result != "fail":
             continue
         cells += 1
-        if v.root_cause:
+        bugs += v.kind == "bug"
+        differences += v.kind == "difference"
+        if v.root_cause in ours:
+            harness[v.root_cause] = harness.get(v.root_cause, 0) + 1
+        elif v.root_cause:
             causes[v.root_cause] = causes.get(v.root_cause, 0) + 1
         else:
             untriaged.append(f"{v.framework} {v.check}/{v.fixture} ({v.serving_mode or 'unrecorded'})")
-    return FailCount(dict(sorted(causes.items())), tuple(sorted(untriaged)), cells)
+    return FailCount(
+        dict(sorted(causes.items())), tuple(sorted(untriaged)), cells, bugs, differences, dict(sorted(harness.items()))
+    )
 
 
 def describe(causes: Iterable[RootCause]) -> dict[str, Any]:

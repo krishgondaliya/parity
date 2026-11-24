@@ -107,7 +107,32 @@ def test_the_repository_registry_loads():
 def test_the_report_counts_root_causes_not_cells():
     cells = [fail(c) for c in ("t1.end_of_turn", "t1.special_tokens")] + [fail("t1.truncation", fixture="tool_call")]
     linked = link_root_causes(cells, [p0002(*cells[:2])])
-    text = render_summary(linked, [])
-    assert "3 fail verdict(s) come from 2 root cause(s): 1 linked, 1 untriaged" in text
+    text = render_summary(linked, [], harness_errors=())
+    assert "3 fail verdict(s) (3 of kind bug, 0 known differences; 3 thinking (primary)) come from 2 framework root cause(s): 1 linked, 1 untriaged" in text
     assert "| P-0002 | 2 | axolotl@0.21.1 t1.end_of_turn/empty_assistant; axolotl@0.21.1 t1.special_tokens/empty_assistant |" in text
     assert "| untriaged | 1 | axolotl@0.21.1 t1.truncation/tool_call (thinking) |" in text
+
+
+def test_harness_errors_are_shown_but_never_counted_against_the_framework():
+    cells = [fail("t1.assistant_mask", mode="non_thinking", framework="trl@1.18.2")]
+    ours = RootCause(
+        id="P-0003", record="findings/P-0003/record.md", status="harness error", framework="trl@1.18.2", model=MODEL,
+        summary="secondary rows never encoded in that mode", pins=tuple(Pin(**pin(v)) for v in cells),
+    )  # fmt: skip
+    linked = link_root_causes(cells, [ours])
+    count = count_fails(linked, {"P-0003"})
+    assert (count.total, count.root_causes, count.harness_errors) == (0, {}, {"P-0003": 1})
+    text = render_summary(linked, [], harness_errors={"P-0003"})
+    assert "come from 0 framework root cause(s)" in text and "1 more come from harness errors (ours)" in text
+    assert "| P-0003 (harness error, ours) | 1 |" in text
+
+
+def test_the_ledger_counts_every_harness_error_in_the_registry():
+    """findings/LEDGER.md keeps the running count; every registry entry marked "harness error" is in it."""
+    from pathlib import Path
+
+    from parity.engine.root_causes import harness_error_ids
+
+    ledger = (Path(__file__).resolve().parents[1] / "findings" / "LEDGER.md").read_text(encoding="utf-8")
+    for cause in harness_error_ids():
+        assert cause in ledger

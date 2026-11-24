@@ -13,16 +13,37 @@ from parity.checks.tier1 import AssistantMask
 from parity.engine.runner import evaluate
 from parity.fixtures import FIXTURE_IDS, load_fixture
 from parity.references.template import TemplateReferenceError, Zone
-from parity.serving import ServingModeError, resolve_mode, template_kwargs
+from parity.serving import ServingModeError, framework_mode, resolve_mode, template_kwargs
 
 THINK_BLOCK = ["<think>", "\n\n", "</think>", "\n\n"]
 
 
-def test_train_cfg_validates_the_mode_and_never_passes_it_to_the_framework():
+def test_train_cfg_validates_the_mode():
     with pytest.raises(ValueError):
         TrainCfg(serving_mode="fast")
-    cfg = TrainCfg(serving_mode="non_thinking", max_len=32)
-    assert cfg.for_framework() == TrainCfg(max_len=32)
+
+
+def test_frameworks_are_told_the_mode_only_when_it_isnt_the_models_default(qwen3):
+    """The primary (default-mode) rows are the framework's own defaults; another mode gets its documented setting."""
+    assert framework_mode(qwen3, None) is None
+    assert framework_mode(qwen3, "thinking") is None
+    assert framework_mode(qwen3, "non_thinking") == "non_thinking"
+
+
+def test_a_framework_with_no_way_to_set_the_mode_is_not_configurable_never_failed(qwen3):
+    from stubs import official_stub
+
+    from parity.engine.summary import summarize
+
+    stub = official_stub(qwen3, mode_configurable=False, name="stub-no-mode")
+    fx = load_fixture("single_turn")
+    primary = evaluate(AssistantMask(), stub, fx)
+    secondary = evaluate(AssistantMask("non_thinking"), stub, fx)
+    assert primary.result == "pass"
+    assert (secondary.result, secondary.kind, secondary.self_test) == ("not_configurable", None, None)
+    assert "documents no way to set the serving mode" in secondary.reason
+    [cell] = summarize([secondary])
+    assert (cell.result, cell.ran_on, cell.not_configurable) == ("not_configurable", 0, 1)
 
 
 def test_qwen3_defaults_to_thinking_mode(qwen3):

@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from dataclasses import replace
 from typing import Any
 
+from parity.adapters.base import ModeNotConfigurable
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Fixture
 from parity.references.properties import marker_disagreement_property_id
@@ -73,6 +74,8 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     verdict = _evaluate(check, adapter, fixture)
     if verdict.serving_mode is None and hasattr(check, "mode"):
         verdict = replace(verdict, serving_mode=check.mode(adapter.release))
+    if verdict.result == "not_configurable":
+        return replace(verdict, declaration={"error": verdict.reason})
     if verdict.result != "not_applicable" and hasattr(check, "reference_properties"):
         try:
             extra = check.reference_properties(adapter.release, fixture, adapter.declare(check.base_cfg))
@@ -95,6 +98,10 @@ def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
         return make_verdict(check.id, adapter, fixture.id, "not_applicable", reason=reason)
 
     release = adapter.release
+    try:
+        adapter.declare(check.base_cfg)
+    except ModeNotConfigurable as exc:
+        return make_verdict(check.id, adapter, fixture.id, "not_configurable", reason=f"serving mode: {exc}")
     clean = run_safely(check, adapter, fixture)
     try:
         plants = list(check.plants(release, fixture, adapter.declare))

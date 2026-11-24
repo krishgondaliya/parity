@@ -6,9 +6,13 @@ generation-prompt pre-fill in non-thinking mode, so prompt side. The reference r
 mode's template arguments, so a mode-dependent token gets its zone from the declared mode.
 
 The mode is set in `TrainCfg.serving_mode`, defaults to the model's documented default, and is recorded in every
-verdict. Frameworks always encode with their own default chat-template arguments in Phase 0, so evaluating another
-mode reuses the same encoded rows against a second reference, with no extra framework runs. Decided 2026-11-24,
-after the Axolotl results on Qwen3 (P-0001); see docs/DECISIONS.md.
+verdict. Decided 2026-11-24, after the Axolotl results on Qwen3 (P-0001); see docs/DECISIONS.md.
+
+What the framework is told (`framework_mode`): nothing in the model's default mode, so the primary results encode
+with the framework's own defaults, as its users do by default. In any other mode the adapter gives the framework its
+documented setting for the mode (the model's chat-template arguments below), or raises ModeNotConfigurable when the
+framework documents no way to set it. Revised 2026-11-24 after P-0003: a framework's output depends on the mode,
+so judging default-mode rows against a non-default reference was a harness error.
 """
 
 from __future__ import annotations
@@ -80,6 +84,13 @@ def resolve_mode(release: LoadedRelease, mode: str | None) -> str:
     if mode not in SERVING_MODES:
         raise ValueError(f"serving_mode must be one of {SERVING_MODES}, got {mode!r}")
     return mode
+
+
+def framework_mode(release: LoadedRelease, mode: str | None) -> str | None:
+    """The mode a framework must be told about: None in the model's default mode (the framework's own defaults
+    render it), otherwise the resolved mode."""
+    resolved = resolve_mode(release, mode)
+    return None if resolved == mode_spec(release).default else resolved
 
 
 def template_kwargs(release: LoadedRelease, mode: str | None) -> dict[str, Any]:

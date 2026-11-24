@@ -24,12 +24,13 @@ from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
 
-from parity.adapters.base import LABEL_IGNORE, Batch, Declaration, Dropped, Encoded, TrainCfg
+from parity.adapters.base import LABEL_IGNORE, Batch, Declaration, Dropped, Encoded, ModeNotConfigurable, TrainCfg
 from parity.checks.common import official_template, reference_on
 from parity.engine.plants import Plant
 from parity.engine.runner import evaluate
 from parity.fixtures import FIXTURE_IDS, Conversation, load_fixture
 from parity.references.template import Zone, assistant_mask_from_markers, template_token_ids
+from parity.serving import framework_mode
 from parity.release import LoadedRelease
 
 TRL_SOURCE = "trl@1.18.2:qwen3_training.jinja"
@@ -78,6 +79,7 @@ class TemplateStub:
         labels_mode: str | None = None,
         tool_arguments: str | None = None,
         parses_tool_arguments: bool = False,
+        mode_configurable: bool = True,
     ):
         assert labels_from in ("reference", "markers")
         assert padding_side in ("right", "left")
@@ -96,6 +98,7 @@ class TemplateStub:
         self.labels_mode = labels_mode  # labels follow our reference in this serving mode (None: the model's default)
         self.tool_arguments = tool_arguments  # what declare() says
         self.parses_tool_arguments = parses_tool_arguments  # what encode() does: json.loads string arguments first
+        self.mode_configurable = mode_configurable  # False: no documented way to set a non-default serving mode
         self.pad_token_id = release.tokenizer.pad_token_id
 
     @property
@@ -103,6 +106,8 @@ class TemplateStub:
         return self.chat_template if self.chat_template is not None else official_template(self.release)
 
     def declare(self, cfg: TrainCfg) -> Declaration:
+        if not self.mode_configurable and framework_mode(self.release, cfg.serving_mode):
+            raise ModeNotConfigurable("this stand-in documents no way to set the serving mode")
         return Declaration(
             chat_template=self.template,
             template_source=self.template_source,

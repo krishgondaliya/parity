@@ -29,7 +29,7 @@ import json
 import re
 from collections.abc import Iterable
 
-from parity.engine.root_causes import count_fails
+from parity.engine.root_causes import count_fails, harness_error_ids
 from parity.engine.summary import Cell, summarize
 from parity.engine.verdict import Verdict
 from parity.references.properties import TemplateProperty
@@ -51,7 +51,10 @@ PRIMARY_MODE = "thinking"  # the kill test's primary results (docs/DECISIONS.md,
 
 
 def render_summary(
-    verdicts: Iterable[Verdict], properties: Iterable[TemplateProperty], primary_mode: str = PRIMARY_MODE
+    verdicts: Iterable[Verdict],
+    properties: Iterable[TemplateProperty],
+    primary_mode: str = PRIMARY_MODE,
+    harness_errors: Iterable[str] | None = None,
 ) -> str:
     verdicts = list(verdicts)
     by_id = {p.id: p for p in properties}
@@ -60,6 +63,7 @@ def render_summary(
     if missing:
         raise ValueError(f"verdicts reference template properties that weren't provided: {missing}")
 
+    ours = frozenset(harness_errors) if harness_errors is not None else harness_error_ids()
     cells = summarize(verdicts)
     lines = ["# Tier 1 summary", ""]
     for model in sorted({c.model for c in cells}):
@@ -94,7 +98,7 @@ def render_summary(
                 ]
             lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
         lines += _framework_properties([v for v in verdicts if v.model == model])
-        lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode)
+        lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode, ours)
     return "\n".join(lines)
 
 
@@ -135,19 +139,33 @@ def _framework_properties(verdicts: list[Verdict]) -> list[str]:
     ]
 
 
-def _root_cause_section(verdicts: list[Verdict], primary_mode: str) -> list[str]:
-    count = count_fails(verdicts)
+def _root_cause_section(verdicts: list[Verdict], primary_mode: str, harness_errors: frozenset[str]) -> list[str]:
+    count = count_fails(verdicts, harness_errors)
     lines = ["### Fails by root cause", ""]
     if not count.cells:
         return lines + ["No fails.", ""]
+    by_mode = {
+        mode: sum(v.result == "fail" and (v.serving_mode or "unrecorded") == mode for v in verdicts)
+        for mode in sorted({v.serving_mode or "unrecorded" for v in verdicts}, key=lambda m: (m != primary_mode, m))
+    }
+    split = ", ".join(f"{n} {mode}{' (primary)' if mode == primary_mode else ''}" for mode, n in by_mode.items())
     lines += [
-        f"{count.cells} fail verdict(s) come from {count.total} root cause(s): {len(count.root_causes)} linked, "
-        f"{len(count.untriaged)} untriaged (each untriaged fail counts as its own).",
+        f"{count.cells} fail verdict(s) ({count.bugs} of kind bug, {count.differences} known differences; {split}) "
+        f"come from {count.total} framework root cause(s): {len(count.root_causes)} linked, "
+        f"{len(count.untriaged)} untriaged (each untriaged fail counts as its own)."
+        + (
+            f" {sum(count.harness_errors.values())} more come from harness errors (ours), never counted against "
+            "the framework."
+            if count.harness_errors
+            else ""
+        ),
         "",
         "| Root cause | Fail verdicts | Where |",
         "| --- | --- | --- |",
     ]
-    for cause in count.root_causes:
+    rows = [(cause, cause, n) for cause, n in count.root_causes.items()]
+    rows += [(cause, f"{cause} (harness error, ours)", n) for cause, n in count.harness_errors.items()]
+    for cause, label, n in rows:
         where = sorted(
             {
                 f"{v.framework} {v.check}/{v.fixture}" + ("" if v.serving_mode == primary_mode else f" ({v.serving_mode})")
@@ -155,7 +173,7 @@ def _root_cause_section(verdicts: list[Verdict], primary_mode: str) -> list[str]
                 if v.result == "fail" and v.root_cause == cause
             }
         )
-        lines.append(f"| {cause} | {count.root_causes[cause]} | {'; '.join(where)} |")
+        lines.append(f"| {label} | {n} | {'; '.join(where)} |")
     for item in count.untriaged:
         lines.append(f"| untriaged | 1 | {item} |")
     lines.append("")
@@ -182,6 +200,8 @@ def _results_table(cells: list[Cell], by_id: dict[str, TemplateProperty]) -> lis
             notes.append(f"{FLAG_NOTE.get(flag, flag)} on {n} fixture(s)")
         if c.not_applicable:
             notes.append(f"not applicable on {c.not_applicable} fixture(s)")
+        if c.not_configurable:
+            notes.append(f"not configurable on {c.not_configurable} fixture(s): " + "; ".join(c.not_configurable_reasons))
         lines.append(f"| {c.framework} | {c.check} | {c.result} | {c.ran_on} of {c.fixtures} | {'; '.join(notes)} |")
     lines.append("")
     return lines

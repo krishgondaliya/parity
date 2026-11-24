@@ -1,6 +1,6 @@
 # P-0003: In non-thinking mode (secondary), TRL's default encoding trains Qwen3's empty think block, which that mode treats as prompt (TRL is never told the mode)
 
-- Status: **ours: evaluation design** (skeptic: high confidence). Not a TRL difference and not an upstream issue: TRL labels correctly for whatever `enable_thinking` it is given, and Parity never gives it the mode. The human decides the fix (see "Proposed handling").
+- Status: **harness error (ours)**, H-9 in `findings/LEDGER.md`. Never counted against TRL. Fixed by the human's decision (2026-11-24): in a non-default serving mode, every framework gets its documented setting for the mode.
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
 - Framework: trl@1.18.2   (lockfile: envs/trl-1.18.2/uv.lock)
@@ -50,7 +50,11 @@
 - Out of scope, ours: `t1.truncation` recorded "the row matches no truncation mode" when only the loss was wrong. Fixed in `001bfbe`.
 - Out of scope, TRL, not a finding: if only some rows carry `chat_template_kwargs`, preparation crashes with a `TypeError` (loud, not silent).
 
-## Proposed handling (human decides)
+## Decision (human, 2026-11-24)
+- Give each framework its documented mode setting for the non-thinking runs. "Same rows" assumed a framework's output doesn't depend on the mode, which was wrong. These are extra runs for the secondary table only; the primary thinking-mode kill test stays at 432 runs. A framework with no documented way to set the mode gets `not_configurable` cells with the reason, never fails.
+- Keep P-0003 in the ledger as a harness error, never counted against a framework.
+
+## Proposed handling (before the decision)
 1. **Preferred (skeptic and me): in secondary runs, give each framework its documented setting for the mode.**
    - For TRL that is a per-row `chat_template_kwargs: {"enable_thinking": false}` column, its public, tested path, so rule 2 holds. Axolotl has its own documented `chat_template_kwargs`.
    - The cost is small: about 2 minutes for all six checks with planted faults.

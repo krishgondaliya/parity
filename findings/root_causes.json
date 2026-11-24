@@ -63,10 +63,10 @@
     {
       "id": "P-0003",
       "record": "findings/P-0003/record.md",
-      "status": "ours: evaluation design",
+      "status": "harness error",
       "framework": "trl@1.18.2",
       "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
-      "summary": "Secondary (non-thinking) only: TRL encodes with its default (thinking) arguments because Parity never gives it the mode, so it trains the empty think block that non-thinking serving pre-fills. Not a TRL behavior.",
+      "summary": "Harness error (ours, H-9 in findings/LEDGER.md): non-thinking cells judged rows TRL encoded in its default thinking mode. Fixed: frameworks now get their documented mode setting in non-default modes. Never counted against TRL.",
       "pins": [
         {
           "check": "t1.assistant_mask",

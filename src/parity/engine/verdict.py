@@ -2,7 +2,10 @@
 
 One verdict per (check, model, framework, fixture). Rules the record enforces:
 
-- `result` is pass, fail, inconclusive or not_applicable.
+- `result` is pass, fail, inconclusive, not_applicable or not_configurable.
+- `not_configurable` means the framework documents no way to run in the
+  requested serving mode, so nothing was encoded. Never a pass, never a fail;
+  the reason says why.
 - `not_applicable` means the check has nothing to test on this fixture. That
   is decided from the fixture alone, before any framework output exists. It
   is never a pass, and the report counts how many fixtures each check ran on.
@@ -32,7 +35,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "parity.verdict/v0"
-RESULTS = ("pass", "fail", "inconclusive", "not_applicable")
+RESULTS = ("pass", "fail", "inconclusive", "not_applicable", "not_configurable")
 KINDS = ("bug", "difference")
 SELF_TESTS = ("caught", "missed")
 FLAGS = (
@@ -82,7 +85,7 @@ class Verdict:
             raise ValueError("known_difference is set exactly when kind is 'difference'")
         if self.self_test is not None and self.self_test not in SELF_TESTS:
             raise ValueError(f"self_test must be one of {SELF_TESTS} or None, got {self.self_test!r}")
-        if self.result in ("inconclusive", "not_applicable") and not self.reason:
+        if self.result in ("inconclusive", "not_applicable", "not_configurable") and not self.reason:
             raise ValueError(f"a {self.result} verdict needs a reason")
         unknown = [f for f in self.flags if f not in FLAGS]
         if unknown:

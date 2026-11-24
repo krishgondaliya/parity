@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from typing import Any, ClassVar, Protocol
 
 from parity.fixtures import Conversation
@@ -60,8 +60,9 @@ class TrainCfg:
         through the framework's own collator. Checks set it longer than every row.
     serving_mode: "thinking" or "non_thinking"; None means the model's documented
         default (parity.serving). It picks the reference's chat-template arguments.
-        Phase 0 frameworks encode with their own default arguments in every mode, so
-        adapters don't pass it to the framework and must not re-encode for it.
+        In the model's default mode the adapter tells the framework nothing (its own
+        defaults render that mode). In another mode it gives the framework its
+        documented setting for the mode, or raises ModeNotConfigurable.
     """
 
     objective: str = "assistant_only"
@@ -81,9 +82,9 @@ class TrainCfg:
         if self.serving_mode is not None and self.serving_mode not in SERVING_MODES:
             raise ValueError(f"serving_mode must be one of {SERVING_MODES}, got {self.serving_mode!r}")
 
-    def for_framework(self) -> TrainCfg:
-        """The config as the framework sees it: the serving mode isn't passed to it (see serving_mode)."""
-        return replace(self, serving_mode=None)
+
+class ModeNotConfigurable(Exception):
+    """The framework documents no way to run in the requested serving mode. The cell is not_configurable, never a fail."""
 
 
 @dataclass(frozen=True)
@@ -142,6 +143,8 @@ class Declaration:
     truncation_mode: "right" (keep the start), "left" (keep the end) or "drop".
     batching: "padded" or "packed" under this config.
     pad_token_id: the id the framework pads with.
+    serving_mode_setting: how the serving mode reached the framework: its own
+        defaults (the model's default mode), or the documented setting the adapter used.
     tool_arguments: what the framework does with tool-call arguments given as a
         string: "parsed_as_json" (parsed, then rendered by the template like a
         dict) or "passed_through" (rendered verbatim). None if not declared.
@@ -158,6 +161,7 @@ class Declaration:
     pad_token_id: int | None
     sources: tuple[str, ...] = ()
     tool_arguments: str | None = None
+    serving_mode_setting: str = "framework defaults (the model's default mode)"
 
     FIELDS: ClassVar[tuple[str, ...]] = (
         "chat_template",
@@ -184,6 +188,7 @@ class Declaration:
             "batching": self.batching,
             "pad_token_id": self.pad_token_id,
             "tool_arguments": self.tool_arguments,
+            "serving_mode_setting": self.serving_mode_setting,
             "sources": list(self.sources),
             "verified": status,
         }

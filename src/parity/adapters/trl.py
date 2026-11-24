@@ -44,6 +44,7 @@ What TRL's own tests guard (tests/test_sft_trainer.py @ v1.18.2), and what they 
 from __future__ import annotations
 
 import copy
+from dataclasses import replace
 import hashlib
 import logging
 import tempfile
@@ -61,6 +62,7 @@ from trl import SFTConfig, SFTTrainer
 
 import parity
 from parity.adapters.base import Batch, Declaration, Dropped, Encoded, TrainCfg
+from parity.serving import framework_mode, template_kwargs
 from parity.fixtures import Conversation
 from parity.release import LoadedRelease, fetch_release_files
 
@@ -76,6 +78,12 @@ DOCS = {
     ),
     "sft_config": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py",
     "tool_arguments": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381",
+    "chat_template_kwargs": (
+        "per-example key documented in trl.apply_chat_template: "
+        "https://github.com/huggingface/trl/blob/v1.18.2/trl/data_utils.py#L325-L327; read by SFTTrainer: "
+        "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1363-L1367; tested: "
+        "https://github.com/huggingface/trl/blob/v1.18.2/tests/test_sft_trainer.py#L1366"
+    ),
 }
 TRUNCATION_MODES = {"keep_start": "right", "keep_end": "left"}
 TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num_attention_heads": 2,
@@ -136,14 +144,24 @@ class TRLAdapter:
             processing_class=tokenizer,
         )
 
-    @staticmethod
-    def _rows(convs: Sequence[Conversation]) -> list[dict[str, Any]]:
+    def _mode_setting(self, cfg: TrainCfg) -> str:
+        if not cfg.serving_mode:
+            return "framework defaults (the model's default mode)"
+        kwargs = template_kwargs(self.release, cfg.serving_mode)
+        return f"chat_template_kwargs={kwargs!r} on every dataset row ({DOCS['chat_template_kwargs']})"
+
+    def _rows(self, convs: Sequence[Conversation], cfg: TrainCfg) -> list[dict[str, Any]]:
+        """The dataset rows a user would write. In a non-default serving mode, every row carries TRL's documented
+        per-example `chat_template_kwargs` (DOCS["chat_template_kwargs"]); TRL fails on mixed rows, so all or none."""
         with_tools = any(conv.tools for conv in convs)
+        mode_kwargs = template_kwargs(self.release, cfg.serving_mode) if cfg.serving_mode else None
         rows = []
         for conv in convs:
             row: dict[str, Any] = {"messages": copy.deepcopy(conv.messages)}
             if with_tools:
                 row["tools"] = copy.deepcopy(conv.tools)
+            if mode_kwargs is not None:
+                row["chat_template_kwargs"] = dict(mode_kwargs)
             rows.append(row)
         return rows
 
@@ -151,17 +169,18 @@ class TRLAdapter:
 
     def declare(self, cfg: TrainCfg) -> Declaration:
         """Read TRL's live objects for exactly this config. Nothing here is hardcoded."""
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         if cfg not in self._declarations:
-            trainer = self._trainer([{"messages": copy.deepcopy(PROBE)}], cfg)
-            self._declarations[cfg] = _declaration(trainer)
+            probe = Conversation(id="probe", messages=copy.deepcopy(PROBE), tools=None)
+            trainer = self._trainer(self._rows([probe], cfg), cfg)
+            self._declarations[cfg] = _declaration(trainer, self._mode_setting(cfg))
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         key = (conv.id, conv.content_key, cfg)
         if key not in self._encoded:
-            trainer = self._trainer(self._rows([conv]), cfg)
+            trainer = self._trainer(self._rows([conv], cfg), cfg)
             if len(trainer.train_dataset) == 0:
                 self._encoded[key] = Dropped(
                     "SFTTrainer dropped the example while preparing the dataset (TRL drops examples with no "
@@ -173,10 +192,10 @@ class TRLAdapter:
         return self._encoded[key]
 
     def encode_batch(self, convs: Sequence[Conversation], cfg: TrainCfg) -> Batch:
-        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         key = (tuple(f"{conv.id}:{conv.content_key}" for conv in convs), cfg)
         if key not in self._batches:
-            trainer = self._trainer(self._rows(convs), cfg)
+            trainer = self._trainer(self._rows(convs, cfg), cfg)
             if len(trainer.train_dataset) != len(convs):
                 raise RuntimeError(
                     f"SFTTrainer kept {len(trainer.train_dataset)} of {len(convs)} examples; can't line rows up"
@@ -198,7 +217,7 @@ def _row(batch: dict[str, Any], i: int) -> Encoded:
     return Encoded(ids, labels, attention, positions)
 
 
-def _declaration(trainer: SFTTrainer) -> Declaration:
+def _declaration(trainer: SFTTrainer, mode_setting: str) -> Declaration:
     args = trainer.args
     if trainer.chat_template is not None:
         template = trainer.chat_template
@@ -226,6 +245,7 @@ def _declaration(trainer: SFTTrainer) -> Declaration:
         batching="packed" if packed else "padded",
         pad_token_id=pad,
         tool_arguments="passed_through",
+        serving_mode_setting=mode_setting,
         sources=(
             f"chat_template: {where}; template_source: matched against trl/chat_templates/*.jinja",
             f"objective: SFTConfig.assistant_only_loss={args.assistant_only_loss} ({DOCS['assistant_only_loss']})",

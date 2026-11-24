@@ -5,6 +5,7 @@ was not `not_applicable`). A cell where the check ran on zero fixtures is
 inconclusive: nothing was tested, so it can't be a pass.
 
 Cell result, first rule that applies:
+  not configurable everywhere  -> not_configurable (the framework documents no way to set the serving mode)
   ran on 0 fixtures            -> inconclusive
   any fail of kind bug         -> fail
   any inconclusive             -> inconclusive
@@ -40,6 +41,8 @@ class Cell:
     result: str
     root_causes: tuple[str, ...] = ()  # the findings that explain this cell's fails (engine.root_causes)
     untriaged: int = 0  # fails in this cell with no root cause
+    not_configurable: int = 0  # verdicts where the framework can't be set to this serving mode
+    not_configurable_reasons: tuple[str, ...] = ()
 
 
 def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
@@ -54,8 +57,11 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
         differences = sum(v.result == "fail" and v.kind == "difference" for v in vs)
         inconclusive = sum(v.result == "inconclusive" for v in vs)
         not_applicable = sum(v.result == "not_applicable" for v in vs)
-        ran_on = len(vs) - not_applicable
-        if ran_on == 0:
+        not_configurable = sum(v.result == "not_configurable" for v in vs)
+        ran_on = len(vs) - not_applicable - not_configurable
+        if not_configurable and ran_on == 0:
+            result = "not_configurable"
+        elif ran_on == 0:
             result = "inconclusive"
         elif failed:
             result = "fail"
@@ -84,6 +90,8 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 result=result,
                 root_causes=tuple(sorted({v.root_cause for v in vs if v.result == "fail" and v.root_cause})),
                 untriaged=sum(v.result == "fail" and not v.root_cause for v in vs),
+                not_configurable=not_configurable,
+                not_configurable_reasons=tuple(sorted({v.reason for v in vs if v.result == "not_configurable" and v.reason})),
             )
         )
     return cells
