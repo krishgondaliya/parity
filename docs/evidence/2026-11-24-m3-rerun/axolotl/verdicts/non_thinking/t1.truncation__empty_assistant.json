@@ -87,7 +87,7 @@
     "verified": {
       "chat_template": "unverified",
       "label_convention": "unverified",
-      "truncation_mode": "mismatch: the row matches no truncation mode",
+      "truncation_mode": "unverified: nothing is cut at this limit",
       "batching": "unverified",
       "pad_token_id": "unverified",
       "tool_arguments": "unverified"

@@ -14,6 +14,21 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Re-run in both modes; P-0003 is ours (secondary rows never encoded in that mode); open decision for the human
+- What the re-run shows (`docs/evidence/2026-11-24-m3-rerun/`):
+  - **TRL primary (thinking):** 40 pass, 4 KD-0001, 4 not applicable. Unchanged.
+  - **TRL secondary (non-thinking):** 21 pass, 3 KD-0001, 6 inconclusive (`reasoning`, our reference refuses), 4 not applicable, and 14 fails, all P-0003.
+  - **Axolotl primary:** 27 pass, 13 KD-0002/0003 (P-0001), 4 P-0002, 4 not applicable, 0 inconclusive.
+  - **Axolotl secondary:** 34 pass, 4 P-0002, 6 inconclusive (`reasoning`), 4 not applicable.
+  - Every fail is linked: TRL has 21 fail verdicts from 2 root causes, Axolotl 21 from 2. 0 untriaged.
+- **P-0003 is ours.** The secondary judges the same rows, so TRL was never told the mode and encoded in thinking mode, its default. It trains the empty think block that non-thinking serving pre-fills.
+  - TRL labels correctly when given `enable_thinking: false` (per-row `chat_template_kwargs`; documented in `chat_templates.md` L115, tested, and itself the fix for TRL #8071).
+  - Skeptic: our error, high confidence. With the column set, all 14 cells pass.
+  - The 14 cells are pinned to P-0003 (status "ours: evaluation design") so they count once and never read as a TRL defect.
+- **Open for the human:** in secondary runs, give each framework its documented mode setting (preferred by the skeptic and me, about 2 extra minutes). That reverses part of the "same encoded rows, no extra framework runs" decision above. Or keep same rows and label such cells "framework not configured for this mode". No change is made until you decide.
+- Also fixed (`001bfbe`): a loss-only `t1.truncation` fail no longer records the truncation mode as "matches no mode".
+- Reversible? yes
+
 ## 2026-11-24: Added tokens are accepted as structural headers; DeepSeek's history turns with text now compute
 - Decision (human rule, applied by evidence):
   - **New guard.** The header and the stop token must each be a single token the tokenizer declares, special or added, and neither token's text may appear in any message's content (every string in every message, tool calls included). The other guards are unchanged.

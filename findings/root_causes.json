@@ -59,6 +59,100 @@
           "evidence_sha256": "62123f7a9fdc0ce36ce06dbfaf2e1a6d8ff1ddd8279236d7223db858eceae037"
         }
       ]
+    },
+    {
+      "id": "P-0003",
+      "record": "findings/P-0003/record.md",
+      "status": "ours: evaluation design",
+      "framework": "trl@1.18.2",
+      "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+      "summary": "Secondary (non-thinking) only: TRL encodes with its default (thinking) arguments because Parity never gives it the mode, so it trains the empty think block that non-thinking serving pre-fills. Not a TRL behavior.",
+      "pins": [
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "single_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "90bc5703e21c032990ce5a7b8fbcccc69dc893a5473e8a56ae02048fc0560411"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "single_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "749c545e0a59b40a10b84e93c6fb7b7e12ac89facd4ba064fd5c2d7ab736b6af"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "multi_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "06e01b542d6f2090bed657483944a232e168216541796fed0433766c86e1b859"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "multi_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "b1e5c9cc2eaf07426758602491e6d9fd6f114e928bab552ec638f546bdf17e5e"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "system_prompt",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "322098770f6c84b520aa486814f4ccdd5acee8399174dfc0c603d72fd3f78e33"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "system_prompt",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "84dc1446a64edb2ee60f5ce436c87a15f4ffbe2f36deabb5c208179868e06a7d"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "tool_call",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "6542745af915abe1a5da947c5d2c2abeab6cd847e5e248b40e71e700cbdf7df7"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "tool_call",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "4f3a8d8258810595bd67f5727d1865710d55ad45a5e7a35ba4ef791560d183e6"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "470e5064768c2757d3f4b0fae831b09d60f8dddb01d7237d5c26f791bbdd3d90"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "78282a976fd3a3e48aa1f65394d5501dcaf71c1658936acfca8f9ee3ce9e9540"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "long_answer",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "861c11b1ba532586c66ff91393ced011740524fb20cbf574ea9697b44ddfedc6"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "long_answer",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "c8557b9c71eac4da0e314755cc3e8be56e40c7c7aead586d0117820810e263fb"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "non_ascii",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "b40f06516a01668892544e9ea5b07dedde3e3de2faac407a9007c3231549a58b"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "non_ascii",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "68fbe39438e7620fa2cbd9b951515abfdd56f2abbb5c5fecf575605dd7b269a4"
+        }
+      ]
     }
   ]
 }

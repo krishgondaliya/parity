@@ -129,7 +129,7 @@
     "verified": {
       "chat_template": "unverified",
       "label_convention": "unverified",
-      "truncation_mode": "mismatch: the row matches no truncation mode",
+      "truncation_mode": "unverified: nothing is cut at this limit",
       "batching": "unverified",
       "pad_token_id": "unverified",
       "tool_arguments": "unverified"
@@ -174,7 +174,7 @@
   "template_properties": [],
   "flags": [],
   "serving_mode": "non_thinking",
-  "root_cause": null,
+  "root_cause": "P-0003",
   "env_lock": "envs/trl-1.18.2/uv.lock",
   "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
   "repro": null

@@ -395,7 +395,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -419,7 +419,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -443,7 +443,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -467,7 +467,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -491,7 +491,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -515,7 +515,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -539,7 +539,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -563,7 +563,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -635,7 +635,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -659,7 +659,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -683,7 +683,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -707,7 +707,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -731,7 +731,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
@@ -755,7 +755,7 @@
   "result": "fail",
   "kind": "bug",
   "known_difference": null,
-  "root_cause": null,
+  "root_cause": "P-0003",
   "self_test": "caught",
   "flags": []
  },
