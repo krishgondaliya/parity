@@ -1,0 +1,22 @@
+{
+  "schema": "parity.known_differences/v0",
+  "note": "Every entry is logged in docs/DECISIONS.md. No wildcards: exact framework versions, exact template hashes, one check, one signature.",
+  "entries": [
+    {
+      "id": "KD-0001",
+      "framework": "trl",
+      "versions": ["1.18.2"],
+      "check": "t1.template_parity",
+      "model_family": "Qwen3",
+      "model_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "framework_template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+      "signature": "insert_think_block_where_official_has_none",
+      "summary": "TRL swaps in qwen3_training.jinja, which always emits a think block. For every assistant turn the official template renders without one, TRL's render has <think>\\n + reasoning_content.strip(\"\\n\") + \\n</think>\\n\\n right after that turn's <|im_start|>assistant\\n.",
+      "docs": [
+        "https://github.com/huggingface/trl/blob/v1.18.2/trl/chat_templates/qwen3_training.jinja",
+        "https://github.com/huggingface/trl/blob/v1.18.2/trl/chat_templates/README.md"
+      ],
+      "decision": "docs/DECISIONS.md: Known-differences registry"
+    }
+  ]
+}
