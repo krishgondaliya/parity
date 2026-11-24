@@ -12,18 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from parity.fixtures import FIXTURE_IDS, load_fixture
-from parity.references.template import (
-    TemplateReferenceError,
-    Zone,
-    _generation_prompt_renders,
-    _span_by_cut_out,
-    _tokenize_with_offsets,
-    model_chat_template,
-    render_reference,
-    render_text,
-    structural_span,
-    zones_from_spans,
-)
+from parity.references.template import Zone, model_chat_template, render_reference
 from parity.release import load_release
 from parity.targets import CALIBRATION, PHASE0_TARGETS
 
@@ -106,49 +95,17 @@ def main() -> None:
         render_reference(qwen3, load_fixture("multi_turn"), non_thinking, "test:qwen3-non-thinking"),
     )
     lines += section(
-        "NOT IN USE: DeepSeek V4.1 `multi_turn` if added tokens were accepted as headers",
-        "The reference refuses this fixture: the cut-out fails (DeepSeek merges the user messages around a removed "
-        "turn), and the structural method's guard requires a header the tokenizer declares special, which "
-        "`<｜Assistant｜>` is not (it is an added token). This shows what the structural method gives if added "
-        "tokens were accepted. `</think>` is prompt side on evidence: DeepSeek's generation prompt with thinking "
-        "off ends in the same `<｜Assistant｜></think>` the history turns carry.",
+        "DeepSeek V4.1 `multi_turn`: history turns delimited structurally",
+        "The cut-out fails here (DeepSeek merges the user messages around a removed turn), so history turns are "
+        "delimited by the structural method. Its header `<｜Assistant｜>` is an added token, not a special one; added "
+        "tokens are accepted as headers since 2026-11-24, with the guard that neither the header nor the stop token "
+        "appears in any message's content. `</think>` is prompt side on evidence: DeepSeek's generation prompt with "
+        "thinking off ends in the same `<｜Assistant｜></think>` the history turns carry.",
         deepseek,
-        _with_added_token_headers(deepseek, load_fixture("multi_turn")),
+        render_reference(deepseek, load_fixture("multi_turn")),
     )
-    lines += [
-        "## For your judgment",
-        "",
-        "- Should added tokens the tokenizer declares (special or not) count as headers for the structural method? "
-        "Only then do DeepSeek's `multi_turn` and `reasoning` compute (as in the section above). `empty_assistant` "
-        "and `tool_call` would still refuse (no text content to locate in their first assistant turn).",
-        "",
-    ]
     OUT.write_text("\n".join(lines), encoding="utf-8")
     print(f"wrote {OUT}")
-
-
-class _Shown:
-    """Just enough of a TemplateReference for `section` and `marked`."""
-
-    def __init__(self, input_ids, zones, spans):
-        self.input_ids, self.zones, self.spans = input_ids, zones, spans
-
-
-def _with_added_token_headers(release, conv):
-    tok, template = release.tokenizer, model_chat_template(release.tokenizer)
-    full = render_text(tok, conv.messages, conv.tools, template)
-    ids, offsets = _tokenize_with_offsets(tok, full)
-    renders, seen = _generation_prompt_renders(tok, conv, template, full)
-    spans = []
-    for k in conv.assistant_indices:
-        before, prompt = renders[k]
-        try:
-            spans.append(_span_by_cut_out(release, conv, template, k, full, ids, offsets, before, prompt, seen))
-        except TemplateReferenceError:
-            found = structural_span(release, conv, template, k, full, ids, offsets, before, frozenset(tok.added_tokens_decoder))
-            assert not isinstance(found, str), found
-            spans.append(found[0])
-    return _Shown(tuple(ids), zones_from_spans(len(ids), tuple(spans)), tuple(spans))
 
 
 if __name__ == "__main__":

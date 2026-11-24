@@ -275,9 +275,9 @@ Which of the two cities has more people?<|im_end|>
 }
 ````
 
-## NOT IN USE: DeepSeek V4.1 `multi_turn` if added tokens were accepted as headers
+## DeepSeek V4.1 `multi_turn`: history turns delimited structurally
 
-The reference refuses this fixture: the cut-out fails (DeepSeek merges the user messages around a removed turn), and the structural method's guard requires a header the tokenizer declares special, which `<｜Assistant｜>` is not (it is an added token). This shows what the structural method gives if added tokens were accepted. `</think>` is prompt side on evidence: DeepSeek's generation prompt with thinking off ends in the same `<｜Assistant｜></think>` the history turns carry.
+The cut-out fails here (DeepSeek merges the user messages around a removed turn), so history turns are delimited by the structural method. Its header `<｜Assistant｜>` is an added token, not a special one; added tokens are accepted as headers since 2026-11-24, with the guard that neither the header nor the stop token appears in any message's content. `</think>` is prompt side on evidence: DeepSeek's generation prompt with thinking off ends in the same `<｜Assistant｜></think>` the history turns carry.
 
 Assistant spans: message 1 (structural), message 3 (structural), message 5.
 
@@ -286,7 +286,3 @@ Assistant spans: message 1 (structural), message 3 (structural), message 5.
 
 <｜User｜>What is the capital of France?<｜Assistant｜></think>[[Paris.<｜end▁of▁sentence｜>]]<｜User｜>And of Japan?<｜Assistant｜></think>[[Tokyo.<｜end▁of▁sentence｜>]]<｜User｜>Which of the two cities has more people?<｜Assistant｜><think>[[</think>Tokyo has more people than Paris.<｜end▁of▁sentence｜>]]
 ````
-
-## For your judgment
-
-- Should added tokens the tokenizer declares (special or not) count as headers for the structural method? Only then do DeepSeek's `multi_turn` and `reasoning` compute (as in the section above). `empty_assistant` and `tool_call` would still refuse (no text content to locate in their first assistant turn).

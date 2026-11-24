@@ -383,6 +383,22 @@ def declared_special_ids(tokenizer: PreTrainedTokenizerBase) -> frozenset[int]:
     return frozenset(ids)
 
 
+def declared_token_ids(tokenizer: PreTrainedTokenizerBase) -> frozenset[int]:
+    """Tokens the tokenizer declares: special ones, and every entry of its added-token table."""
+    return declared_special_ids(tokenizer) | frozenset(tokenizer.added_tokens_decoder)
+
+
+def _message_strings(value: Any) -> list[str]:
+    """Every string inside a message (content, reasoning, tool calls), for the "appears in no content" guard."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [s for v in value.values() for s in _message_strings(v)]
+    if isinstance(value, (list, tuple)):
+        return [s for v in value for s in _message_strings(v)]
+    return []
+
+
 def structural_span(
     loaded: LoadedRelease,
     conv: Conversation,
@@ -399,8 +415,9 @@ def structural_span(
 
     Used only where the cut-out can't delimit a turn (DeepSeek V4.1 merges the user messages around a removed
     assistant turn). Guards, all required:
-    - the message starts with a header token the tokenizer declares special (`header_ids`, default
-      `declared_special_ids`), and closes with a stop token that is also declared special;
+    - the message starts with a header that is a single token the tokenizer declares, special or added
+      (`header_ids`, default `declared_token_ids`), and closes with a stop token that is a single declared token
+      too; neither token's text appears in any message of the conversation (so neither can come from content);
     - the text between the header and the content is exactly what a generation prompt adds after that header:
       the default one, or with thinking turned off (each prompt's tail is taken against the same mode's render
       without it, since a mode can change earlier text too, e.g. DeepSeek drops its default system prompt). That
@@ -411,8 +428,9 @@ def structural_span(
     The span runs from the content through the stop token; whitespace-only tokens right after it are neutral.
     """
     tokenizer = loaded.tokenizer
-    specials = declared_special_ids(tokenizer)
-    header_ids = specials if header_ids is None else header_ids
+    declared = declared_token_ids(tokenizer)
+    header_ids = declared if header_ids is None else header_ids
+    in_messages = [s for message in conv.messages for s in _message_strings(message)]
     msg_start = len(before)
     try:
         t_header = _token_boundary(offsets, msg_start)
@@ -420,9 +438,11 @@ def structural_span(
         return f"message {k}: the message starts inside a token"
     if t_header >= len(ids) or ids[t_header] not in header_ids:
         shown = tokenizer.decode([ids[t_header]]) if t_header < len(ids) else "the end"
-        return f"message {k}: it starts with {shown!r}, which isn't a header token the tokenizer declares special"
+        return f"message {k}: it starts with {shown!r}, which isn't a single token the tokenizer declares"
     header_end = offsets[t_header][1]
     header = full[msg_start:header_end]
+    if any(header in s for s in in_messages):
+        return f"message {k}: its header {header!r} also appears in a message's content"
 
     prefix = None
     kw = dict(template_kwargs or {})
@@ -453,8 +473,11 @@ def structural_span(
     if not stops:
         return f"message {k}: no stop token after its content"
     t_stop = stops[0]
-    if ids[t_stop] not in specials:
-        return f"message {k}: its stop token isn't declared special"
+    if ids[t_stop] not in declared:
+        return f"message {k}: its stop token isn't a token the tokenizer declares"
+    stop_text = full[offsets[t_stop][0] : offsets[t_stop][1]]
+    if any(stop_text in s for s in in_messages):
+        return f"message {k}: its stop token {stop_text!r} also appears in a message's content"
     if full[header_end : offsets[t_stop][0]].count(content) != 1:
         return f"message {k}: its content doesn't appear exactly once between the header and the stop token"
 

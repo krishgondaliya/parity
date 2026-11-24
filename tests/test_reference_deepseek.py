@@ -88,20 +88,40 @@ def test_golden_anchored_spans_qwen3_non_thinking(qwen3, qwen3_non_thinking):
     ]
 
 
-def test_deepseek_history_turns_still_refuse(deepseek):
-    """The cut-out fails (the template merges the user messages around a removed turn), and the structural
-    method's guard refuses too: DeepSeek declares <｜Assistant｜> as an added token, not a special one."""
+def test_deepseek_history_turns_with_text_are_delimited_structurally(deepseek):
+    """The cut-out fails (the template merges the user messages around a removed turn). Under the added-token
+    guard, <｜Assistant｜> (an added token, not a special one) is accepted as the header, so history turns with text
+    are delimited structurally. Turns with no text content still refuse."""
     assert not deepseek.tokenizer.added_tokens_decoder[_id(deepseek, "<｜Assistant｜>")].special
     refused = {}
     for fid in FIXTURE_IDS:
         try:
-            render_reference(deepseek, load_fixture(fid))
+            ref = render_reference(deepseek, load_fixture(fid))
         except TemplateReferenceError as exc:
             refused[fid] = str(exc)
-    assert set(refused) == {"multi_turn", "reasoning", "empty_assistant", "tool_call"}
+            continue
+        if fid in ("multi_turn", "reasoning"):
+            structural = [s for s in ref.spans if s.method == "structural"]
+            assert structural and all(s.message_index != ref.spans[-1].message_index for s in structural), fid
+    assert set(refused) == {"empty_assistant", "tool_call"}
     for reason in refused.values():
-        assert "cutting it out of the full render" in reason
-        assert "isn't a header token the tokenizer declares special" in reason
+        assert "it has no text content to locate" in reason
+
+    ref = render_reference(deepseek, load_fixture("multi_turn"))
+    tok = deepseek.tokenizer
+    first = ref.spans[0]
+    assert tok.decode(ref.input_ids[first.token_start : first.token_end]) == "Paris.<｜end▁of▁sentence｜>"
+    assert tok.decode(ref.input_ids[first.token_start - 1 : first.token_start]) == "</think>"
+    assert ref.zones[first.token_start - 1] is Zone.MUST_NOT_TRAIN  # </think> in history is prompt side
+
+
+def test_the_structural_header_must_not_appear_in_any_message(deepseek):
+    """Guard: the header (and the stop token) must not appear in any message's content."""
+    fx = load_fixture("multi_turn")
+    messages = [dict(m) for m in fx.messages]
+    messages[0]["content"] = messages[0]["content"] + " (Reply after <｜Assistant｜>.)"
+    with pytest.raises(TemplateReferenceError, match="also appears in a message's content"):
+        render_reference(deepseek, fx.with_messages(messages))
 
 
 def _id(release, token):

@@ -14,6 +14,21 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: Added tokens are accepted as structural headers; DeepSeek's history turns with text now compute
+- Decision (human rule, applied by evidence):
+  - **New guard.** The header and the stop token must each be a single token the tokenizer declares, special or added, and neither token's text may appear in any message's content (every string in every message, tool calls included). The other guards are unchanged.
+  - **Rule from the human:** use the structural method for DeepSeek only if it agrees with the cut-out everywhere both compute, and that agreement covers more than one model family. Otherwise keep refusing.
+- **Re-validation** (`docs/evidence/2026-11-24-structural-added-tokens/`): every turn of every fixture, on Qwen3, Inkling, Hy4 and DeepSeek, in both serving modes, compared token for token wherever both methods compute.
+  - **0 disagreements.** Both compute and agree on 36 turns across 3 families: Qwen3 (3 thinking + 7 non-thinking), Hy4 (11 non-thinking) and DeepSeek (8 non-thinking). Inkling: 0, because its generation prompt adds nothing after the header.
+  - **So the rule is met, and the structural method is used for DeepSeek.**
+  - **Caveat, stated plainly:** the part that changed (an *added* header, not a special one) is exercised only on DeepSeek, on 8 non-thinking turns where the cut-out also computes, all agreeing. On Qwen3 and Hy4 the headers are special, so the old and new rules are identical there. The structural method as a whole covers three families; the widening covers one. If that isn't enough, reverting is one line (the default `header_ids`).
+- **Result on DeepSeek (thinking mode, primary):**
+  - `multi_turn` (turns 1 and 3) and `reasoning` (turn 1) now compute: spans `Paris.<eos>`, `Tokyo.<eos>`, `No. 91 = 7 * 13, so it is not prime.<eos>`, with `</think>` prompt side.
+  - `empty_assistant` and `tool_call` still refuse: their first assistant turn has no text content to locate.
+  - So 2 of DeepSeek's 4 multi-assistant fixtures move from refused to computed. `docs/evidence/golden-review.md` now shows the real reference for `multi_turn`.
+- Evidence: `docs/evidence/2026-11-24-structural-added-tokens/results.md`, `tests/test_reference_deepseek.py`.
+- Reversible? yes
+
 ## 2026-11-24: Token-level false→False plant; "tool arguments" is a declared, behavior-verified framework property
 - Decision:
   - **New plant `history_false_as_python_tokens`** (synthetic) on `t1.multiturn_prefix`. In the framework's encoded output, inside every assistant turn that isn't the conversation's last message, tokens spelling `false` are swapped for their single-token `False` counterpart, labels included. The prefix encoding, where that turn is the latest, is untouched. So every framework keeps a guard on the history re-render rule, whatever it does with string arguments. 21 plants now.
