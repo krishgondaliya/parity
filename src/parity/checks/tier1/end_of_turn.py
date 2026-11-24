@@ -53,7 +53,7 @@ class EndOfTurn(Tier1Check):
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         tokenizer = release.tokenizer
         declaration = adapter.declare(self.base_cfg)
-        ref = declared_reference(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
         info = reference_info(release, ref)
         out = adapter.encode(fixture, self.base_cfg)
         if isinstance(out, Dropped):
@@ -66,7 +66,7 @@ class EndOfTurn(Tier1Check):
                 declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
-        status = template_status(release, fixture, declaration, out.input_ids)
+        status = template_status(release, fixture, declaration, out.input_ids, self.mode(release))
         if is_contradicted(status):
             return unaligned_verdict(
                 self, adapter, release, fixture, declaration, out.input_ids, ref.input_ids, reference=info

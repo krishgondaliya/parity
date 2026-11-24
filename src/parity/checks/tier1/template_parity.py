@@ -59,7 +59,7 @@ class TemplateParity(Tier1Check):
 
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         declaration = adapter.declare(self.base_cfg)
-        ref = official_reference(release, fixture)
+        ref = official_reference(release, fixture, self.mode(release))
         info = reference_info(release, ref)
         out = adapter.encode(fixture, self.base_cfg)
         if isinstance(out, Dropped):
@@ -73,7 +73,7 @@ class TemplateParity(Tier1Check):
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
 
-        status = template_status(release, fixture, declaration, out.input_ids)
+        status = template_status(release, fixture, declaration, out.input_ids, self.mode(release))
         verified = {"chat_template": status}
 
         def verdict(result: str, **fields: Any) -> Verdict:
@@ -111,7 +111,7 @@ class TemplateParity(Tier1Check):
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
-        ids = declared_reference(release, fixture, declare(self.base_cfg)).input_ids
+        ids = declared_reference(release, fixture, declare(self.base_cfg), self.mode(release)).input_ids
         out = []
 
         newline_ids = {i for i in set(ids) if decode_each(tokenizer, [i])[0] == "\n"}

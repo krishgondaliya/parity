@@ -14,6 +14,23 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: The serving mode is declared; mode-dependent tokens take their zone from it (from P-0001, after results)
+- Decision:
+  - **Provenance, stated plainly: this reference change was made after seeing the Axolotl results** (P-0001), not before. P-0001 showed the reference had silently assumed thinking mode for Qwen3. The fix is to make the assumption explicit, not to change which result counts.
+  - **No neutral zone.** `TrainCfg.serving_mode` is `thinking` or `non_thinking`. Left unset it means the model's documented default (`src/parity/serving.py`), which is thinking for every Phase 0 model. Every verdict records the mode (`Verdict.serving_mode`), and the reference records the chat-template arguments it rendered with (`reference.template_kwargs`).
+  - **Every render uses the mode's arguments**: the full render, the generation prompts, the cut-out, the structural method, the marker cross-check, prefix breaks and template properties. So a mode-dependent token gets its zone from the declared mode.
+    - Qwen3 `enable_thinking` true/false; DeepSeek V4.1 `thinking` true/false; Hy4 `reasoning_effort` `high`/`no_think`.
+    - Inkling documents no setting that turns thinking off (its `reasoning_effort` is a number in [0, 0.99] written as a system line), so it has no non-thinking mode and the reference refuses there (`ServingModeError`, inconclusive). Not checked against model cards.
+  - **Primary and secondary results.** The kill test's primary results stay in thinking mode. Every run is also judged in non-thinking mode as a clearly labeled secondary result: the same encoded rows (adapters drop the mode before the framework sees the config, so caches are shared and no extra framework runs happen), a second reference, and its own table in the summary.
+  - Frameworks are not given the mode in Phase 0; they encode with their own default chat-template arguments, as their users do by default.
+- What the mode changes on Qwen3 (`tests/test_serving_mode.py`):
+  - On 7 fixtures the tokens are identical in both modes. The only change is the last turn's empty think block (`<think>`, `\n\n`, `</think>`, `\n\n`): must-train in thinking mode, prompt side in non-thinking mode, where the generation prompt pre-fills it.
+  - History turns keep their zones. In non-thinking mode they lack the generation prompt's pre-fill, so they are anchored by the narrow pre-fill rule, and the "pre-fill missing from history" property appears for Qwen3 in that mode.
+  - `reasoning` has no non-thinking reading: its last turn reasons, but the non-thinking generation prompt closes the think block empty. The reference refuses, so those secondary cells are inconclusive.
+- Why: P-0001's skeptic showed the reference judged no-reasoning data as if the model wrote the empty think block, which only holds in thinking mode. A neutral zone would hide that choice; a declared mode makes it visible and testable.
+- Evidence: `src/parity/serving.py`, `src/parity/references/template.py`, `tests/test_serving_mode.py`, `findings/P-0001/record.md`.
+- Reversible? yes. Removing a mode only drops the secondary table.
+
 ## 2026-11-24: M3 Axolotl adapter, the run on Qwen3, and two candidate findings
 - Decision:
   - **Adapter.** `src/parity/adapters/axolotl.py` drives Axolotl from a YAML config through exactly what `axolotl preprocess` runs (`load_cfg`, then `load_datasets` inside `disable_datasets_caching()`).

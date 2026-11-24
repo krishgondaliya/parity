@@ -1,0 +1,91 @@
+"""Serving modes: the chat-template arguments that put a model in thinking or non-thinking mode.
+
+Why it matters: some tokens change zone with the mode. Qwen3's empty think block at the start of the last
+assistant turn is model output in thinking mode (the generation prompt ends at "<|im_start|>assistant\\n"), but a
+generation-prompt pre-fill in non-thinking mode, so prompt side. The reference renders every conversation with the
+mode's template arguments, so a mode-dependent token gets its zone from the declared mode.
+
+The mode is set in `TrainCfg.serving_mode`, defaults to the model's documented default, and is recorded in every
+verdict. Frameworks always encode with their own default chat-template arguments in Phase 0, so evaluating another
+mode reuses the same encoded rows against a second reference, with no extra framework runs. Decided 2026-11-24,
+after the Axolotl results on Qwen3 (P-0001); see docs/DECISIONS.md.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from parity.references.template import TemplateReferenceError
+from parity.release import LoadedRelease
+
+SERVING_MODES = ("thinking", "non_thinking")
+
+
+class ServingModeError(TemplateReferenceError):
+    """The model documents no way to serve in the requested mode: the reference can't be computed."""
+
+
+@dataclass(frozen=True)
+class ModeSpec:
+    default: str
+    kwargs: dict[str, dict[str, Any] | None]  # mode -> chat-template arguments; None if the model has no such mode
+    evidence: str
+
+
+MODE_SPECS: dict[str, ModeSpec] = {
+    "Qwen/Qwen3-0.6B": ModeSpec(
+        default="thinking",
+        kwargs={"thinking": {"enable_thinking": True}, "non_thinking": {"enable_thinking": False}},
+        evidence=(
+            "Qwen3's template thinks unless enable_thinking is false; with it false the generation prompt pre-fills "
+            "an empty think block. The model card says thinking is enabled by default (read by the skeptic for "
+            "P-0001; findings/P-0001/record.md)."
+        ),
+    ),
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017": ModeSpec(
+        default="thinking",
+        kwargs={"thinking": {"thinking": True}, "non_thinking": {"thinking": False}},
+        evidence="The template's thinking_mode defaults to 'thinking'; thinking=False selects 'chat'.",
+    ),
+    "tencent/Hy4-flash": ModeSpec(
+        default="thinking",
+        kwargs={"thinking": {"reasoning_effort": "high"}, "non_thinking": {"reasoning_effort": "no_think"}},
+        evidence="The template's reasoning_effort defaults to 'high' and accepts only 'high' and 'no_think'.",
+    ),
+    "thinkingmachines/Inkling-2-Mini": ModeSpec(
+        default="thinking",
+        kwargs={"thinking": {}, "non_thinking": None},
+        evidence=(
+            "The template takes a numeric reasoning_effort in [0, 0.99] (default 0.9), emitted as a system line; it "
+            "documents no value that turns thinking off, so no non-thinking mode is assumed."
+        ),
+    ),
+}
+UNKNOWN = ModeSpec(
+    default="thinking",
+    kwargs={"thinking": {}, "non_thinking": None},
+    evidence="No documented mode switch for this model: renders with the template's defaults.",
+)
+
+
+def mode_spec(release: LoadedRelease) -> ModeSpec:
+    return MODE_SPECS.get(release.release.repo_id, UNKNOWN)
+
+
+def resolve_mode(release: LoadedRelease, mode: str | None) -> str:
+    """The requested mode, or the model's documented default when none is requested."""
+    if mode is None:
+        return mode_spec(release).default
+    if mode not in SERVING_MODES:
+        raise ValueError(f"serving_mode must be one of {SERVING_MODES}, got {mode!r}")
+    return mode
+
+
+def template_kwargs(release: LoadedRelease, mode: str | None) -> dict[str, Any]:
+    """The chat-template arguments for this mode on this model."""
+    resolved = resolve_mode(release, mode)
+    kwargs = mode_spec(release).kwargs.get(resolved)
+    if kwargs is None:
+        raise ServingModeError(f"{release.release.spec} documents no {resolved} mode")
+    return dict(kwargs)

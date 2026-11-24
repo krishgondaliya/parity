@@ -50,6 +50,8 @@ class TrainCfg:
     max_len: int
     packing: bool
     grad_accum: int
+    pad_to: int | None      # encode_batch only: pad every row to exactly this length
+    serving_mode: str | None  # "thinking" | "non_thinking"; picks the reference only, never passed to the framework
 
 @dataclass
 class Encoded:

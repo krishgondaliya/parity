@@ -134,6 +134,7 @@ class TemplateReference:
     spans: tuple[AssistantSpan, ...]
     prefix_breaks: tuple[int, ...]  # see prefix_breaks()
     transformers_version: str
+    template_kwargs: tuple[tuple[str, Any], ...] = ()  # chat-template arguments (the serving mode), sorted
 
 
 def has_generation_markers(template: str) -> bool:
@@ -156,23 +157,28 @@ def render_reference(
     fixture: Conversation,
     chat_template: str | None = None,
     template_source: str = "model",
+    template_kwargs: dict[str, Any] | None = None,
 ) -> TemplateReference:
-    """Compute the reference tokens, zones and assistant mask for one conversation."""
+    """Compute the reference tokens, zones and assistant mask for one conversation.
+
+    `template_kwargs` are the chat-template arguments of the serving mode (parity.serving); every render uses them.
+    """
     tokenizer = loaded.tokenizer
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
+    kw = dict(template_kwargs or {})
     _reject_special_tokens_in_content(tokenizer, fixture)
 
-    text = render_text(tokenizer, fixture.messages, fixture.tools, template)
-    input_ids = template_token_ids(tokenizer, fixture, template)
+    text = render_text(tokenizer, fixture.messages, fixture.tools, template, **kw)
+    input_ids = template_token_ids(tokenizer, fixture, template, **kw)
     ids_from_text, _ = _tokenize_with_offsets(tokenizer, text)
     if ids_from_text != input_ids:
         raise TemplateReferenceError("tokenizing the rendered text does not reproduce apply_chat_template's ids")
 
-    spans = assistant_spans_by_prefix_diff(loaded, fixture, template)
+    spans = assistant_spans_by_prefix_diff(loaded, fixture, template, kw)
     zones = zones_from_spans(len(input_ids), spans)
     marker_check = "no_markers"
     if has_generation_markers(template):
-        _cross_check_markers(tokenizer, fixture, template, input_ids, zones)
+        _cross_check_markers(tokenizer, fixture, template, input_ids, zones, kw)
         marker_check = "agrees"
 
     return TemplateReference(
@@ -187,8 +193,9 @@ def render_reference(
         assistant_mask=tuple(1 if z == Zone.MUST_TRAIN else 0 for z in zones),
         zones=zones,
         spans=spans,
-        prefix_breaks=prefix_breaks(tokenizer, fixture, template),
+        prefix_breaks=prefix_breaks(tokenizer, fixture, template, kw),
         transformers_version=transformers.__version__,
+        template_kwargs=tuple(sorted(kw.items())),
     )
 
 
@@ -206,8 +213,9 @@ def _cross_check_markers(
     template: str,
     input_ids: list[int],
     zones: tuple[Zone, ...],
+    template_kwargs: dict[str, Any] | None = None,
 ) -> None:
-    marker_ids, marker_mask = assistant_mask_from_markers(tokenizer, conv, template)
+    marker_ids, marker_mask = assistant_mask_from_markers(tokenizer, conv, template, **(template_kwargs or {}))
     if marker_ids != input_ids:
         raise TemplateReferenceError("the generation-marker render produced different ids")
     disagree = [
@@ -235,16 +243,18 @@ def _cross_check_markers(
         )
 
 
-def template_token_ids(tokenizer: PreTrainedTokenizerBase, conv: Conversation, chat_template: str) -> list[int]:
+def template_token_ids(
+    tokenizer: PreTrainedTokenizerBase, conv: Conversation, chat_template: str, **template_kwargs: Any
+) -> list[int]:
     """Token ids of a conversation rendered with `chat_template`, exactly as apply_chat_template returns them."""
     encoded = tokenizer.apply_chat_template(
-        conv.messages, tools=conv.tools, chat_template=chat_template, tokenize=True, return_dict=True
+        conv.messages, tools=conv.tools, chat_template=chat_template, tokenize=True, return_dict=True, **template_kwargs
     )
     return list(encoded["input_ids"])
 
 
 def assistant_mask_from_markers(
-    tokenizer: PreTrainedTokenizerBase, fixture: Conversation, chat_template: str
+    tokenizer: PreTrainedTokenizerBase, fixture: Conversation, chat_template: str, **template_kwargs: Any
 ) -> tuple[list[int], list[int]]:
     """Return (input_ids, assistant mask) as declared by the template's generation markers."""
     if not has_generation_markers(chat_template):
@@ -256,32 +266,37 @@ def assistant_mask_from_markers(
         tokenize=True,
         return_dict=True,
         return_assistant_tokens_mask=True,
+        **template_kwargs,
     )
     return list(out["input_ids"]), list(out["assistant_masks"])
 
 
 def assistant_spans_by_prefix_diff(
-    loaded: LoadedRelease, fixture: Conversation, chat_template: str | None = None
+    loaded: LoadedRelease,
+    fixture: Conversation,
+    chat_template: str | None = None,
+    template_kwargs: dict[str, Any] | None = None,
 ) -> tuple[AssistantSpan, ...]:
     """Locate every assistant message in the full rendering (see module docstring)."""
     tokenizer = loaded.tokenizer
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
     messages, tools = fixture.messages, fixture.tools
+    kw = dict(template_kwargs or {})
 
-    full = render_text(tokenizer, messages, tools, template)
+    full = render_text(tokenizer, messages, tools, template, **kw)
     ids, offsets = _tokenize_with_offsets(tokenizer, full)
 
-    renders, seen_in_full = _generation_prompt_renders(tokenizer, fixture, template, full)
+    renders, seen_in_full = _generation_prompt_renders(tokenizer, fixture, template, full, kw)
 
     spans = []
     structural_prefixes = set()
     for k in fixture.assistant_indices:
         before, prompt = renders[k]
         try:
-            span = _span_by_cut_out(loaded, fixture, template, k, full, ids, offsets, before, prompt, seen_in_full)
+            span = _span_by_cut_out(loaded, fixture, template, k, full, ids, offsets, before, prompt, seen_in_full, kw)
         except TemplateReferenceError as cut_out_error:
             # Only where the cut-out can't delimit the turn: the structural method, with its own guards.
-            found = structural_span(loaded, fixture, template, k, full, ids, offsets, before)
+            found = structural_span(loaded, fixture, template, k, full, ids, offsets, before, template_kwargs=kw)
             if isinstance(found, str):
                 raise TemplateReferenceError(f"{cut_out_error}; structural method: {found}") from cut_out_error
             span, prefix = found
@@ -307,12 +322,13 @@ def _span_by_cut_out(
     before: str,
     prompt: str,
     seen_in_full: set[str],
+    template_kwargs: dict[str, Any] | None = None,
 ) -> AssistantSpan:
     """The prefix-diff span for message k (see the module docstring)."""
     tokenizer = loaded.tokenizer
     messages, tools = fixture.messages, fixture.tools
     try:
-        without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
+        without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template, **(template_kwargs or {}))
     except jinja2.TemplateError as exc:
         raise TemplateReferenceError(
             f"message {k}: the template refuses the conversation without it ({exc}), so it can't be cut out"
@@ -377,6 +393,7 @@ def structural_span(
     offsets: list[tuple[int, int]],
     before: str,
     header_ids: frozenset[int] | None = None,
+    template_kwargs: dict[str, Any] | None = None,
 ) -> tuple[AssistantSpan, str] | str:
     """Delimit assistant message k by its structure, or say why not. Returns (span, header-to-content text) or a reason.
 
@@ -408,7 +425,8 @@ def structural_span(
     header = full[msg_start:header_end]
 
     prefix = None
-    for kwargs in ({}, THINKING_OFF):
+    kw = dict(template_kwargs or {})
+    for kwargs in (kw, {**kw, **THINKING_OFF}):
         # The generation prompt's own tail: its render minus the same mode's render without it.
         base = render_text(tokenizer, conv.messages[:k], conv.tools, template, **kwargs)
         prompt = render_text(tokenizer, conv.messages[:k], conv.tools, template, add_generation_prompt=True, **kwargs)
@@ -449,7 +467,11 @@ def structural_span(
 
 
 def _generation_prompt_renders(
-    tokenizer: PreTrainedTokenizerBase, conv: Conversation, template: str, full: str
+    tokenizer: PreTrainedTokenizerBase,
+    conv: Conversation,
+    template: str,
+    full: str,
+    template_kwargs: dict[str, Any] | None = None,
 ) -> tuple[dict[int, tuple[str, str]], set[str]]:
     """For each assistant message k: (render of messages[:k], the same with the generation prompt).
 
@@ -459,8 +481,9 @@ def _generation_prompt_renders(
     for k in conv.assistant_indices:
         if k == 0:
             raise TemplateReferenceError("an assistant message with nothing before it is not supported")
-        before = render_text(tokenizer, conv.messages[:k], conv.tools, template)
-        prompt = render_text(tokenizer, conv.messages[:k], conv.tools, template, add_generation_prompt=True)
+        kw = template_kwargs or {}
+        before = render_text(tokenizer, conv.messages[:k], conv.tools, template, **kw)
+        prompt = render_text(tokenizer, conv.messages[:k], conv.tools, template, add_generation_prompt=True, **kw)
         if not full.startswith(before):
             raise TemplateReferenceError(f"message {k}: render of messages[:{k}] is not a prefix of the full render")
         if not prompt.startswith(before):
@@ -471,7 +494,10 @@ def _generation_prompt_renders(
 
 
 def prefill_missing_turns(
-    loaded: LoadedRelease, conv: Conversation, chat_template: str | None = None
+    loaded: LoadedRelease,
+    conv: Conversation,
+    chat_template: str | None = None,
+    template_kwargs: dict[str, Any] | None = None,
 ) -> list[tuple[int, str]]:
     """Assistant turns that render without the generation prompt's trailing pre-fill: [(message index, pre-fill)].
 
@@ -481,8 +507,9 @@ def prefill_missing_turns(
     """
     tokenizer = loaded.tokenizer
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
-    full = render_text(tokenizer, conv.messages, conv.tools, template)
-    renders, seen_in_full = _generation_prompt_renders(tokenizer, conv, template, full)
+    kw = dict(template_kwargs or {})
+    full = render_text(tokenizer, conv.messages, conv.tools, template, **kw)
+    renders, seen_in_full = _generation_prompt_renders(tokenizer, conv, template, full, kw)
     found = []
     for k, (before, prompt) in renders.items():
         if not full.startswith(prompt):
@@ -529,7 +556,10 @@ def _prefill_anchor(
 
 
 def prefix_breaks(
-    tokenizer: PreTrainedTokenizerBase, fixture: Conversation, chat_template: str | None = None
+    tokenizer: PreTrainedTokenizerBase,
+    fixture: Conversation,
+    chat_template: str | None = None,
+    template_kwargs: dict[str, Any] | None = None,
 ) -> tuple[int, ...]:
     """Boundaries j where render(messages[:j]) is NOT a prefix of the full render.
 
@@ -540,8 +570,11 @@ def prefix_breaks(
     """
     template = chat_template if chat_template is not None else model_chat_template(tokenizer)
     messages, tools = fixture.messages, fixture.tools
-    full = render_text(tokenizer, messages, tools, template)
-    return tuple(j for j in range(1, len(messages)) if not full.startswith(render_text(tokenizer, messages[:j], tools, template)))
+    kw = dict(template_kwargs or {})
+    full = render_text(tokenizer, messages, tools, template, **kw)
+    return tuple(
+        j for j in range(1, len(messages)) if not full.startswith(render_text(tokenizer, messages[:j], tools, template, **kw))
+    )
 
 
 def render_text(

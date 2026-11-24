@@ -7,14 +7,16 @@ from parity.checks.tier1.special_tokens import SpecialTokens
 from parity.checks.tier1.template_parity import TemplateParity
 from parity.checks.tier1.truncation import Truncation
 
-TIER1_CHECKS = (
-    TemplateParity(),
-    AssistantMask(),
-    EndOfTurn(),
-    SpecialTokens(),
-    Truncation(),
-    MultiturnPrefix(),
-)
+
+
+def tier1_checks(serving_mode: str | None = None) -> tuple:
+    """The six checks, judging against the reference rendered in this serving mode (None: the model's default)."""
+    return tuple(
+        cls(serving_mode) for cls in (TemplateParity, AssistantMask, EndOfTurn, SpecialTokens, Truncation, MultiturnPrefix)
+    )
+
+
+TIER1_CHECKS = tier1_checks()
 
 __all__ = [
     "TIER1_CHECKS",
@@ -24,4 +26,5 @@ __all__ = [
     "SpecialTokens",
     "TemplateParity",
     "Truncation",
+    "tier1_checks",
 ]

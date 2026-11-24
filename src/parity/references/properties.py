@@ -30,6 +30,7 @@ from parity.references.template import (
     template_token_ids,
 )
 from parity.release import LoadedRelease
+from parity.serving import resolve_mode, template_kwargs
 
 # (tokens from the break to the end of the prefix, tokens removed from the prefix, tokens inserted from the full)
 Break = tuple[int, tuple[int, ...], tuple[int, ...]]
@@ -44,6 +45,7 @@ class TemplateProperty:
     kind: str
     summary: str
     details: tuple[dict[str, Any], ...]
+    serving_mode: str = "thinking"  # the chat-template arguments the property was found under (parity.serving)
 
 
 def boundaries(conv: Conversation) -> list[int]:
@@ -93,22 +95,23 @@ def describe_break(tokenizer: Any, signature: Break | None) -> dict[str, Any] | 
     }
 
 
-def prefix_break_property_id(release: LoadedRelease, template_sha: str) -> str:
+def prefix_break_property_id(release: LoadedRelease, template_sha: str, mode: str | None = None) -> str:
     r = release.release
-    return f"{r.repo_id}@{r.revision[:12]}#prefix-breaks@{template_sha[:12]}"
+    return f"{r.repo_id}@{r.revision[:12]}#prefix-breaks@{template_sha[:12]}/{resolve_mode(release, mode)}"
 
 
 def prefix_break_property(
-    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation], mode: str | None = None
 ) -> TemplateProperty | None:
     """The template's prefix breaks on these conversations, or None if it preserves every prefix."""
     tokenizer = release.tokenizer
+    kw = template_kwargs(release, mode)
     details = []
     for conv in conversations:
-        full = template_token_ids(tokenizer, conv, template)
+        full = template_token_ids(tokenizer, conv, template, **kw)
         breaks = []
         for j in boundaries(conv):
-            signature = break_signature(template_token_ids(tokenizer, conv.prefix(j), template), full)
+            signature = break_signature(template_token_ids(tokenizer, conv.prefix(j), template, **kw), full)
             if signature is not None:
                 breaks.append({"boundary": j, "edit": describe_break(tokenizer, signature)})
         if breaks:
@@ -118,7 +121,7 @@ def prefix_break_property(
     sha = template_sha256(template)
     n = sum(len(d["breaks"]) for d in details)
     return TemplateProperty(
-        id=prefix_break_property_id(release, sha),
+        id=prefix_break_property_id(release, sha, mode),
         model=release.release.spec,
         template_source=source,
         template_sha256=sha,
@@ -129,26 +132,28 @@ def prefix_break_property(
             "Frameworks that use this template inherit these breaks."
         ),
         details=tuple(details),
+        serving_mode=resolve_mode(release, mode),
     )
 
 
-def marker_disagreement_property_id(release: LoadedRelease, template_sha: str) -> str:
+def marker_disagreement_property_id(release: LoadedRelease, template_sha: str, mode: str | None = None) -> str:
     r = release.release
-    return f"{r.repo_id}@{r.revision[:12]}#marker-disagreement@{template_sha[:12]}"
+    return f"{r.repo_id}@{r.revision[:12]}#marker-disagreement@{template_sha[:12]}/{resolve_mode(release, mode)}"
 
 
 def marker_disagreement_property(
-    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation], mode: str | None = None
 ) -> TemplateProperty | None:
     """Where the template's own generation markers disagree with the prefix diff on a non-neutral token.
 
     Every check on such a fixture is inconclusive; this puts the disagreement on the report card as a
     possible model-template finding instead of leaving it in reason text.
     """
+    kw = template_kwargs(release, mode)
     details = []
     for conv in conversations:
         try:
-            render_reference(release, conv, template, source)
+            render_reference(release, conv, template, source, kw)
         except MarkerDisagreementError as exc:
             details.append({"fixture": conv.id, "count": len(exc.positions), "positions": exc.positions[:16]})
         except TemplateReferenceError:
@@ -157,7 +162,7 @@ def marker_disagreement_property(
         return None
     sha = template_sha256(template)
     return TemplateProperty(
-        id=marker_disagreement_property_id(release, sha),
+        id=marker_disagreement_property_id(release, sha, mode),
         model=release.release.spec,
         template_source=source,
         template_sha256=sha,
@@ -168,16 +173,17 @@ def marker_disagreement_property(
             "those fixtures is inconclusive. Possible model-template finding: send to /triage."
         ),
         details=tuple(details),
+        serving_mode=resolve_mode(release, mode),
     )
 
 
-def prefill_property_id(release: LoadedRelease, template_sha: str) -> str:
+def prefill_property_id(release: LoadedRelease, template_sha: str, mode: str | None = None) -> str:
     r = release.release
-    return f"{r.repo_id}@{r.revision[:12]}#prefill-missing@{template_sha[:12]}"
+    return f"{r.repo_id}@{r.revision[:12]}#prefill-missing@{template_sha[:12]}/{resolve_mode(release, mode)}"
 
 
 def prefill_property(
-    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation], mode: str | None = None
 ) -> TemplateProperty | None:
     """Assistant turns that render without the generation prompt's pre-fill (DeepSeek V4.1's `<think>`).
 
@@ -185,10 +191,11 @@ def prefill_property(
     agreeing. It is also a train/serve mismatch for Tier 3: at inference the model is prompted with the
     pre-fill; in training history it never sees it.
     """
+    kw = template_kwargs(release, mode)
     details = []
     for conv in conversations:
         try:
-            missing = prefill_missing_turns(release, conv, template)
+            missing = prefill_missing_turns(release, conv, template, kw)
         except TemplateReferenceError:
             continue
         if missing:
@@ -198,7 +205,7 @@ def prefill_property(
     sha = template_sha256(template)
     prefills = sorted({t["prefill"] for d in details for t in d["turns"]})
     return TemplateProperty(
-        id=prefill_property_id(release, sha),
+        id=prefill_property_id(release, sha, mode),
         model=release.release.spec,
         template_source=source,
         template_sha256=sha,
@@ -210,17 +217,22 @@ def prefill_property(
             "Tier 3: served turns start with the pre-fill, trained history turns don't."
         ),
         details=tuple(details),
+        serving_mode=resolve_mode(release, mode),
     )
 
 
 def template_properties_for(
-    release: LoadedRelease, template: str, source: str, conversations: Iterable[Conversation]
+    release: LoadedRelease,
+    template: str,
+    source: str,
+    conversations: Iterable[Conversation],
+    mode: str | None = None,
 ) -> list[TemplateProperty]:
-    """Every model-level property of this template on these conversations, for the report."""
+    """Every model-level property of this template on these conversations in this serving mode, for the report."""
     conversations = list(conversations)
     found = [
-        prefix_break_property(release, template, source, conversations),
-        marker_disagreement_property(release, template, source, conversations),
-        prefill_property(release, template, source, conversations),
+        prefix_break_property(release, template, source, conversations, mode),
+        marker_disagreement_property(release, template, source, conversations, mode),
+        prefill_property(release, template, source, conversations, mode),
     ]
     return [p for p in found if p is not None]

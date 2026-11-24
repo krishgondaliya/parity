@@ -73,6 +73,7 @@ class TemplateStub:
         batching: str = "padded",
         padding_side: str = "right",
         label_convention: str = "aligned",
+        labels_mode: str | None = None,
     ):
         assert labels_from in ("reference", "markers")
         assert padding_side in ("right", "left")
@@ -88,6 +89,7 @@ class TemplateStub:
         self.batching = batching
         self.padding_side = padding_side
         self.label_convention = label_convention
+        self.labels_mode = labels_mode  # labels follow our reference in this serving mode (None: the model's default)
         self.pad_token_id = release.tokenizer.pad_token_id
 
     @property
@@ -113,7 +115,7 @@ class TemplateStub:
             assert marker_ids == ids
             labels = [t if m else LABEL_IGNORE for t, m in zip(ids, mask)]
         else:
-            zones = reference_on(self.release, conv, self.template, self.template_source).zones
+            zones = reference_on(self.release, conv, self.template, self.template_source, self.labels_mode).zones
             train = {Zone.MUST_TRAIN} | ({Zone.NEUTRAL} if self.neutral_trained else set())
             labels = [t if z in train else LABEL_IGNORE for t, z in zip(ids, zones)]
 

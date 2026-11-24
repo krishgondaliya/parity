@@ -27,6 +27,7 @@ from parity.engine.plants import Plant
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Conversation, Fixture
 from parity.references.properties import prefill_property_id
+from parity.serving import resolve_mode, template_kwargs
 from parity.references.template import (
     TemplateReference,
     TemplateReferenceError,
@@ -63,7 +64,19 @@ class Tier1Check:
 
     id: ClassVar[str]
     tier: ClassVar[int] = 1
-    base_cfg: ClassVar[TrainCfg] = TrainCfg(objective="assistant_only")
+
+    def __init__(self, serving_mode: str | None = None):
+        # None: the model's documented default (parity.serving). The mode picks the reference's template
+        # arguments; frameworks encode the same rows in every mode.
+        self.serving_mode = serving_mode
+
+    @property
+    def base_cfg(self) -> TrainCfg:
+        return TrainCfg(objective="assistant_only", serving_mode=getattr(self, "serving_mode", None))
+
+    def mode(self, release: LoadedRelease) -> str:
+        """The serving mode this check judges in, for this model."""
+        return resolve_mode(release, getattr(self, "serving_mode", None))
 
     def not_applicable(self, fixture: Fixture) -> str | None:
         return None
@@ -81,11 +94,11 @@ class Tier1Check:
         a span anchored past a missing pre-fill depends on the "pre-fill missing from history" property.
         """
         try:
-            ref = declared_reference(release, fixture, declaration)
+            ref = declared_reference(release, fixture, declaration, self.mode(release))
         except TemplateReferenceError:
             return []
         if any(span.prefill_missing for span in ref.spans):
-            return [prefill_property_id(release, ref.template_sha256)]
+            return [prefill_property_id(release, ref.template_sha256, self.mode(release))]
         return []
 
     def verdict(
@@ -119,6 +132,7 @@ class Tier1Check:
                 flags.append("declared_actual_mismatch")
                 fields["evidence"] = {**fields.get("evidence", {}), "triage": "declared/actual mismatch"}
         fields["flags"] = sorted(set(flags))
+        fields.setdefault("serving_mode", self.mode(adapter.release))
         return make_verdict(self.id, adapter, fixture.id, result, **fields)
 
 
@@ -143,13 +157,15 @@ def adapter_error(field_name: str, status: str) -> str:
     )
 
 
-def template_status(release: LoadedRelease, conv: Conversation, declaration: Declaration, ids: Sequence[int]) -> str:
-    """Do the framework's tokens confirm the declared chat template?"""
+def template_status(
+    release: LoadedRelease, conv: Conversation, declaration: Declaration, ids: Sequence[int], mode: str | None = None
+) -> str:
+    """Do the framework's tokens confirm the declared chat template (rendered in `mode`)?"""
     ids = tuple(ids)
-    if ids == token_ids_on(release, conv, declaration.chat_template):
+    if ids == token_ids_on(release, conv, declaration.chat_template, mode):
         return CONSISTENT
     official = official_template(release)
-    if declaration.chat_template != official and ids == token_ids_on(release, conv, official):
+    if declaration.chat_template != official and ids == token_ids_on(release, conv, official, mode):
         return CONTRADICTED + "the tokens are exactly the model's own template's render, not the declared template's"
     return MISMATCH + "the tokens match neither the declared template's render nor the model's own"
 
@@ -165,7 +181,7 @@ def unaligned_verdict(
     **fields: Any,
 ) -> Verdict:
     """Inconclusive: the framework's tokens don't line up with its declared template's render."""
-    status = template_status(release, fixture, declaration, ids)
+    status = template_status(release, fixture, declaration, ids, check.mode(release))
     reason = adapter_error("chat_template", status) if is_contradicted(status) else NO_ALIGNMENT
     return check.verdict(
         adapter,
@@ -179,38 +195,47 @@ def unaligned_verdict(
     )
 
 
-# References, cached per (release, template, conversation content). They are pure functions of those.
+# References, cached per (release, template, conversation content, serving mode). They are pure functions of those.
+# `mode=None` means the model's documented default (parity.serving).
 
-_REFERENCES: dict[tuple[str, str, str, str, str], TemplateReference] = {}
-_TOKEN_IDS: dict[tuple[str, str, str], tuple[int, ...]] = {}
+_REFERENCES: dict[tuple[str, str, str, str, str, str], TemplateReference] = {}
+_TOKEN_IDS: dict[tuple[str, str, str, str], tuple[int, ...]] = {}
 
 
 def official_template(release: LoadedRelease) -> str:
     return model_chat_template(release.tokenizer)
 
 
-def reference_on(release: LoadedRelease, conv: Conversation, template: str, source: str) -> TemplateReference:
-    key = (release.release.spec, template_sha256(template), conv.content_key, conv.id, source)
+def reference_on(
+    release: LoadedRelease, conv: Conversation, template: str, source: str, mode: str | None = None
+) -> TemplateReference:
+    resolved = resolve_mode(release, mode)
+    key = (release.release.spec, template_sha256(template), conv.content_key, conv.id, source, resolved)
     if key not in _REFERENCES:
-        _REFERENCES[key] = render_reference(release, conv, template, source)
+        kwargs = template_kwargs(release, resolved)
+        _REFERENCES[key] = render_reference(release, conv, template, source, kwargs)
     return _REFERENCES[key]
 
 
-def official_reference(release: LoadedRelease, conv: Conversation) -> TemplateReference:
-    return reference_on(release, conv, official_template(release), "model")
+def official_reference(release: LoadedRelease, conv: Conversation, mode: str | None = None) -> TemplateReference:
+    return reference_on(release, conv, official_template(release), "model", mode)
 
 
-def declared_reference(release: LoadedRelease, conv: Conversation, declaration: Declaration) -> TemplateReference:
+def declared_reference(
+    release: LoadedRelease, conv: Conversation, declaration: Declaration, mode: str | None = None
+) -> TemplateReference:
     template = declaration.chat_template
     source = "model" if template == official_template(release) else declaration.template_source
-    return reference_on(release, conv, template, source)
+    return reference_on(release, conv, template, source, mode)
 
 
-def token_ids_on(release: LoadedRelease, conv: Conversation, template: str) -> tuple[int, ...]:
+def token_ids_on(release: LoadedRelease, conv: Conversation, template: str, mode: str | None = None) -> tuple[int, ...]:
     """Just the token ids of a template render, for conversations that need no spans (e.g. prefixes)."""
-    key = (release.release.spec, template_sha256(template), conv.content_key)
+    resolved = resolve_mode(release, mode)
+    key = (release.release.spec, template_sha256(template), conv.content_key, resolved)
     if key not in _TOKEN_IDS:
-        _TOKEN_IDS[key] = tuple(template_token_ids(release.tokenizer, conv, template))
+        kwargs = template_kwargs(release, resolved)
+        _TOKEN_IDS[key] = tuple(template_token_ids(release.tokenizer, conv, template, **kwargs))
     return _TOKEN_IDS[key]
 
 
@@ -231,6 +256,7 @@ def reference_info(release: LoadedRelease, ref: TemplateReference) -> dict[str, 
         "template_sha256": ref.template_sha256,
         "official_template_sha256": template_sha256(official_template(release)),
         "marker_check": ref.marker_check,
+        "template_kwargs": dict(ref.template_kwargs),
         **library_versions(),
     }
 

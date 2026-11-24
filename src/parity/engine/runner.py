@@ -34,7 +34,11 @@ def evaluate_suite(checks: Sequence[Any], adapter: Any, fixtures: Sequence[Fixtu
     fails on that fixture are held back as "blocked by t1.template_parity":
     inconclusive, flagged, with their own result kept in the evidence. Their
     passes stay passes. A matched known difference blocks nothing.
+
+    One serving mode per call: verdicts are matched to template parity by check id.
     """
+    if len({getattr(check, "serving_mode", None) for check in checks}) > 1:
+        raise ValueError("evaluate_suite judges one serving mode per call; call it once per mode")
     verdicts = []
     for fixture in fixtures:
         by_check = {check.id: evaluate(check, adapter, fixture) for check in checks}
@@ -67,6 +71,8 @@ def _blocked(v: Verdict, parity: Verdict) -> Verdict:
 def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     """Every verdict this returns records the adapter's declaration (or why it couldn't be read)."""
     verdict = _evaluate(check, adapter, fixture)
+    if verdict.serving_mode is None and hasattr(check, "mode"):
+        verdict = replace(verdict, serving_mode=check.mode(adapter.release))
     if verdict.result != "not_applicable" and hasattr(check, "reference_properties"):
         try:
             extra = check.reference_properties(adapter.release, fixture, adapter.declare(check.base_cfg))
@@ -122,6 +128,7 @@ def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
 
 def run_safely(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     """Run the comparison; anything that stops it becomes inconclusive with the reason recorded."""
+    mode = check.mode(adapter.release) if hasattr(check, "mode") else None
     try:
         return check.run(adapter, adapter.release, fixture)
     except MarkerDisagreementError as exc:
@@ -133,10 +140,11 @@ def run_safely(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
             reason=f"reference: {exc}",
             evidence={"marker_disagreement": exc.positions[:16], "triage": "possible model-template finding"},
             flags=["marker_disagreement"],
-            template_properties=[marker_disagreement_property_id(adapter.release, exc.template_sha256)],
+            template_properties=[marker_disagreement_property_id(adapter.release, exc.template_sha256, mode)],
+            serving_mode=mode,
         )
     except TemplateReferenceError as exc:
-        return make_verdict(check.id, adapter, fixture.id, "inconclusive", reason=f"reference: {exc}")
+        return make_verdict(check.id, adapter, fixture.id, "inconclusive", reason=f"reference: {exc}", serving_mode=mode)
     except Exception as exc:  # noqa: BLE001 - a crash is never a pass
         return make_verdict(
             check.id, adapter, fixture.id, "inconclusive", reason=f"error: {type(exc).__name__}: {exc}"

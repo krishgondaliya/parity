@@ -83,7 +83,7 @@ class MultiturnPrefix(Tier1Check):
         tokenizer = release.tokenizer
         declaration = adapter.declare(self.base_cfg)
         template = declaration.chat_template
-        ref = declared_reference(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
         info = reference_info(release, ref)
         full = adapter.encode(fixture, self.base_cfg)
         if isinstance(full, Dropped):
@@ -96,13 +96,13 @@ class MultiturnPrefix(Tier1Check):
                 declared=declaration,
                 evidence={"dropped": full.reason, "at": "full"},
             )
-        status = template_status(release, fixture, declaration, full.input_ids)
+        status = template_status(release, fixture, declaration, full.input_ids, self.mode(release))
         if is_contradicted(status):
             return unaligned_verdict(
                 self, adapter, release, fixture, declaration, full.input_ids, ref.input_ids, reference=info
             )
 
-        template_full = token_ids_on(release, fixture, template)
+        template_full = token_ids_on(release, fixture, template, self.mode(release))
         checked = []
         for j in boundaries(fixture):
             prefix = fixture.prefix(j)
@@ -110,7 +110,7 @@ class MultiturnPrefix(Tier1Check):
             if isinstance(framework_prefix, Dropped):
                 checked.append({"boundary": j, "ok": False, "dropped": framework_prefix.reason})
                 continue
-            template_break = break_signature(token_ids_on(release, prefix, template), template_full)
+            template_break = break_signature(token_ids_on(release, prefix, template, self.mode(release)), template_full)
             framework_break = break_signature(framework_prefix.input_ids, full.input_ids)
             checked.append(
                 {
@@ -134,7 +134,7 @@ class MultiturnPrefix(Tier1Check):
         evidence: dict[str, Any] = {"boundaries": checked}
         properties = []
         if inherited:
-            prop = prefix_break_property_id(release, template_sha256(template))
+            prop = prefix_break_property_id(release, template_sha256(template), self.mode(release))
             properties.append(prop)
             evidence["inherited_from_template"] = (
                 f"The prefix is NOT preserved at boundaries {inherited}. The framework breaks it exactly as its "

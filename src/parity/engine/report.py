@@ -10,6 +10,10 @@ Each model gets one section, in this order:
    check actually ran on. A cell whose verdicts inherit a template property
    says so and links to it, so a pass that inherits prefix breaks never reads
    as "prefix preserved".
+
+Results come in one table per serving mode (parity.serving). The primary mode
+comes first; any other mode is a clearly labeled secondary result: the same
+encoded rows, judged against a second reference rendered in that mode.
 """
 
 from __future__ import annotations
@@ -18,7 +22,7 @@ import json
 import re
 from collections.abc import Iterable
 
-from parity.engine.summary import summarize
+from parity.engine.summary import Cell, summarize
 from parity.engine.verdict import Verdict
 from parity.references.properties import TemplateProperty
 
@@ -35,7 +39,12 @@ FLAG_NOTE = {
 }
 
 
-def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplateProperty]) -> str:
+PRIMARY_MODE = "thinking"  # the kill test's primary results (docs/DECISIONS.md, 2026-11-24, from P-0001)
+
+
+def render_summary(
+    verdicts: Iterable[Verdict], properties: Iterable[TemplateProperty], primary_mode: str = PRIMARY_MODE
+) -> str:
     verdicts = list(verdicts)
     by_id = {p.id: p for p in properties}
     referenced = {p for v in verdicts for p in v.template_properties}
@@ -53,7 +62,8 @@ def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplatePro
         for p in model_properties:
             lines += [
                 f'<a id="{anchor(p.id)}"></a>',
-                f"**{p.id}** ({p.kind}; template `{p.template_source}`, sha256 `{p.template_sha256[:12]}`)",
+                f"**{p.id}** ({p.kind}; template `{p.template_source}`, sha256 `{p.template_sha256[:12]}`, "
+                f"{p.serving_mode} mode)",
                 "",
                 p.summary,
                 "",
@@ -61,28 +71,42 @@ def render_summary(verdicts: Iterable[Verdict], properties: Iterable[TemplatePro
             lines += _property_details(p)
             lines.append("")
 
-        lines += [
-            "### Results",
-            "",
-            "| Framework | Check | Result | Ran on | Notes |",
-            "| --- | --- | --- | --- | --- |",
-        ]
-        for c in (c for c in cells if c.model == model):
-            notes = []
-            if c.known_differences:
-                notes.append("known differences: " + ", ".join(c.known_differences))
-            for prop in c.template_properties:
-                note = INHERITED_NOTE.get(by_id[prop].kind, "inherits a template property")
-                notes.append(f"{note} (see [{prop}](#{anchor(prop)}))")
-            for flag, n in c.flags.items():
-                notes.append(f"{FLAG_NOTE.get(flag, flag)} on {n} fixture(s)")
-            if c.not_applicable:
-                notes.append(f"not applicable on {c.not_applicable} fixture(s)")
-            lines.append(
-                f"| {c.framework} | {c.check} | {c.result} | {c.ran_on} of {c.fixtures} | {'; '.join(notes)} |"
-            )
-        lines.append("")
+        model_cells = [c for c in cells if c.model == model]
+        modes = sorted({c.serving_mode for c in model_cells}, key=lambda m: (m != primary_mode, m))
+        for mode in modes:
+            if mode == primary_mode:
+                lines += [f"### Results: {mode} mode (primary)", ""]
+            else:
+                lines += [
+                    f"### Secondary results: {mode} mode",
+                    "",
+                    "Secondary: the same encoded rows as the primary results, judged against a second reference "
+                    f"rendered in {mode} mode. No extra framework runs.",
+                    "",
+                ]
+            lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
     return "\n".join(lines)
+
+
+def _results_table(cells: list[Cell], by_id: dict[str, TemplateProperty]) -> list[str]:
+    lines = [
+        "| Framework | Check | Result | Ran on | Notes |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for c in cells:
+        notes = []
+        if c.known_differences:
+            notes.append("known differences: " + ", ".join(c.known_differences))
+        for prop in c.template_properties:
+            note = INHERITED_NOTE.get(by_id[prop].kind, "inherits a template property")
+            notes.append(f"{note} (see [{prop}](#{anchor(prop)}))")
+        for flag, n in c.flags.items():
+            notes.append(f"{FLAG_NOTE.get(flag, flag)} on {n} fixture(s)")
+        if c.not_applicable:
+            notes.append(f"not applicable on {c.not_applicable} fixture(s)")
+        lines.append(f"| {c.framework} | {c.check} | {c.result} | {c.ran_on} of {c.fixtures} | {'; '.join(notes)} |")
+    lines.append("")
+    return lines
 
 
 def anchor(property_id: str) -> str:

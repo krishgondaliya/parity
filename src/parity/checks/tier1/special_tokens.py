@@ -87,9 +87,9 @@ class SpecialTokens(Tier1Check):
         tokenizer = release.tokenizer
         # Two encode calls, each with the declaration for its own config: the row, then the padded batch.
         declaration = adapter.declare(self.base_cfg)
-        ref = declared_reference(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
         info = reference_info(release, ref)
-        _, pad_to = batch_plan(release, fixture, declaration)
+        _, pad_to = batch_plan(release, fixture, declaration, self.mode(release))
         batch_cfg = replace(self.base_cfg, pad_to=pad_to)
         batch_declaration = adapter.declare(batch_cfg)
         pad = batch_declaration.pad_token_id
@@ -111,7 +111,7 @@ class SpecialTokens(Tier1Check):
                 declared=declaration,
                 evidence={"dropped": out.reason, "note": "the conversation was dropped with no length limit"},
             )
-        template = template_status(release, fixture, declaration, out.input_ids)
+        template = template_status(release, fixture, declaration, out.input_ids, self.mode(release))
         if is_contradicted(template):
             return unaligned_verdict(
                 self,
@@ -198,7 +198,7 @@ class SpecialTokens(Tier1Check):
         single: Encoded,
     ) -> _PaddingResult:
         """Judge the padded batch. `declaration` is the adapter's declaration for `cfg`, the batch's config."""
-        partner, pad_to = batch_plan(release, fixture, declaration)
+        partner, pad_to = batch_plan(release, fixture, declaration, self.mode(release))
         assert cfg.pad_to == pad_to
         batch = adapter.encode_batch([fixture, partner], cfg)
 
@@ -264,8 +264,8 @@ class SpecialTokens(Tier1Check):
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
         declaration = declare(self.base_cfg)
-        ref = declared_reference(release, fixture, declaration)
-        _, pad_to = batch_plan(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
+        _, pad_to = batch_plan(release, fixture, declaration, self.mode(release))
         batch_declaration = declare(replace(self.base_cfg, pad_to=pad_to))  # the config the batch runs under
         out = []
 
@@ -355,11 +355,13 @@ def _positions_restart(row: Encoded) -> bool:
     return any(b <= a for a, b in zip(attended, attended[1:]))
 
 
-def batch_plan(release: LoadedRelease, fixture: Fixture, declaration: Declaration) -> tuple[Conversation, int]:
+def batch_plan(
+    release: LoadedRelease, fixture: Fixture, declaration: Declaration, mode: str | None = None
+) -> tuple[Conversation, int]:
     """The partner fixture (the one whose length differs most) and pad_to. Decided from references, not output."""
     template = declaration.chat_template
-    own = len(token_ids_on(release, fixture, template))
-    lengths = {fid: len(token_ids_on(release, load_fixture(fid), template)) for fid in FIXTURE_IDS if fid != fixture.id}
+    own = len(token_ids_on(release, fixture, template, mode))
+    lengths = {fid: len(token_ids_on(release, load_fixture(fid), template, mode)) for fid in FIXTURE_IDS if fid != fixture.id}
     partner_id = max(lengths, key=lambda fid: abs(lengths[fid] - own))  # ties: first in FIXTURE_IDS order
     return load_fixture(partner_id), max(own, lengths[partner_id]) + PAD_MARGIN
 

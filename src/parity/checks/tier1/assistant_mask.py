@@ -59,7 +59,7 @@ class AssistantMask(Tier1Check):
 
     def run(self, adapter: Any, release: LoadedRelease, fixture: Fixture) -> Verdict:
         declaration = adapter.declare(self.base_cfg)
-        ref = declared_reference(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
         info = reference_info(release, ref)
         conventions: dict[str, Any] = {"label_convention": declaration.label_convention}
         out = adapter.encode(fixture, self.base_cfg)
@@ -123,7 +123,7 @@ class AssistantMask(Tier1Check):
         ]
         if len(fixture.assistant_indices) >= 2:
             faults.append(("train_only_last_turn", "loss only on the last assistant turn", _train_only_last_turn))
-        spans = declared_reference(release, fixture, declare(self.base_cfg)).spans
+        spans = declared_reference(release, fixture, declare(self.base_cfg), self.mode(release)).spans
         if spans and all(s.token_message_start is not None and s.token_message_start < s.token_start for s in spans):
             faults.append(
                 ("span_starts_at_header", "each assistant span also trains its role header", _starts_at_header(spans))

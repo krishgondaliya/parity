@@ -59,6 +59,7 @@ class Verdict:
     declaration: dict[str, Any] = field(default_factory=dict)  # what the adapter declared, and what was verified
     template_properties: list[str] = field(default_factory=list)  # model-level template properties this verdict relies on
     flags: list[str] = field(default_factory=list)  # see FLAGS; each is shown on the report card
+    serving_mode: str | None = None  # "thinking" or "non_thinking": which reference the verdict was judged against
     env_lock: str | None = None
     env_fingerprint: str | None = None  # sha256 of the lockfile the framework environment was built from
     repro: str | None = None

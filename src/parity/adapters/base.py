@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, ClassVar, Protocol
 
 from parity.fixtures import Conversation
@@ -40,6 +40,7 @@ from parity.release import LoadedRelease
 LABEL_IGNORE = -100  # the label value that means "no loss on this token"
 
 OBJECTIVES = ("assistant_only", "completion_only", "all")
+SERVING_MODES = ("thinking", "non_thinking")
 LABEL_CONVENTIONS = ("aligned", "pre_shifted")
 TRUNCATION_MODES = ("right", "left", "drop")
 BATCHING = ("padded", "packed")
@@ -56,6 +57,10 @@ class TrainCfg:
     grad_accum: used from Tier 2 on.
     pad_to: `encode_batch` only. Pad every row to exactly this many tokens
         through the framework's own collator. Checks set it longer than every row.
+    serving_mode: "thinking" or "non_thinking"; None means the model's documented
+        default (parity.serving). It picks the reference's chat-template arguments.
+        Phase 0 frameworks encode with their own default arguments in every mode, so
+        adapters don't pass it to the framework and must not re-encode for it.
     """
 
     objective: str = "assistant_only"
@@ -63,6 +68,7 @@ class TrainCfg:
     packing: bool = False
     grad_accum: int = 1
     pad_to: int | None = None
+    serving_mode: str | None = None
 
     def __post_init__(self) -> None:
         if self.objective not in OBJECTIVES:
@@ -71,6 +77,12 @@ class TrainCfg:
             raise ValueError(f"max_len must be positive, got {self.max_len}")
         if self.pad_to is not None and self.pad_to < 1:
             raise ValueError(f"pad_to must be positive, got {self.pad_to}")
+        if self.serving_mode is not None and self.serving_mode not in SERVING_MODES:
+            raise ValueError(f"serving_mode must be one of {SERVING_MODES}, got {self.serving_mode!r}")
+
+    def for_framework(self) -> TrainCfg:
+        """The config as the framework sees it: the serving mode isn't passed to it (see serving_mode)."""
+        return replace(self, serving_mode=None)
 
 
 @dataclass(frozen=True)

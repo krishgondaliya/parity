@@ -189,6 +189,7 @@ class AxolotlAdapter:
 
     def declare(self, cfg: TrainCfg) -> Declaration:
         """Read Axolotl's loaded config and live objects for exactly this config. Nothing here is hardcoded."""
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         if cfg not in self._declarations:
             axolotl_cfg, dataset, steps = self._prepare([{"messages": copy.deepcopy(PROBE)}], cfg)
             trainer = self._trainer(axolotl_cfg, dataset, steps)
@@ -196,6 +197,7 @@ class AxolotlAdapter:
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         key = (conv.id, conv.content_key, cfg)
         if key not in self._encoded:
             axolotl_cfg, dataset, _ = self._prepare(self._rows([conv]), cfg)
@@ -210,6 +212,7 @@ class AxolotlAdapter:
         return self._encoded[key]
 
     def encode_batch(self, convs: Sequence[Conversation], cfg: TrainCfg) -> Batch:
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         key = (tuple(f"{conv.id}:{conv.content_key}" for conv in convs), cfg)
         if key not in self._batches:
             axolotl_cfg, dataset, steps = self._prepare(self._rows(convs), cfg, micro_batch_size=len(convs))

@@ -1,4 +1,4 @@
-"""Roll verdicts up into one cell per (model, framework, check).
+"""Roll verdicts up into one cell per (model, framework, check, serving mode).
 
 Each cell reports how many fixtures the check actually ran on (everything that
 was not `not_applicable`). A cell where the check ran on zero fixtures is
@@ -26,6 +26,7 @@ class Cell:
     model: str
     framework: str
     check: str
+    serving_mode: str  # the reference's mode (parity.serving); "unrecorded" for verdicts written before modes existed
     fixtures: int
     ran_on: int
     passed: int
@@ -40,12 +41,12 @@ class Cell:
 
 
 def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
-    groups: dict[tuple[str, str, str], list[Verdict]] = defaultdict(list)
+    groups: dict[tuple[str, str, str, str], list[Verdict]] = defaultdict(list)
     for v in verdicts:
-        groups[(v.model, v.framework, v.check)].append(require_self_test(v))
+        groups[(v.model, v.framework, v.check, v.serving_mode or "unrecorded")].append(require_self_test(v))
 
     cells = []
-    for (model, framework, check), vs in sorted(groups.items()):
+    for (model, framework, check, mode), vs in sorted(groups.items()):
         passed = sum(v.result == "pass" for v in vs)
         failed = sum(v.result == "fail" and v.kind == "bug" for v in vs)
         differences = sum(v.result == "fail" and v.kind == "difference" for v in vs)
@@ -67,6 +68,7 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 model=model,
                 framework=framework,
                 check=check,
+                serving_mode=mode,
                 fixtures=len(vs),
                 ran_on=ran_on,
                 passed=passed,

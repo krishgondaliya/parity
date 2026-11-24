@@ -77,12 +77,12 @@ class Truncation(Tier1Check):
         tokenizer = release.tokenizer
         # Two encode calls, each with the declaration for its own config: no limit, then the limit.
         base = adapter.declare(self.base_cfg)
-        base_ref = declared_reference(release, fixture, base)
+        base_ref = declared_reference(release, fixture, base, self.mode(release))
         max_len = limit_for(fixture, base_ref)
         cut_cfg = replace(self.base_cfg, max_len=max_len)
         declaration = adapter.declare(cut_cfg)
         mode = declaration.truncation_mode
-        ref = declared_reference(release, fixture, declaration)
+        ref = declared_reference(release, fixture, declaration, self.mode(release))
         info = reference_info(release, ref)
         conventions = {
             "truncation_mode": mode,
@@ -148,7 +148,7 @@ class Truncation(Tier1Check):
         return verdict("fail", MISMATCH + "the row matches no truncation mode", kind="bug", evidence=evidence)
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
-        ref = declared_reference(release, fixture, declare(self.base_cfg))
+        ref = declared_reference(release, fixture, declare(self.base_cfg), self.mode(release))
         max_len = limit_for(fixture, ref)
         mode = declare(replace(self.base_cfg, max_len=max_len)).truncation_mode  # the config the faults run under
         cut = len(ref.input_ids) > max_len

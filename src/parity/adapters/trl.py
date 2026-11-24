@@ -150,12 +150,14 @@ class TRLAdapter:
 
     def declare(self, cfg: TrainCfg) -> Declaration:
         """Read TRL's live objects for exactly this config. Nothing here is hardcoded."""
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         if cfg not in self._declarations:
             trainer = self._trainer([{"messages": copy.deepcopy(PROBE)}], cfg)
             self._declarations[cfg] = _declaration(trainer)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         key = (conv.id, conv.content_key, cfg)
         if key not in self._encoded:
             trainer = self._trainer(self._rows([conv]), cfg)
@@ -170,6 +172,7 @@ class TRLAdapter:
         return self._encoded[key]
 
     def encode_batch(self, convs: Sequence[Conversation], cfg: TrainCfg) -> Batch:
+        cfg = cfg.for_framework()  # the serving mode only picks the reference (TrainCfg.serving_mode)
         key = (tuple(f"{conv.id}:{conv.content_key}" for conv in convs), cfg)
         if key not in self._batches:
             trainer = self._trainer(self._rows(convs), cfg)
