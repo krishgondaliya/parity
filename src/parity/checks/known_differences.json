@@ -1,15 +1,21 @@
 {
   "schema": "parity.known_differences/v0",
-  "note": "Every entry is logged in docs/DECISIONS.md. No wildcards: exact framework versions, exact template hashes, one check, one signature.",
+  "note": "Every entry is logged in docs/DECISIONS.md. No wildcards: exact framework versions, exact template hashes, explicit serving modes, one check, one signature.",
   "entries": [
     {
       "id": "KD-0001",
       "framework": "trl",
-      "versions": ["1.18.2"],
+      "versions": [
+        "1.18.2"
+      ],
       "check": "t1.template_parity",
       "model_family": "Qwen3",
       "model_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
       "framework_template_sha256": "1907918feb7afcf18fac8db1a419985b4773ac434e353cfae91b1949dcbf592b",
+      "serving_modes": [
+        "thinking",
+        "non_thinking"
+      ],
       "signature": "insert_think_block_where_official_has_none",
       "summary": "TRL swaps in qwen3_training.jinja, which always emits a think block. For every assistant turn the official template renders without one, TRL's render has <think>\\n + reasoning_content.strip(\"\\n\") + \\n</think>\\n\\n right after that turn's <|im_start|>assistant\\n.",
       "docs": [
@@ -17,6 +23,52 @@
         "https://github.com/huggingface/trl/blob/v1.18.2/trl/chat_templates/README.md"
       ],
       "decision": "docs/DECISIONS.md: Known-differences registry"
+    },
+    {
+      "id": "KD-0002",
+      "framework": "axolotl",
+      "versions": [
+        "0.21.1"
+      ],
+      "check": "t1.assistant_mask",
+      "model_family": "Qwen3",
+      "model_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "framework_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "serving_modes": [
+        "thinking"
+      ],
+      "signature": "think_opener_untrained",
+      "summary": "Axolotl's default chat_template labeling (type: chat_template, roles_to_train: [assistant], train_on_eos: turn) labels each assistant turn from its first field (reasoning_content, else content) to its end token; template structure before the first field gets no loss. With Qwen3's own template, in thinking mode, that is the think block's opener: the whole empty block <think>\\n\\n</think>\\n\\n when the turn has no reasoning, <think>\\n when it has (the reasoning text and \\n</think>\\n\\n are trained). Found as P-0001.",
+      "docs": [
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L728-L756",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd#L443-L445"
+      ],
+      "docs_note": "Axolotl's user docs don't say this. The closest is conversation.qmd L445: generation_tags 'also trains template structure inside them', which implies the default doesn't, without naming think tags. Logged as a possible docs gap, not a finding.",
+      "decision": "docs/DECISIONS.md: P-0001 is a known difference (KD-0002, KD-0003), thinking mode only"
+    },
+    {
+      "id": "KD-0003",
+      "framework": "axolotl",
+      "versions": [
+        "0.21.1"
+      ],
+      "check": "t1.truncation",
+      "model_family": "Qwen3",
+      "model_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "framework_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+      "serving_modes": [
+        "thinking"
+      ],
+      "signature": "think_opener_untrained",
+      "summary": "Axolotl's default chat_template labeling (type: chat_template, roles_to_train: [assistant], train_on_eos: turn) labels each assistant turn from its first field (reasoning_content, else content) to its end token; template structure before the first field gets no loss. With Qwen3's own template, in thinking mode, that is the think block's opener: the whole empty block <think>\\n\\n</think>\\n\\n when the turn has no reasoning, <think>\\n when it has (the reasoning text and \\n</think>\\n\\n are trained). Found as P-0001.",
+      "docs": [
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L728-L756",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd#L443-L445"
+      ],
+      "docs_note": "Axolotl's user docs don't say this. The closest is conversation.qmd L445: generation_tags 'also trains template structure inside them', which implies the default doesn't, without naming think tags. Logged as a possible docs gap, not a finding.",
+      "decision": "docs/DECISIONS.md: P-0001 is a known difference (KD-0002, KD-0003), thinking mode only"
     }
   ]
 }

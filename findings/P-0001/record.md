@@ -1,6 +1,6 @@
 # P-0001: With Qwen3's own template, Axolotl's default chat_template labeling never trains the think block
 
-- Status: difference (proposed). Not an upstream issue. Part of it is our reference's thinking-mode assumption; the human decides (see "Skeptic verdict")
+- Status: difference (decided by the human, 2026-11-24): KD-0002 (`t1.assistant_mask`) and KD-0003 (`t1.truncation`), thinking mode only. Not an upstream issue. Possible docs gap logged.
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
 - Framework: axolotl@0.21.1   (lockfile: envs/axolotl-0.21.1/uv.lock)
@@ -68,9 +68,15 @@
   1. A known-differences entry citing the test and the docs, not an issue.
   2. A reference decision on thinking-mode ambiguity: declare the mode per run and check both, or make tokens whose zone changes between Qwen3's documented modes neutral. In non-thinking mode, Axolotl passes the 7 no-reasoning cells.
 
+## Decision (human, 2026-11-24)
+- **Which tokens are untrained** (re-checked token by token on `reasoning` from Axolotl's prepared row): only `<think>` (51) and its `\n` (52). The reasoning text, `</think>`, `\n\n`, the answer and `<|im_end|>` are trained. On the other 7 fixtures, the empty block's 4 tokens. Think tags and blank lines only.
+- **Reference:** the serving mode is now declared (`TrainCfg.serving_mode`), defaulting to the model's documented default, and recorded in every verdict. No neutral zone. Primary results stay in thinking mode; every run is also judged in non-thinking mode as a labeled secondary result. This change came from this finding, after seeing results (docs/DECISIONS.md).
+- **Known difference:** KD-0002 / KD-0003, signature `think_opener_untrained`, pinned to `tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177` @ v0.21.1.
+- **Docs:** Axolotl's user docs don't say it; `conversation.qmd` L445 only implies it. Logged as a possible docs gap, not a finding.
+
 ## Repro
 - findings/P-0001/repro.py (tokenizer and config files only, telemetry off): exits 1 (reproduces) 3/3 on axolotl 0.21.1.
 - On main: not tested.
 
 ## Upstream
-- Not drafted. If the human calls it a `difference`, it becomes a known-differences entry (with the doc links above) instead of an issue.
+- None. It is a known difference (KD-0002, KD-0003), not an issue.

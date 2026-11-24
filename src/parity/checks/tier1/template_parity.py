@@ -100,6 +100,7 @@ class TemplateParity(Tier1Check):
             official_template=official_template(release),
             declared_template=declaration.chat_template,
             got_ids=out.input_ids,
+            mode=self.mode(release),
         )
         if entry is not None:
             evidence["known_difference"] = {"id": entry.id, "signature": entry.signature, "docs": list(entry.docs)}

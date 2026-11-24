@@ -14,6 +14,19 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: P-0001 is a known difference (KD-0002, KD-0003), thinking mode only; mask-level signatures
+- Decision:
+  - **First, the token answer** (re-read from Axolotl's prepared row on `reasoning`, every assistant token printed): only `<think>` (index 51) and the `\n` after it (52) are untrained. The reasoning text (53-91), `</think>`, the `\n\n` after it, the answer and `<|im_end|>` are all trained. On the 7 fixtures without reasoning, the untrained tokens are the empty block `<think>`, `\n\n`, `</think>`, `\n\n`. So it is only think tags and blank lines; no reasoning text is lost.
+  - **Registry.** KD-0002 (`t1.assistant_mask`) and KD-0003 (`t1.truncation`): Axolotl 0.21.1, Qwen3's own template on both sides (sha256 `a55ee1b1…`), `serving_modes: ["thinking"]`, signature `think_opener_untrained`. Two entries because an entry names one check.
+  - **Pinned to Axolotl's own test**: `tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177` @ v0.21.1 asserts `trained == "greet</think>hello<|im_end|>part</think>see you<|im_end|>"`, i.e. the opener untrained and `</think>` trained. The mechanism is `chat_template.py#L728-L756` @ v0.21.1 (`find_turn` gives the field span; only `labels[turn_start:turn_end]` is set).
+  - **Docs: a possible docs gap, not a finding.** Axolotl's user docs (v0.21.1 `docs/`, README, FAQS, Qwen3 examples) never say that think tags go untrained by default. The closest is `conversation.qmd` L445: `generation_tags` "also trains template structure inside them", which implies it without naming think tags. Recorded in the entries' `docs_note`.
+  - **Mask-level (zone) signatures.** The registry rule is extended for mask checks: a zone signature moves exactly named reference tokens to the zone the documented behavior gives them, and the framework's labels must pass the check's own rule against those zones with nothing left over. Here it moves only the think opener at the start of a turn; every other token and turn keeps its zone. Token signatures (KD-0001) are unchanged.
+  - **Every entry names its serving modes.** KD-0001 covers both, since Qwen3's tokens are the same in both modes. KD-0002/0003 cover thinking only; in non-thinking mode the opener is prompt side, and Axolotl needs no entry there.
+  - **Partial explanations are shown, never absorbed.** When an in-scope entry leaves violations over, the verdict stays a bug and its evidence lists what is unexplained (`known_difference_residual`). On `empty_assistant`, KD-0002 explains the think opener, and P-0002's `<|im_end|>` at 14 is left over.
+- Why: the human's decision on P-0001. The skeptic found it documented by test and partly our reference's mode assumption; the serving-mode decision settles the second part.
+- Evidence: `src/parity/checks/known_differences.json`, `src/parity/checks/known_differences.py`, `tests/test_known_difference_axolotl.py`, `findings/P-0001/record.md`.
+- Reversible? yes. Delete the entries and the 15 cells go back to fails.
+
 ## 2026-11-24: The serving mode is declared; mode-dependent tokens take their zone from it (from P-0001, after results)
 - Decision:
   - **Provenance, stated plainly: this reference change was made after seeing the Axolotl results** (P-0001), not before. P-0001 showed the reference had silently assumed thinking mode for Qwen3. The fix is to make the assumption explicit, not to change which result counts.

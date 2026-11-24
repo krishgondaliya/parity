@@ -26,6 +26,7 @@ from parity.engine.evidence import decode_each, token_evidence
 from parity.engine.plants import Plant
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Conversation, Fixture
+from parity.checks.known_differences import KnownDifference, describe, entries_in_scope, known_zones
 from parity.references.properties import prefill_property_id
 from parity.serving import resolve_mode, template_kwargs
 from parity.references.template import (
@@ -237,6 +238,37 @@ def token_ids_on(release: LoadedRelease, conv: Conversation, template: str, mode
         kwargs = template_kwargs(release, resolved)
         _TOKEN_IDS[key] = tuple(template_token_ids(release.tokenizer, conv, template, **kwargs))
     return _TOKEN_IDS[key]
+
+
+def zone_difference(
+    check: Tier1Check,
+    adapter: Any,
+    release: LoadedRelease,
+    fixture: Fixture,
+    declaration: Declaration,
+    ref: TemplateReference,
+    explains: Callable[[TemplateReference], tuple[bool, dict[str, Any]]],
+) -> tuple[KnownDifference | None, list[dict[str, Any]]]:
+    """The zone-signature known difference that explains the whole divergence, if one does.
+
+    `explains(ref)` is the check's own rule, judged against a reference whose zones the entry's documented
+    behavior gives. Returns (entry, []) when one leaves nothing over; otherwise (None, what each in-scope
+    entry left unexplained), so triage can link the rest to its own root cause.
+    """
+    leftovers = []
+    for entry in entries_in_scope(
+        check_id=check.id,
+        framework=adapter.name,
+        version=adapter.version,
+        official_template=official_template(release),
+        declared_template=declaration.chat_template,
+        mode=check.mode(release),
+    ):
+        ok, evidence = explains(known_zones(entry, release, fixture, ref))
+        if ok:
+            return entry, []
+        leftovers.append({**describe(entry), "unexplained": evidence})
+    return None, leftovers
 
 
 def library_versions() -> dict[str, str]:

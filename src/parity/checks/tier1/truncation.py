@@ -61,7 +61,9 @@ from parity.checks.common import (
     mask_report,
     reference_info,
     unaligned_verdict,
+    zone_difference,
 )
+from parity.checks.known_differences import describe
 from parity.engine.evidence import token_evidence
 from parity.engine.plants import Plant, PlantedAdapter
 from parity.engine.verdict import Verdict
@@ -138,6 +140,17 @@ class Truncation(Tier1Check):
             # Still a pass if it matches the reference, but a kept row with nothing to learn is shown on the card.
             zero = isinstance(out, Encoded) and not any(label != LABEL_IGNORE for label in out.labels)
             return verdict("pass", status, evidence=evidence, flags=["zero_trainable_tokens"] if zero else [])
+
+        # A documented framework behavior (a zone-signature known difference) may explain the whole divergence.
+        entry, leftovers = zone_difference(
+            self, adapter, release, fixture, declaration, ref, lambda known: judge(tokenizer, known, max_len, mode, out)
+        )
+        if entry is not None:
+            evidence["known_difference"] = describe(entry)
+            status = CONSISTENT if conventions["cut"] else "unverified: nothing is cut at this limit"
+            return verdict("fail", status, kind="difference", known_difference=entry.id, evidence=evidence)
+        if leftovers:
+            evidence["known_difference_residual"] = leftovers
 
         # Not what the declared mode gives. If it is exactly what another mode gives,
         # the declaration is contradicted: a declared/actual mismatch for /triage.

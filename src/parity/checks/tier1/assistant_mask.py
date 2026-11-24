@@ -19,6 +19,8 @@ pre-shift labels shift them back). Neutral tokens never fail; the verdict
 records whether the framework trains them, and the framework's native label
 convention. If the framework's tokens don't match its declared template's
 render, the result is inconclusive (see t1.template_parity).
+A fail is a known difference only when a zone-signature entry in the registry
+explains every violation (parity.checks.known_differences).
 
 Planted faults (all synthetic). These apply to every fixture with a prompt before an assistant turn:
 - unmask_prompt: give loss to everything before the first supervised token, user turn included.
@@ -46,11 +48,13 @@ from parity.checks.common import (
     mask_report,
     reference_info,
     unaligned_verdict,
+    zone_difference,
 )
+from parity.checks.known_differences import describe
 from parity.engine.plants import Plant, encoded_plant, supervised_runs, with_labels
 from parity.engine.verdict import Verdict
 from parity.fixtures import Fixture
-from parity.references.template import AssistantSpan, Zone
+from parity.references.template import AssistantSpan, TemplateReference, Zone
 from parity.release import LoadedRelease
 
 
@@ -94,18 +98,34 @@ class AssistantMask(Tier1Check):
         evidence = report.evidence(release.tokenizer, out, ref.zones)
         evidence["must_train_tokens"] = sum(z == Zone.MUST_TRAIN for z in ref.zones)
         evidence["supervised_tokens"] = sum(label != LABEL_IGNORE for label in out.labels)
-        result = "fail" if report.violated else "pass"
-        return self.verdict(
-            adapter,
-            fixture,
-            result,
-            kind="bug" if report.violated else None,
-            reference=info,
-            conventions=conventions,
-            declared=declaration,
-            verified={"chat_template": CONSISTENT},
-            evidence=evidence,
-        )
+
+        def verdict(result: str, **fields: Any) -> Verdict:
+            return self.verdict(
+                adapter,
+                fixture,
+                result,
+                reference=info,
+                conventions=conventions,
+                declared=declaration,
+                verified={"chat_template": CONSISTENT},
+                evidence=evidence,
+                **fields,
+            )
+
+        if not report.violated:
+            return verdict("pass")
+
+        def explains(known: TemplateReference) -> tuple[bool, dict[str, Any]]:
+            rest = mask_report(known.zones, out)
+            return not rest.violated, rest.evidence(release.tokenizer, out, known.zones)
+
+        entry, leftovers = zone_difference(self, adapter, release, fixture, declaration, ref, explains)
+        if entry is not None:
+            evidence["known_difference"] = describe(entry)
+            return verdict("fail", kind="difference", known_difference=entry.id)
+        if leftovers:
+            evidence["known_difference_residual"] = leftovers
+        return verdict("fail", kind="bug")
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         if not fixture.assistant_indices or fixture.assistant_indices[0] == 0:

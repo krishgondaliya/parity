@@ -6,23 +6,32 @@ A divergence counts as a `difference` only if one entry matches it exactly
 - same check, same framework, and a framework version listed in the entry;
 - the model's official template and the framework's declared template both
   have exactly the sha256 the entry names;
-- the framework's tokens equal, token for token, what the entry's signature
-  function computes from the official render.
+- the verdict's serving mode is one the entry lists;
+- the signature explains the whole divergence:
+  - token signatures (t1.template_parity): the framework's tokens equal, token
+    for token, what the signature computes from the official render;
+  - zone signatures (t1.assistant_mask, t1.truncation): the signature moves
+    named tokens of the reference to the zone the documented behavior gives
+    them, and the framework's labels pass the check's own rule against those
+    zones, with no violation left over.
 
-There are no wildcards. Anything else stays a `fail` of kind `bug`.
+There are no wildcards. Anything else stays a `fail` of kind `bug`; when an
+entry is in scope but leaves violations unexplained, the verdict's evidence
+says which, so triage can link them to their own root cause.
 """
 
 from __future__ import annotations
 
 import json
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from importlib.resources import files
 
 from parity.fixtures import Conversation
-from parity.references.template import TemplateReferenceError, render_text, template_sha256
+from parity.references.template import TemplateReference, TemplateReferenceError, Zone, render_text, template_sha256
 from parity.release import LoadedRelease
+from parity.serving import SERVING_MODES
 
 REGISTRY_SCHEMA = "parity.known_differences/v0"
 _SHA256_HEX = 64
@@ -37,10 +46,12 @@ class KnownDifference:
     model_family: str
     model_template_sha256: str
     framework_template_sha256: str
+    serving_modes: tuple[str, ...]
     signature: str
     summary: str
     docs: tuple[str, ...]
     decision: str
+    docs_note: str = ""  # what the framework's user docs say (or don't) about this behavior
 
 
 # Signatures: each computes the exact token ids a framework produces under the documented behavior.
@@ -74,9 +85,41 @@ def insert_think_block_where_official_has_none(
     return list(tokenizer(text, add_special_tokens=False)["input_ids"])
 
 
+QWEN3_THINK_OPENERS = ("<think>\n\n</think>\n\n", "<think>\n")  # the empty block first, so it wins over its prefix
+
+
+def think_opener_untrained(release: LoadedRelease, conv: Conversation, ref: TemplateReference) -> tuple[Zone, ...]:
+    """KD-0002 / KD-0003: Axolotl's default chat_template labeling, with Qwen3's own template, in thinking mode.
+
+    Axolotl labels each turn from its first field (reasoning_content, else content) to its end token; template
+    structure before the first field gets no loss. With Qwen3's own template that structure is the think block's
+    opener at the start of a turn: the whole empty block "<think>\n\n</think>\n\n" when the turn has no reasoning,
+    "<think>\n" when it has. Exactly those tokens move from must-train to must-not-train; every other zone, and
+    every other turn, is unchanged.
+    """
+    tokenizer = release.tokenizer
+    zones = list(ref.zones)
+    for span in ref.spans:
+        for opener in QWEN3_THINK_OPENERS:
+            opener_ids = list(tokenizer(opener, add_special_tokens=False)["input_ids"])
+            end = span.token_start + len(opener_ids)
+            if list(ref.input_ids[span.token_start : end]) != opener_ids:
+                continue
+            if any(z is not Zone.MUST_TRAIN for z in zones[span.token_start : end]):
+                raise TemplateReferenceError(f"KD signature: message {span.message_index}'s think opener isn't must-train")
+            zones[span.token_start : end] = [Zone.MUST_NOT_TRAIN] * len(opener_ids)
+            break
+    return tuple(zones)
+
+
 SIGNATURES: dict[str, Callable[[LoadedRelease, Conversation, str], list[int]]] = {
     "insert_think_block_where_official_has_none": insert_think_block_where_official_has_none,
 }
+ZONE_SIGNATURES: dict[str, Callable[[LoadedRelease, Conversation, TemplateReference], tuple[Zone, ...]]] = {
+    "think_opener_untrained": think_opener_untrained,
+}
+TOKEN_CHECKS = frozenset({"t1.template_parity"})
+ZONE_CHECKS = frozenset({"t1.assistant_mask", "t1.truncation"})
 
 
 @cache
@@ -94,10 +137,12 @@ def load_registry() -> tuple[KnownDifference, ...]:
             model_family=e["model_family"],
             model_template_sha256=e["model_template_sha256"],
             framework_template_sha256=e["framework_template_sha256"],
+            serving_modes=tuple(e["serving_modes"]),
             signature=e["signature"],
             summary=e["summary"],
             docs=tuple(e["docs"]),
             decision=e["decision"],
+            docs_note=e.get("docs_note", ""),
         )
         _validate(entry)
         entries.append(entry)
@@ -115,10 +160,35 @@ def _validate(e: KnownDifference) -> None:
         value = getattr(e, name)
         if len(value) != _SHA256_HEX or any(c not in "0123456789abcdef" for c in value):
             raise ValueError(f"{where}: {name} must be a full sha256 hex digest")
-    if e.signature not in SIGNATURES:
-        raise ValueError(f"{where}: unknown signature {e.signature!r}")
+    if not e.serving_modes or any(m not in SERVING_MODES for m in e.serving_modes):
+        raise ValueError(f"{where}: serving_modes must list modes from {SERVING_MODES}, got {e.serving_modes}")
+    if e.check in TOKEN_CHECKS:
+        if e.signature not in SIGNATURES:
+            raise ValueError(f"{where}: {e.check} needs a token signature, got {e.signature!r}")
+    elif e.check in ZONE_CHECKS:
+        if e.signature not in ZONE_SIGNATURES:
+            raise ValueError(f"{where}: {e.check} needs a zone signature, got {e.signature!r}")
+    else:
+        raise ValueError(f"{where}: no known differences are defined for check {e.check!r}")
     if not e.docs:
         raise ValueError(f"{where}: needs at least one doc link")
+
+
+def entries_in_scope(
+    *, check_id: str, framework: str, version: str, official_template: str, declared_template: str, mode: str
+) -> list[KnownDifference]:
+    """Entries for exactly this check, framework version, template pair and serving mode."""
+    official, declared = template_sha256(official_template), template_sha256(declared_template)
+    return [
+        e
+        for e in load_registry()
+        if e.check == check_id
+        and e.framework == framework
+        and version in e.versions
+        and e.model_template_sha256 == official
+        and e.framework_template_sha256 == declared
+        and mode in e.serving_modes
+    ]
 
 
 def match_known_difference(
@@ -131,15 +201,26 @@ def match_known_difference(
     official_template: str,
     declared_template: str,
     got_ids: Sequence[int],
+    mode: str,
 ) -> KnownDifference | None:
-    """The one entry that explains these tokens exactly, or None."""
-    for entry in load_registry():
-        if entry.check != check_id or entry.framework != framework or version not in entry.versions:
-            continue
-        if template_sha256(official_template) != entry.model_template_sha256:
-            continue
-        if template_sha256(declared_template) != entry.framework_template_sha256:
-            continue
+    """The one token-signature entry that explains these tokens exactly, or None."""
+    for entry in entries_in_scope(
+        check_id=check_id,
+        framework=framework,
+        version=version,
+        official_template=official_template,
+        declared_template=declared_template,
+        mode=mode,
+    ):
         if list(got_ids) == SIGNATURES[entry.signature](release, conv, official_template):
             return entry
     return None
+
+
+def known_zones(entry: KnownDifference, release: LoadedRelease, conv: Conversation, ref: TemplateReference) -> TemplateReference:
+    """The reference with the zones this zone-signature entry's documented behavior gives."""
+    return replace(ref, zones=ZONE_SIGNATURES[entry.signature](release, conv, ref))
+
+
+def describe(entry: KnownDifference) -> dict[str, object]:
+    return {"id": entry.id, "signature": entry.signature, "docs": list(entry.docs)}

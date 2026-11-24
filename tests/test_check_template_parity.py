@@ -85,16 +85,20 @@ def test_registry_matcher_needs_the_exact_token_sequence(qwen3, trl_qwen3_templa
         conv=fx,
         official_template=official,
         declared_template=trl_qwen3_template,
+        mode="thinking",
     )
     assert match_known_difference(got_ids=good, **kwargs).id == "KD-0001"
+    assert match_known_difference(got_ids=good, **{**kwargs, "mode": "non_thinking"}).id == "KD-0001"
     assert match_known_difference(got_ids=good[:-1], **kwargs) is None
     assert match_known_difference(got_ids=good, **{**kwargs, "declared_template": official}) is None
     assert match_known_difference(got_ids=good, **{**kwargs, "check_id": "t1.assistant_mask"}) is None
 
 
 def test_registry_entries_are_exact_and_match_the_pinned_templates(qwen3):
-    [kd] = load_registry()
-    assert kd.id == "KD-0001" and kd.versions == ("1.18.2",)
+    registry = {e.id: e for e in load_registry()}
+    assert sorted(registry) == ["KD-0001", "KD-0002", "KD-0003"]
+    kd = registry["KD-0001"]
+    assert kd.versions == ("1.18.2",) and kd.serving_modes == ("thinking", "non_thinking")
     assert kd.model_template_sha256 == template_sha256(official_template(qwen3))
     assert kd.framework_template_sha256 == TRL_QWEN3_TRAINING_SHA256
 
