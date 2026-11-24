@@ -1,0 +1,21 @@
+---
+name: new-adapter
+description: Write or update a Parity framework adapter (TRL, Unsloth, Axolotl, verl, SkyRL) that reports exactly what the framework would train on. Use when adding a framework or bumping a framework version.
+argument-hint: "[framework-name]"
+---
+
+Write the adapter for `$0`. Follow the contract in `docs/plan/02-detailed-blueprint.md` (section "Adapter interface").
+
+Rules:
+
+1. **Call the framework's own public data path**, exactly as a user would: its dataset preparation, collator and trainer entry points. Never re-implement its tokenization, masking, packing or loss.
+2. Create a locked environment for this framework version under `envs/` (one uv project or lockfile per framework@version). Record the exact version.
+3. Map the framework's own option names onto `TrainCfg.objective` (`assistant_only`, `completion_only`, `all`). Document the mapping at the top of the adapter file, with links to the framework docs you used.
+4. Tier 1 needs only `encode()`. If the framework insists on a model object, pass a tiny random-weight model. Never download full weights.
+5. Read the framework's own tests for its data path first, and note what they already guard. That shows where its blind spots might be.
+
+Deliverables:
+
+- `src/parity/adapters/$0.py`
+- Tests: on the known-good calibration model (Qwen3 family), `encode()` of every fixture returns input_ids that match `apply_chat_template` exactly. If they don't match, stop and report: it's either our bug or a finding, and `/triage` decides which.
+- A short note in `docs/DECISIONS.md` if anything about the framework's behavior surprised you.

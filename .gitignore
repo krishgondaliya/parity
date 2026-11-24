@@ -1,0 +1,19 @@
+# secrets and personal settings
+.env
+.claude/settings.local.json
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# run outputs (publish selected ones explicitly)
+runs/
+
+# model downloads and caches
+.cache/
+hf_cache/
+
+# never commit the hidden vault (it should live outside this repo anyway)
+parity-vault-hidden/

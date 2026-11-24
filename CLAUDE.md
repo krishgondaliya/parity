@@ -1,0 +1,76 @@
+# Parity
+
+Parity is a public Day-0 correctness lab for post-training stacks. For each open-weight model release, it checks what fine-tuning frameworks (TRL, Unsloth, Axolotl, verl, SkyRL) actually feed into training against an independent reference, and publishes a report card. Later, a gated self-improving loop grows the check suite, and a hidden bug vault proves whether it really improved.
+
+This is a solo, career-first portfolio project. Correctness and honesty matter more than speed.
+
+## Current state
+
+@docs/STATUS.md
+
+## Plan (read when you need detail, not every session)
+
+- Overview: `docs/plan/01-overview.md`
+- Detailed blueprint (interfaces, schemas, pass rules, loop, vault, evaluation): `docs/plan/02-detailed-blueprint.md`
+- Phase playbooks: `docs/phases/` (one file per phase)
+- Gate checklists: `docs/gates/`
+- Decision log: `docs/DECISIONS.md`
+
+## Hard rules (never break these)
+
+1. **Never post upstream.** Do not create, comment on, or edit issues or PRs in any other repo. Draft issues go to `findings/<id>/issue.md` and the human posts them. A hook enforces this.
+2. **Adapters call the framework's own public code path.** Never re-implement a framework's tokenization, masking, collation, or training logic inside an adapter. If you re-implement it, you are testing our code, not theirs.
+3. **Every check ships with its planted fault.** A verdict counts only if the check caught its own planted fault in the same run. Otherwise the result is `inconclusive`, never `pass`.
+4. **Assume our code is wrong first.** For any failing check, rule out the adapter, the fixture, and the reference before calling it a framework or model bug.
+5. **Exact beats tolerance.** Use bit-exact comparison wherever possible. Numeric checks use the noise-floor rule (fail above 4x the measured floor). Never loosen a tolerance to make something pass; any tolerance change goes in `docs/DECISIONS.md` with a reason.
+6. **No full model weights in Tiers 1 and 2.** Download only tokenizer, chat template and config files. Use tiny random-weight models built with `from_config` for numerics.
+7. **Pin everything.** Every verdict records the exact model revision, framework version and lockfile.
+8. **Language discipline.** In anything public, say "candidate finding" until a maintainer confirms. Never say "bug" in a draft title unless it is confirmed.
+9. **Hidden vault is off limits** (Phase 3 onward). Never read, list, grep or reference the hidden vault path. Only the evaluation harness reads it, through an environment variable.
+10. **Secrets stay local.** Tokens live in `.env` (gitignored). Never print or commit them.
+
+## How to work in this repo
+
+- Start a phase with `/start-phase <n>`. Work in plan mode first, get the plan approved, then build.
+- One task per conversation. Use `/clear` between unrelated tasks.
+- Small commits with clear messages. Run the tests before every commit.
+- End every session with `/wrap-session` so `docs/STATUS.md` stays true.
+- When a fail shows up: `/triage` first, then `/shrink-repro`, then `/draft-issue`. Use the `skeptic` subagent before any finding leaves the repo.
+- Gates are decided by evidence files, not by feel: `/gate-check <A|B|C>`.
+
+## Repo layout (target, grows by phase)
+
+```
+src/parity/
+  adapters/     one module per framework (public code path only)
+  references/   independent answers: templates, loss, fp64 AdamW, unpacked forward
+  checks/       tier1/, tier2/, tier3/  (check + planted fault + tests)
+  fixtures/     the 8 test conversations
+  tiny/         tiny random-weight model factory
+  engine/       runner, pass rules, verdict writer
+  shrink/       repro minimizer
+  watcher/      release polling (Phase 5)
+  loop/         writer, breaker, gates (Phase 4)
+  eval/         scoring, baselines, Wilson intervals (Phase 3)
+envs/           one uv lockfile per framework@version
+runs/           verdict JSON per run (gitignored except published ones)
+findings/       one folder per finding: record.md, repro.py, issue.md
+vault/open/     open buggy/fixed pairs (hidden split lives OUTSIDE this repo)
+site/           static report card
+docs/           plan, phases, gates, status, decisions
+```
+
+## Commands
+
+Fill these in as they come to exist. Keep this list accurate.
+
+- Install / sync: `uv sync`
+- Tests: `uv run pytest -q`
+- Run checks (planned): `uv run parity run --model <org/name@rev> --framework <name> --tier 1`
+- Build report card (planned): `uv run parity card`
+
+## Style
+
+- Python 3.12, type hints, dataclasses for records.
+- Verdicts and findings are JSON or Markdown files, never only console output.
+- Prefer boring, readable code over clever code. This repo will be read by hiring managers.
