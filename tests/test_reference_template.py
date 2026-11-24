@@ -341,3 +341,14 @@ def test_boundary_inside_a_token_is_refused():
 )
 def test_generation_marker_detection(template, expected):
     assert has_generation_markers(template) is expected
+
+
+def test_a_template_that_refuses_the_cut_conversation_is_a_reference_refusal(qwen3):
+    """gpt-oss's template raises on a tool result with no tool call before it; that must be a clean refusal."""
+    guard = (
+        "{%- for m in messages %}{%- if m.role == 'tool' and messages[loop.index0 - 1].role != 'assistant' %}"
+        "{{ raise_exception('tool result without a tool call') }}{%- endif %}{%- endfor %}"
+    )
+    template = guard + qwen3.tokenizer.chat_template
+    with pytest.raises(TemplateReferenceError, match="refuses the conversation without it"):
+        render_reference(qwen3, load_fixture("tool_call"), template, "test:refuses-orphan-tool-result")

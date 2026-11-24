@@ -73,6 +73,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any
 
+import jinja2
 import transformers
 from transformers import PreTrainedTokenizerBase
 
@@ -274,7 +275,12 @@ def assistant_spans_by_prefix_diff(
     spans = []
     for k in fixture.assistant_indices:
         before, prompt = renders[k]
-        without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
+        try:
+            without = render_text(tokenizer, messages[:k] + messages[k + 1 :], tools, template)
+        except jinja2.TemplateError as exc:
+            raise TemplateReferenceError(
+                f"message {k}: the template refuses the conversation without it ({exc}), so it can't be cut out"
+            ) from exc
         msg_start, prefill = len(before), None
         if full.startswith(prompt):
             content_start = len(prompt)
