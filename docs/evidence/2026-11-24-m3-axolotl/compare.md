@@ -1,0 +1,54 @@
+# Axolotl on Qwen3: predicted vs actual
+
+45 of 48 cells as predicted.
+
+| Check | Fixture | Predicted | Actual | Match | Self-test |
+| --- | --- | --- | --- | --- | --- |
+| t1.template_parity | single_turn | pass | pass | yes | caught |
+| t1.assistant_mask | single_turn | fail | fail | yes | caught |
+| t1.end_of_turn | single_turn | pass | pass | yes | caught |
+| t1.special_tokens | single_turn | pass | pass | yes | caught |
+| t1.truncation | single_turn | fail | fail | yes | caught |
+| t1.multiturn_prefix | single_turn | not_applicable | not_applicable | yes | None |
+| t1.template_parity | multi_turn | pass | pass | yes | caught |
+| t1.assistant_mask | multi_turn | fail | fail | yes | caught |
+| t1.end_of_turn | multi_turn | pass | pass | yes | caught |
+| t1.special_tokens | multi_turn | pass | pass | yes | caught |
+| t1.truncation | multi_turn | fail | fail | yes | caught |
+| t1.multiturn_prefix | multi_turn | pass | pass | yes | caught |
+| t1.template_parity | system_prompt | pass | pass | yes | caught |
+| t1.assistant_mask | system_prompt | fail | fail | yes | caught |
+| t1.end_of_turn | system_prompt | pass | pass | yes | caught |
+| t1.special_tokens | system_prompt | pass | pass | yes | caught |
+| t1.truncation | system_prompt | fail | fail | yes | caught |
+| t1.multiturn_prefix | system_prompt | not_applicable | not_applicable | yes | None |
+| t1.template_parity | tool_call | pass | pass | yes | caught |
+| t1.assistant_mask | tool_call | fail | fail | yes | caught |
+| t1.end_of_turn | tool_call | pass | pass | yes | caught |
+| t1.special_tokens | tool_call | pass | pass | yes | caught |
+| t1.truncation | tool_call | fail | fail | yes | caught |
+| t1.multiturn_prefix | tool_call | pass | inconclusive | **no** | missed |
+| t1.template_parity | reasoning | pass | pass | yes | caught |
+| t1.assistant_mask | reasoning | fail | fail | yes | caught |
+| t1.end_of_turn | reasoning | pass | pass | yes | caught |
+| t1.special_tokens | reasoning | pass | pass | yes | caught |
+| t1.truncation | reasoning | fail | fail | yes | caught |
+| t1.multiturn_prefix | reasoning | pass | pass | yes | caught |
+| t1.template_parity | empty_assistant | pass | pass | yes | caught |
+| t1.assistant_mask | empty_assistant | fail | fail | yes | caught |
+| t1.end_of_turn | empty_assistant | pass | fail | **no** | caught |
+| t1.special_tokens | empty_assistant | pass | fail | **no** | caught |
+| t1.truncation | empty_assistant | fail | fail | yes | caught |
+| t1.multiturn_prefix | empty_assistant | pass | pass | yes | caught |
+| t1.template_parity | long_answer | pass | pass | yes | caught |
+| t1.assistant_mask | long_answer | fail | fail | yes | caught |
+| t1.end_of_turn | long_answer | pass | pass | yes | caught |
+| t1.special_tokens | long_answer | pass | pass | yes | caught |
+| t1.truncation | long_answer | pass | pass | yes | caught |
+| t1.multiturn_prefix | long_answer | not_applicable | not_applicable | yes | None |
+| t1.template_parity | non_ascii | pass | pass | yes | caught |
+| t1.assistant_mask | non_ascii | fail | fail | yes | caught |
+| t1.end_of_turn | non_ascii | pass | pass | yes | caught |
+| t1.special_tokens | non_ascii | pass | pass | yes | caught |
+| t1.truncation | non_ascii | fail | fail | yes | caught |
+| t1.multiturn_prefix | non_ascii | not_applicable | not_applicable | yes | None |

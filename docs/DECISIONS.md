@@ -14,6 +14,45 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: M3 Axolotl adapter, the run on Qwen3, and two candidate findings
+- Decision:
+  - **Adapter.** `src/parity/adapters/axolotl.py` drives Axolotl from a YAML config through exactly what `axolotl preprocess` runs (`load_cfg`, then `load_datasets` inside `disable_datasets_caching()`).
+    - The config is `type: chat_template`, `roles_to_train: ["assistant"]`, `train_on_eos: turn`, with `chat_template` left at its documented default `tokenizer_default`.
+    - Single rows are read from the prepared dataset. Batches go through the collator `setup_trainer` builds, with a tiny `from_config` Qwen3.
+    - `declare()` reads the loaded config and the live collator. The unset-means-`drop` over-length rule is declared from a version-pinned code link (`utils/data/utils.py#L347` @ v0.21.1, checked).
+  - **Environment.** `envs/axolotl-0.21.1` is pinned to the WSL spike's freeze. Deviations from Axolotl's documented install are listed in `environment.json`: no `[deepspeed]` extra, the default torch backend, CPU only.
+    - Axolotl's telemetry is opt-out; the adapter sets `AXOLOTL_DO_NOT_TRACK=1` and `DO_NOT_TRACK=1` before importing it.
+    - The core package's lower bounds are loosened to `transformers>=5.10.4` and `huggingface-hub>=1.33.0`, what all five framework environments resolve, so the reference can run inside each. The core lock is unchanged, and the full suite passes inside Axolotl's environment (transformers 5.20.1) too.
+  - **The adapter is checked against the real CLI.** `axolotl preprocess config.yml --debug-num-examples 0` wrote rows identical to the adapter's, labels included, on `single_turn` and `empty_assistant`.
+- **Predictions first.** `docs/evidence/2026-11-24-m3-axolotl/predictions.md` was committed from Axolotl's docs alone before the adapter existed (`68c315f`).
+  - The run matched it on **45 of 48** cells: 26 pass, 17 fail, 4 not applicable, 1 inconclusive (`compare.md`).
+  - Not as predicted:
+    - `t1.end_of_turn` and `t1.special_tokens` on `empty_assistant` fail. That is P-0002.
+    - `t1.multiturn_prefix` on `tool_call` is inconclusive, because a planted fault crashed (below).
+- **Triage** (`/triage`; records in `findings/`):
+  - **P-0001, the think block** (15 fails: `t1.assistant_mask` ×8, `t1.truncation` ×7). With Qwen3's own template, Axolotl's default labeling never trains the think block that opens the last assistant turn. It labels each turn's located fields only.
+    - Partly documented: the `generation_tags` description says the default "locates each turn's fields". But that remedy can't apply to Qwen3's own template, which has no generation markers.
+    - Triage leans `difference`; the human decides.
+  - **P-0002, the empty turn** (2 fails). The closing `<|im_end|>` of an empty assistant turn is never trained.
+    - `find_turn` returns `(-1, -1)` for an empty turn, and the EOS search from −1 never labels it. This contradicts the documented `train_on_eos: turn`. Candidate.
+  - The 7 truncation fails duplicate P-0001's root cause. "Blocked by t1.template_parity" doesn't cover a shared root cause between other checks. Design question for the human.
+  - **Skeptic review** (verdicts in both records):
+    - **P-0001: documented difference.** Axolotl's own test (`tests/prompt_strategies/test_chat_templates_thinking.py:177` @ v0.21.1) asserts the opening `<think>` is untrained and `</think>` trained.
+      - Part of it is **our reference's thinking-mode assumption** (rule 4). Qwen3's own template renders a no-reasoning last turn identically in both modes, and in non-thinking mode the empty think block is pre-filled by the generation prompt, so it's prompt side. Axolotl's labels match that.
+      - Proposed: a known-differences entry, and a reference decision on mode ambiguity. Not an upstream issue.
+    - **P-0002: real candidate, low severity.** The skeptic found the path is completely silent (no warning on the default path; confirmed from the repro's log).
+      - An empty *last* turn loses all of its loss.
+      - Next step: `/shrink-repro P-0002`.
+  - **The inconclusive `tool_call` verdict is our planted fault's limit, not an Axolotl fail.**
+    - Axolotl parses string tool arguments as JSON, so `history_false_as_python`'s Python repr raised `JSONDecodeError`, and the planted run ended inconclusive.
+    - Axolotl refusing non-JSON argument strings is a guard against exactly that bug class.
+    - The fixture's other planted fault (`history_edit`) was caught. Open: a token-level variant, or a declared "arguments are parsed as JSON" property.
+- **Also observed, not a Tier 1 finding:** `axolotl preprocess`'s default debug sample calls `random.randrange(0, len(dataset) - 1)`. It crashes on a one-row dataset and never samples the last row (`axolotl/common/datasets.py`, line 36 @ v0.21.1). It's a crash, not a silent training bug, and the adapter avoids it with `--debug-num-examples 0`.
+- **What Axolotl's own tests guard** (tests/prompt_strategies @ v0.21.1): `roles_to_train`, `train_on_inputs`, the `train_on_eos`/`train_on_eot` variants, EOT tokens, tool calling, splitting thinking for Qwen3, and generation-marker labeling. The `generation_tags` tests note that markers are needed so "the empty analysis block [is] generated, not just field contents".
+  - Not guarded: the default labeling of Qwen3's own template against an independent reference, and empty assistant turns.
+- Evidence: `docs/evidence/2026-11-24-m3-axolotl/` (`run.py`, `predictions.md`, `compare.md`, verdicts, `summary.md`), `findings/P-0001/`, `findings/P-0002/`, `tests/test_adapter_axolotl.py` (21 pass in Axolotl's environment).
+- Reversible? yes
+
 ## 2026-11-24: The kill test is frozen; Phase 2 deferrals; declaring behavior that has no config option
 - Decision (human):
   - **The kill test is frozen at 8 fixtures and 432 runs.** Real results exist now, so changing the design would be post-hoc. Two items move to Phase 2 (listed in `docs/phases/phase-2-tier1-breadth.md`, "Deferred from Phase 0"):
