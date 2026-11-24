@@ -14,6 +14,12 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: TRL's per-row mode setting counts as documented; citation level "docstring only"; SFTConfig docs gap
+- Decision (human): TRL's per-row `chat_template_kwargs` key counts as a documented way to set the serving mode. The function is public, TRL tests it, and it works through SFTTrainer.
+- **Citation level: docstring only.** At v1.18.2, TRL's rendered docs have no API-reference entry for `trl.apply_chat_template`: `docs/source/data_utils.md` autodocs only `is_conversational`, `maybe_convert_to_chatml`, `extract_prompt` and `unpair_preference_dataset`. The function appears only in a usage example in `dataset_formats.md` (L302-313), which doesn't mention the key. The key itself is described only in the docstring (`trl/data_utils.py#L325-L327`). Recorded in the adapter's citation.
+- **Possible docs gap, not a finding:** `SFTConfig` has no `chat_template_kwargs` field (passing one raises `TypeError`). `GRPOConfig` and others have one, and `grpo_trainer.md` shows it. TRL's SFT docs never say how to pass chat-template arguments.
+- Reversible? yes
+
 ## 2026-11-24: Non-default serving modes get each framework's documented mode setting; P-0003 is a harness error
 - Decision (human): "Same rows" assumed a framework's output doesn't depend on the mode, and that was wrong. This revises the earlier serving-mode entry.
   - **Primary (the model's default mode, thinking):** frameworks still get nothing, so they encode with their own defaults. The kill test stays at 432 runs.

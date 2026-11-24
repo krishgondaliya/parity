@@ -79,7 +79,9 @@ DOCS = {
     "sft_config": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py",
     "tool_arguments": "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381",
     "chat_template_kwargs": (
-        "per-example key documented in trl.apply_chat_template: "
+        "citation level: docstring only (trl.apply_chat_template has no API-reference entry at v1.18.2; it appears "
+        "only in a usage example in dataset_formats.md, which doesn't mention the key). "
+        "Per-example key documented in trl.apply_chat_template's docstring: "
         "https://github.com/huggingface/trl/blob/v1.18.2/trl/data_utils.py#L325-L327; read by SFTTrainer: "
         "https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1363-L1367; tested: "
         "https://github.com/huggingface/trl/blob/v1.18.2/tests/test_sft_trainer.py#L1366"
