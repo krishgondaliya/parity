@@ -29,7 +29,7 @@ import json
 import re
 from collections.abc import Iterable
 
-from parity.engine.root_causes import count_fails, harness_error_ids
+from parity.engine.root_causes import card_labels, count_fails, harness_error_ids
 from parity.engine.summary import Cell, summarize
 from parity.engine.verdict import Verdict
 from parity.references.properties import TemplateProperty
@@ -55,6 +55,7 @@ def render_summary(
     properties: Iterable[TemplateProperty],
     primary_mode: str = PRIMARY_MODE,
     harness_errors: Iterable[str] | None = None,
+    labels: dict[str, str] | None = None,
 ) -> str:
     verdicts = list(verdicts)
     by_id = {p.id: p for p in properties}
@@ -64,6 +65,7 @@ def render_summary(
         raise ValueError(f"verdicts reference template properties that weren't provided: {missing}")
 
     ours = frozenset(harness_errors) if harness_errors is not None else harness_error_ids()
+    labels = labels if labels is not None else card_labels()
     cells = summarize(verdicts)
     lines = ["# Tier 1 summary", ""]
     for model in sorted({c.model for c in cells}):
@@ -98,7 +100,7 @@ def render_summary(
                 ]
             lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
         lines += _framework_properties([v for v in verdicts if v.model == model])
-        lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode, ours)
+        lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode, ours, labels)
     return "\n".join(lines)
 
 
@@ -139,7 +141,9 @@ def _framework_properties(verdicts: list[Verdict]) -> list[str]:
     ]
 
 
-def _root_cause_section(verdicts: list[Verdict], primary_mode: str, harness_errors: frozenset[str]) -> list[str]:
+def _root_cause_section(
+    verdicts: list[Verdict], primary_mode: str, harness_errors: frozenset[str], labels: dict[str, str]
+) -> list[str]:
     count = count_fails(verdicts, harness_errors)
     lines = ["### Fails by root cause", ""]
     if not count.cells:
@@ -163,7 +167,7 @@ def _root_cause_section(verdicts: list[Verdict], primary_mode: str, harness_erro
         "| Root cause | Fail verdicts | Where |",
         "| --- | --- | --- |",
     ]
-    rows = [(cause, cause, n) for cause, n in count.root_causes.items()]
+    rows = [(cause, f"{cause} ({labels[cause]})" if cause in labels else cause, n) for cause, n in count.root_causes.items()]
     rows += [(cause, f"{cause} (harness error, ours)", n) for cause, n in count.harness_errors.items()]
     for cause, label, n in rows:
         where = sorted(

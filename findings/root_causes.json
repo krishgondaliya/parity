@@ -157,10 +157,11 @@
     {
       "id": "P-0004",
       "record": "findings/P-0004/record.md",
-      "status": "candidate",
+      "status": "candidate (CPU backend only)",
       "framework": "unsloth@2026.11.10",
       "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
       "summary": "CPU backend only: stock TRL dataset preparation appends a second <|im_end|> to chat-formatted text rows; Unsloth's GPU-route preparation leaves them alone.",
+      "card_label": "Unsloth CPU backend only; low impact",
       "pins": [
         {
           "check": "t1.template_parity",

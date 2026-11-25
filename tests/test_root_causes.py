@@ -136,3 +136,17 @@ def test_the_ledger_counts_every_harness_error_in_the_registry():
     ledger = (Path(__file__).resolve().parents[1] / "findings" / "LEDGER.md").read_text(encoding="utf-8")
     for cause in harness_error_ids():
         assert cause in ledger
+
+
+def test_a_card_label_is_shown_next_to_its_root_cause():
+    cells = [fail("t1.template_parity", fixture="single_turn")]
+    cause = p0002(*cells)
+    linked = link_root_causes(cells, [cause])
+    text = render_summary(linked, [], harness_errors=(), labels={"P-0002": "CPU backend only; low impact"})
+    assert "| P-0002 (CPU backend only; low impact) | 1 |" in text
+
+
+def test_p_0004_carries_its_card_label():
+    from parity.engine.root_causes import card_labels
+
+    assert card_labels()["P-0004"] == "Unsloth CPU backend only; low impact"

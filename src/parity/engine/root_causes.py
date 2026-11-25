@@ -52,6 +52,7 @@ class RootCause:
     model: str  # "<org>/<name>@<revision>"
     summary: str
     pins: tuple[Pin, ...]
+    card_label: str = ""  # how the report card labels it, e.g. "Unsloth CPU backend only, low impact" (human's call)
 
 
 def evidence_sha256(v: Verdict) -> str:
@@ -86,6 +87,7 @@ def load_root_causes(path: Path = DEFAULT_PATH) -> tuple[RootCause, ...]:
                 model=e["model"],
                 summary=e["summary"],
                 pins=pins,
+                card_label=e.get("card_label", ""),
             )
         )
     ids = [r.id for r in out]
@@ -131,6 +133,11 @@ class FailCount:
 def harness_error_ids(causes: Iterable[RootCause] | None = None) -> frozenset[str]:
     causes = tuple(causes) if causes is not None else load_root_causes()
     return frozenset(r.id for r in causes if r.status == HARNESS_ERROR)
+
+
+def card_labels(causes: Iterable[RootCause] | None = None) -> dict[str, str]:
+    causes = tuple(causes) if causes is not None else load_root_causes()
+    return {r.id: r.card_label for r in causes if r.card_label}
 
 
 def count_fails(verdicts: Iterable[Verdict], harness_errors: Iterable[str] = ()) -> FailCount:

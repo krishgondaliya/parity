@@ -1,6 +1,6 @@
 # P-0004: On its CPU backend, Unsloth's Qwen3 recipe trains on rows with a second `<|im_end|>`; its GPU route doesn't add it
 
-- Status: candidate (CPU backend only). Skeptic: real candidate, high confidence for the CPU mechanism. The human decides how the report card presents it (see "Proposed handling").
+- Status: candidate (CPU backend only). Decided by the human, 2026-11-24: on the report card as Unsloth CPU-backend behavior, labeled CPU-only, low impact (`card_label` in `findings/root_causes.json`). Not shrunk. Revisit after the GPU run.
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
 - Framework: unsloth@2026.11.10 on its CPU fallback, running trl 1.15.0   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -69,15 +69,21 @@
   - the GPU-route evidence is now 16/16 from the rewriter;
   - the version-drift line, the notebook pins, the downstream consequences and the TRL line range added.
 
-## Proposed handling (human decides)
+## Decision (human, 2026-11-24)
+- On the report card as Unsloth CPU-backend behavior, labeled CPU-only, low impact.
+- Don't shrink the repro.
+- Not a new report to TRL either. The underlying append is TRL's text-dataset behavior from TRL #3318: TRL fixed the conversational path, and appending EOS to plain text rows is intended.
+- Revisit after the GPU run. Unsloth's GPU route becomes its primary result there, and these CPU results stay as a labeled secondary "CPU backend" table.
+
+## Proposed handling (before the decision)
 1. Present the 15 fails as Unsloth's CPU-backend behavior, labeled CPU-only, not as the GPU recipe's behavior. Don't suppress them.
 2. As a framework observation: Unsloth's CPU backend doesn't apply its own SFT dataset preparation, so CPU and GPU runs train on different rows. Low severity: the extra token gets no loss under assistant-only, and is never reached at inference under all-token training. Possibly worth a short upstream note once confirmed on a GPU.
 3. Not verifiable here: that a real GPU run produces the render. The evidence is Unsloth's GPU-route function run on CPU, not a GPU run.
 
 ## Repro
 - `findings/P-0004/repro.py` (triage repro, not shrunk; CPU; tokenizer and config files only): exits 1 (the two routes differ), 3/3 on unsloth 2026.11.10, and 2/2 in the skeptic's runs.
-- Next, if the human agrees: `/shrink-repro P-0004`. Both the triage and the skeptic call it a real candidate.
+- Not shrunk (the human's decision). The triage repro stays as the evidence.
 - On a GPU: not tested (no GPU).
 
 ## Upstream
-- None yet.
+- None. Not an Unsloth report yet (revisit after the GPU run), and not a TRL report: TRL #3318 already covers the append, and TRL treats it as intended for text rows.

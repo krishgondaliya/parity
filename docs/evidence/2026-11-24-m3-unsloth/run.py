@@ -73,7 +73,12 @@ def main() -> None:
     for mode in MODES:
         for source, template in templates.items():
             properties += template_properties_for(release, template, source, fixtures, mode)
-    (OUT / "summary.md").write_text(render_summary(verdicts, properties), encoding="utf-8")
+    backend = (
+        "> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's "
+        "CPU-backend results. Once a GPU run exists, Unsloth's GPU route is its primary result and this becomes the "
+        "labeled secondary \"CPU backend\" table (the human's decision, 2026-11-24).\n\n"
+    )
+    (OUT / "summary.md").write_text(backend + render_summary(verdicts, properties), encoding="utf-8")
 
     predicted = predictions()
     rows, misses = [], []

@@ -1,3 +1,5 @@
+> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's CPU-backend results. Once a GPU run exists, Unsloth's GPU route is its primary result and this becomes the labeled secondary "CPU backend" table (the human's decision, 2026-11-24).
+
 # Tier 1 summary
 
 ## Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
@@ -71,4 +73,4 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
-| P-0004 | 15 | unsloth@2026.11.10 t1.template_parity/empty_assistant; unsloth@2026.11.10 t1.template_parity/empty_assistant (non_thinking); unsloth@2026.11.10 t1.template_parity/long_answer; unsloth@2026.11.10 t1.template_parity/long_answer (non_thinking); unsloth@2026.11.10 t1.template_parity/multi_turn; unsloth@2026.11.10 t1.template_parity/multi_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/non_ascii; unsloth@2026.11.10 t1.template_parity/non_ascii (non_thinking); unsloth@2026.11.10 t1.template_parity/reasoning; unsloth@2026.11.10 t1.template_parity/single_turn; unsloth@2026.11.10 t1.template_parity/single_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/system_prompt; unsloth@2026.11.10 t1.template_parity/system_prompt (non_thinking); unsloth@2026.11.10 t1.template_parity/tool_call; unsloth@2026.11.10 t1.template_parity/tool_call (non_thinking) |
+| P-0004 (Unsloth CPU backend only; low impact) | 15 | unsloth@2026.11.10 t1.template_parity/empty_assistant; unsloth@2026.11.10 t1.template_parity/empty_assistant (non_thinking); unsloth@2026.11.10 t1.template_parity/long_answer; unsloth@2026.11.10 t1.template_parity/long_answer (non_thinking); unsloth@2026.11.10 t1.template_parity/multi_turn; unsloth@2026.11.10 t1.template_parity/multi_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/non_ascii; unsloth@2026.11.10 t1.template_parity/non_ascii (non_thinking); unsloth@2026.11.10 t1.template_parity/reasoning; unsloth@2026.11.10 t1.template_parity/single_turn; unsloth@2026.11.10 t1.template_parity/single_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/system_prompt; unsloth@2026.11.10 t1.template_parity/system_prompt (non_thinking); unsloth@2026.11.10 t1.template_parity/tool_call; unsloth@2026.11.10 t1.template_parity/tool_call (non_thinking) |
