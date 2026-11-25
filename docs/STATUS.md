@@ -9,7 +9,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 ## Done
 
 - Plan, starter kit, setup. The guard hook is tested on Windows and WSL2 (`tests/test_guard.py`).
-- M0: targets and the Qwen3 calibration model pinned. M1: 8 fixtures and the Tier 1 template reference (`docs/evidence/golden-review.md`). M2: six Tier 1 checks with 21 planted faults (2 real-world) on an engine that enforces the self-test.
+- M0: targets and the Qwen3 calibration model pinned. M1: 8 fixtures and the Tier 1 template reference (`docs/evidence/golden-review.md`). M2: six Tier 1 checks with their planted faults (22, 3 real-world, since the special-tokens split) on an engine that enforces the self-test.
 - Engine and reference:
   - **serving modes:** primary thinking mode, plus a secondary non-thinking table in which each framework gets its documented mode setting, or `not_configurable` cells;
   - **root-cause linking:** exact evidence pins; the report and Gate A count root causes, not cells;
@@ -31,33 +31,15 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## This session (2026-11-25)
 
-- GPU predictions first (`290eff2`, docs alone, 96 cells). Then the Colab kit (`docs/gpu-run/`):
-  - `Verdict.backend`, with backend-exact root causes;
-  - GPU primary and CPU secondary tables in the report;
-  - a CUDA 12.6 lock variant;
-  - P-0005 as an optional cell, and now a P-0005-only mode (`RUN = "p0005"`).
-- The GPU run came back and was ingested (`ingest.py`: manifests, `git archive` rebuild, lockfile, GPU route, every verdict).
-- Triaged:
-  - P-0006, exploratory: the non-thinking fails are the last turn's empty think block, trained by `train_on_responses_only`;
-  - P-0004 confirmed CPU-only;
-  - the special-tokens inconclusives are consistent with P-0005, but the adapter's `pad_to` mapping isn't yet ruled out on GPU;
-  - the P-0005 repro's GPU crash is ours (H-10, no LoRA attached); fixed;
-  - skeptic-reviewed: P-0006 reframed as a difference of non-thinking convention (Unsloth documents the `/no_think` soft switch), and a second harness error found and fixed (H-11, the adapter collated in Unsloth's post-`__init__` inference state);
-  - the stale secondary-table header in every summary was corrected.
-- **Severity bar,** recorded before any target results and amended the same day before M5 (the human's decisions): severity = effect × reach.
-  - Medium means a change to labels, loss or stop behavior on inputs that ordinary training data contains.
-  - P-0002 and P-0005 are low. P-0002 is low on reach, checked on ordinary reasoning and tool-call shapes (`findings/P-0002/reach_check.py`).
-- **M4 calibration** (`runs/calibration-2026-11-25.md`):
-  - P-0002's special-tokens cells were re-pinned after the split.
-  - The `reasoning` × non-thinking reference refusal blocked green. It was resolved by the human's option (a): a fixture whose assistant turn carries reasoning is not applicable in non-thinking mode, decided from the fixture and the mode before any framework output (`parity.serving.not_applicable_in_mode`). Re-run: only those 6 cells changed per framework; TRL and Axolotl are green.
-  - Unsloth's GPU calibration zip was verified and merged. Its 8 special-tokens width fails were triaged against P-0005 (rule 4 cleared from each verdict's declaration) and pinned (backend gpu). Green.
-- The human's decisions: Unsloth's non-thinking mode is `not_configurable` (P-0006 closed; the saved cells were re-derived, as-run results kept), and P-0004 stays card-only until after the kill test. A soft-switch reference is a Phase 2 idea.
-- P-0005-only GPU trip ingested (`docs/evidence/2026-11-25-p0005-gpu/`):
-  - rule 4 cleared, the drop reaches a real training step, and Unsloth's padding-free default keeps the setting;
-  - labels not affected, loss the same up to float rounding (CPU);
-  - the repro is shrunk to 30 lines, and fails on 2026.11.12 and on unsloth-zoo main;
-  - the issue was drafted, reviewed, and posted by the human on 2026-11-25 as unslothai/unsloth#19567.
-- `t1.special_tokens`' padding part is now two rules, each with its own plant: requested width honored (new real-world plant `pad_to_ignored`), and pad handling at the produced width. 22 planted faults (3 real-world).
+- **Unsloth on GPU:** docs-alone predictions first (`290eff2`), then the Colab kit (`docs/gpu-run/`, `RUN = "full"` or `"p0005"`) and `Verdict.backend`. The M3 GPU run was verified and ingested: GPU is primary, CPU secondary, and 81 of 96 cells were as predicted. Two harness errors were found and fixed: H-10 (repro) and H-11 (the adapter collated in Unsloth's inference state).
+- **The human's decisions:**
+  - P-0006 closed as `not_configurable` (Unsloth documents only the `/no_think` soft switch);
+  - P-0004 stays card-only;
+  - `t1.special_tokens`' padding part split into two rules (22 plants, 3 real-world);
+  - a severity bar of effect × reach, set before M5. P-0002 is low on reach (checked, `findings/P-0002/reach_check.py`);
+  - `reasoning` is not applicable in non-thinking mode (`parity.serving.not_applicable_in_mode`).
+- **P-0005:** reproduced on GPU, rule 4 cleared, labels not affected and loss the same up to float rounding. Shrunk to 30 lines; posted by the human as unslothai/unsloth#19567.
+- **M4 calibration is green for all three** (`runs/calibration-2026-11-25.md`). The re-run after the applicability rule changed only the 6 `reasoning` × non-thinking cells per framework. Unsloth's GPU zip was verified and merged, and its 8 special-tokens width fails were triaged and pinned to P-0005 (backend gpu).
 - Tests: core 513, TRL environment 535, Axolotl environment 534, Unsloth environment 537 (1 expected failure).
 
 ## Next actions
@@ -69,7 +51,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 ## Open questions
 
 - The structural method's added-header widening is exercised only on DeepSeek (8 agreeing turns); the method as a whole covers 3 families. Accept, or ask for more coverage?
-- Unsloth: the two notebooks the recipe draws on differ on `padding_free` (the recommended one sets `False`; Thinking-2507 leaves it unset). On GPU that decides whether batches are padded, and so whether P-0005 applies. The P-0005 trip's `padding_free_unset` run measures what Unsloth chooses.
+- Unsloth's recipe follows the recommended notebook's `padding_free=False` (padded batches, so P-0005 applies). Thinking-2507 leaves it unset, and then Unsloth chooses `True` and keeps the width (measured on GPU). Should the report card say which recipe it judged? It currently says so only in the adapter's sources.
 - Possible docs gaps, not findings: Axolotl never says think tags go untrained by default; TRL's SFT docs never say how to pass `chat_template_kwargs`, and `SFTConfig` has no field for it.
 - The guard reads command text: a shell command that only writes text naming an environment with no committed predictions is refused too. Use the Edit/Write tools for such files.
 - Deferred to Phase 2 (the kill test is frozen at 8 fixtures): gpt-oss-20b and the `<|end|>` question; a truncation fixture.
