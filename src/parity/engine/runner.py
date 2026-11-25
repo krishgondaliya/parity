@@ -2,8 +2,9 @@
 
 Order of decisions:
 
-1. Applicability, from the fixture alone. Not applicable means the check is
-   not run at all.
+1. Applicability, from the fixture and the serving mode alone: the check's
+   own rule, then the serving-mode rule (`parity.serving.not_applicable_in_mode`).
+   Not applicable means the check is not run at all.
 2. The clean run. A reference that cannot be computed without guessing, or
    any error, makes it inconclusive, never pass.
 3. Every planted fault that applies to this fixture, run the same way. A
@@ -24,6 +25,7 @@ from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Fixture
 from parity.references.properties import marker_disagreement_property_id
 from parity.references.template import MarkerDisagreementError, TemplateReferenceError
+from parity.serving import not_applicable_in_mode
 
 BLOCKING_CHECK = "t1.template_parity"
 
@@ -75,7 +77,7 @@ def as_not_configurable(verdict: Verdict, reason: str, decision: str) -> Verdict
     Used only to re-render saved evidence (P-0006, 2026-11-25). No new framework run is needed: the runner decides
     not_configurable when `declare()` raises ModeNotConfigurable, before the framework is touched. The fields follow
     `_evaluate` and `evaluate`:
-    - a not_applicable verdict stays as it is, since the runner decides that first, from the fixture alone;
+    - a not_applicable verdict stays as it is, since the runner decides that first, from the fixture and the mode;
     - an already re-derived verdict stays as it is.
     The earlier result is kept in the evidence, next to the decision that changed it.
     """
@@ -125,6 +127,8 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
 
 def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     reason = check.not_applicable(fixture)
+    if reason is None and hasattr(check, "mode"):
+        reason = not_applicable_in_mode(fixture, check.mode(adapter.release))
     if reason is not None:
         return make_verdict(check.id, adapter, fixture.id, "not_applicable", reason=reason)
 

@@ -100,3 +100,27 @@ def template_kwargs(release: LoadedRelease, mode: str | None) -> dict[str, Any]:
     if kwargs is None:
         raise ServingModeError(f"{release.release.spec} documents no {resolved} mode")
     return dict(kwargs)
+
+
+REASONING_NOT_NON_THINKING = (
+    "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think "
+    "content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before "
+    "any framework output; reasoning is judged in thinking mode"
+)
+
+
+def not_applicable_in_mode(conversation: Any, mode: str) -> str | None:
+    """Why a conversation has nothing to test in this serving mode, or None. Decided before any framework output.
+
+    One rule (human decision, 2026-11-25, M4 calibration): a conversation whose assistant turn carries reasoning
+    (`reasoning_content`, the fixtures' one way to carry it) is not applicable in non-thinking mode. Qwen3's model
+    card says that with `enable_thinking=False` the model "will not generate think content", so such a turn is not
+    something a non-thinking model writes. Reasoning stays fully judged in thinking mode, the primary table.
+    The rule takes no framework's reading of reasoning history, so no framework's verdicts are judged against
+    themselves.
+    """
+    if mode == "non_thinking" and any(
+        m["role"] == "assistant" and m.get("reasoning_content") for m in conversation.messages
+    ):
+        return REASONING_NOT_NON_THINKING
+    return None

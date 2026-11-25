@@ -4,39 +4,15 @@
   "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
   "framework": "axolotl@0.21.1",
   "fixture": "reasoning",
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
-  "self_test": "missed",
+  "self_test": null,
   "known_difference": null,
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
-  "evidence": {
-    "clean_result": "inconclusive",
-    "clean_kind": null
-  },
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+  "evidence": {},
   "conventions": {},
   "reference": {},
-  "plants": [
-    {
-      "plant": "mask_closing_tokens",
-      "description": "take the loss off every supervised stop token",
-      "origin": "real-world",
-      "source": "Plumbline, https://arxiv.org/pdf/2611.13393: the loss mask of GLM-5.3-Flash left out the token that ends a reply",
-      "caught": false,
-      "result": "inconclusive",
-      "kind": null,
-      "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
-    },
-    {
-      "plant": "wrong_closing_token",
-      "description": "close every assistant turn with a different stop/special token, trained",
-      "origin": "synthetic",
-      "source": null,
-      "caught": false,
-      "result": "inconclusive",
-      "kind": null,
-      "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
-    }
-  ],
+  "plants": [],
   "declaration": {
     "cfg": {
       "objective": "assistant_only",

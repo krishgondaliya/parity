@@ -648,58 +648,58 @@
   "reason": null
  },
  "non_thinking / t1.template_parity / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.assistant_mask / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.end_of_turn / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.special_tokens / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.truncation / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.multiturn_prefix / reasoning": {
-  "result": "inconclusive",
+  "result": "not_applicable",
   "kind": null,
   "known_difference": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also planted fault(s) not caught: history_edit"
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
  },
  "non_thinking / t1.template_parity / empty_assistant": {
   "result": "fail",

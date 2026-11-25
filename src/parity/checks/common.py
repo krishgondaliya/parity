@@ -60,7 +60,8 @@ class Tier1Check:
         planted fault will be encoded under. Each `plant.apply(adapter)` is
         the contract's `plant(adapter) -> Adapter`.
     not_applicable(fixture) -> reason | None
-        Decided from the fixture alone.
+        Decided from the fixture alone. The runner then applies the serving-mode
+        rule (`parity.serving.not_applicable_in_mode`).
     """
 
     id: ClassVar[str]

@@ -16,12 +16,11 @@ The generation prompt ends in a pre-fill ("<think>\n\n</think>\n\n") that earlie
 <a id="qwen-qwen3-0-6b-c1899de289a0-prefix-breaks-a55ee1b16601-non-thinking"></a>
 **Qwen/Qwen3-0.6B@c1899de289a0#prefix-breaks@a55ee1b16601/non_thinking** (prefix_breaks; template `model`, sha256 `a55ee1b16601`, non_thinking mode)
 
-Not prefix-preserving: at 5 boundary(ies) across 4 fixture(s), rendering a conversation up to an assistant turn is not the start of rendering the whole conversation. Frameworks that use this template inherit these breaks.
+Not prefix-preserving: at 4 boundary(ies) across 3 fixture(s), rendering a conversation up to an assistant turn is not the start of rendering the whole conversation. Frameworks that use this template inherit these breaks.
 
 - `multi_turn`, boundary 2: removes `"<think>\n\n</think>\n\n"`, inserts nothing
 - `multi_turn`, boundary 4: removes `"<think>\n\n</think>\n\n"`, inserts nothing
 - `tool_call`, boundary 2: removes `"<think>\n\n</think>\n\n"`, inserts nothing
-- `reasoning`, boundary 2: removes `"<think>\n91 is odd and its digits sum to 10, so 2 and 3 do not divide it. 91 / 7 = 13, so 91 = 7 * 13.\n</think>\n\n"`, inserts nothing
 - `empty_assistant`, boundary 2: removes `"<think>\n\n</think>\n\n"`, inserts nothing
 
 <a id="qwen-qwen3-0-6b-c1899de289a0-prefix-breaks-a55ee1b16601-thinking"></a>
@@ -52,12 +51,12 @@ Secondary: each framework encoded again with its documented setting for non_thin
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| axolotl@0.21.1 | t1.assistant_mask | fail | 8 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| axolotl@0.21.1 | t1.end_of_turn | fail | 8 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| axolotl@0.21.1 | t1.multiturn_prefix | inconclusive | 4 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); prefix not preserved; the breaks are the template's (see [Qwen/Qwen3-0.6B@c1899de289a0#prefix-breaks@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefix-breaks-a55ee1b16601-non-thinking)); not applicable on 4 fixture(s) |
-| axolotl@0.21.1 | t1.special_tokens | fail | 8 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| axolotl@0.21.1 | t1.template_parity | inconclusive | 8 of 8 |  |
-| axolotl@0.21.1 | t1.truncation | fail | 8 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
+| axolotl@0.21.1 | t1.assistant_mask | fail | 7 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); not applicable on 1 fixture(s) |
+| axolotl@0.21.1 | t1.end_of_turn | fail | 7 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); not applicable on 1 fixture(s) |
+| axolotl@0.21.1 | t1.multiturn_prefix | pass | 3 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); prefix not preserved; the breaks are the template's (see [Qwen/Qwen3-0.6B@c1899de289a0#prefix-breaks@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefix-breaks-a55ee1b16601-non-thinking)); not applicable on 5 fixture(s) |
+| axolotl@0.21.1 | t1.special_tokens | fail | 7 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); not applicable on 1 fixture(s) |
+| axolotl@0.21.1 | t1.template_parity | pass | 7 of 8 | not applicable on 1 fixture(s) |
+| axolotl@0.21.1 | t1.truncation | fail | 7 of 8 | root cause: P-0002; spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); not applicable on 1 fixture(s) |
 
 ### Framework properties
 

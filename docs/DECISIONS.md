@@ -14,6 +14,22 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: A fixture whose assistant turn carries reasoning is not applicable in non-thinking mode (M4, option a); calibration re-run
+- **Decision (human):** option (a). Applicability is decided from the fixture and the declared serving mode, before any framework output. Reasoning stays fully covered in the primary (thinking) table.
+  - Not (b): borrowing TRL's training-template reading of reasoning history into the reference would make TRL's verdicts circular.
+  - Not (c): the green definition is not loosened.
+- **Implemented:** `parity.serving.not_applicable_in_mode`. The runner calls it right after the check's own applicability rule, before the framework is asked anything.
+  - A conversation with an assistant message carrying `reasoning_content` is not applicable in `non_thinking` mode. Of the 8 fixtures, that is only `reasoning`.
+  - Tests: `test_engine` (not applicable before anything runs; `reasoning` still runs in thinking mode, the other fixtures in non-thinking), and `test_serving_mode` (only `reasoning`, only in non-thinking).
+  - The calibration summaries compute template properties on the fixtures each mode applies to, so the non-thinking prefix-break list drops `reasoning`'s boundary.
+- **Re-run, TRL and Axolotl** (`docs/evidence/2026-11-25-m4-calibration/`): in each, exactly the 6 `reasoning` × non-thinking verdicts changed, now `not_applicable`. Every other verdict file is byte-identical.
+  - TRL non-thinking: 35 pass, 3 KD-0001, 10 n/a. Axolotl non-thinking: 34 pass, 4 P-0002, 10 n/a.
+  - Every planted fault that ran before still runs in non-thinking mode, and all are caught: TRL 22, Axolotl 20. The 3 that were missed on `reasoning` (`history_edit`, `mask_closing_tokens`, `wrong_closing_token`) are caught on the other fixtures.
+  - Axolotl runs 20 of 22 plants in both modes, as before: `history_false_as_python` is skipped where tool arguments are parsed as JSON (2026-11-24), and `reappend_stop` applies only to right-side truncation that cuts.
+- **Result:** TRL and Axolotl are green.
+- **Saved earlier evidence is not re-derived:** the M3 runs keep their `reasoning` × non-thinking cells as run.
+- Reversible? yes
+
 ## 2026-11-25: M4 calibration, TRL and Axolotl: not green, for one harness reason only
 - **Run:** `runs/calibration-2026-11-25.md`, from `docs/evidence/2026-11-25-m4-calibration/` (`run.py` per framework, `report.py`). Under the current checks, including the special-tokens split.
 - **Green rule as code** (`parity.engine.calibration`, the human's definition): no untriaged fail, no harness-caused inconclusive, every planted fault caught; linked fails are allowed.
@@ -28,6 +44,7 @@ Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and i
   - (a) **not_applicable, decided from the fixture and the mode.** Qwen's model card says that with `enable_thinking=False` the model "will not generate think content", so a conversation whose assistant turns carry reasoning is not non-thinking data. (Recommended.)
   - (b) **teach the reference a non-thinking reading** of reasoning history; TRL's training template has one.
   - (c) **count documented reference limits as allowed** in the green definition.
+  - **Resolved the same day: (a)**, by the human. See the entry above.
 - Unsloth calibrates on GPU (the kit with RUN = "full"), and its non-thinking cells are `not_configurable`, so this question doesn't touch it. Its special-tokens cells should now fail `pad_to_honored` (P-0005); they need /triage and P-0005 pins (backend gpu) when the zip comes back.
 - Reversible? yes
 

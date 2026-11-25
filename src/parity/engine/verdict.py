@@ -6,9 +6,10 @@ One verdict per (check, model, framework, fixture). Rules the record enforces:
 - `not_configurable` means the framework documents no way to run in the
   requested serving mode, so nothing was encoded. Never a pass, never a fail;
   the reason says why.
-- `not_applicable` means the check has nothing to test on this fixture. That
-  is decided from the fixture alone, before any framework output exists. It
-  is never a pass, and the report counts how many fixtures each check ran on.
+- `not_applicable` means the check has nothing to test on this fixture in this
+  serving mode. That is decided from the fixture and the mode alone, before any
+  framework output exists. It is never a pass, and the report counts how many
+  fixtures each check ran on.
 - `kind` is set only on a fail: `bug`, or `difference` when the divergence
   matches a known-differences entry exactly (then `known_difference` names it).
 - `self_test` is `caught` only if every planted fault that applies to this

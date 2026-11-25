@@ -69,9 +69,22 @@ def test_the_mode_moves_only_the_last_turns_empty_think_block(qwen3):
 
 
 def test_a_reasoning_trace_has_no_non_thinking_reading(qwen3):
-    """Non-thinking mode's generation prompt closes the think block empty, so a last turn that reasons contradicts it."""
+    """Non-thinking mode's generation prompt closes the think block empty, so a last turn that reasons contradicts it.
+
+    The runner never asks: such a fixture is not applicable in non-thinking mode (human decision, 2026-11-25).
+    """
     with pytest.raises(TemplateReferenceError):
         official_reference(qwen3, load_fixture("reasoning"), "non_thinking")
+
+
+def test_only_a_fixture_that_carries_reasoning_is_not_applicable_and_only_in_non_thinking_mode():
+    from parity.fixtures import FIXTURE_IDS
+    from parity.serving import not_applicable_in_mode
+
+    for fid in FIXTURE_IDS:
+        fx = load_fixture(fid)
+        assert not_applicable_in_mode(fx, "thinking") is None, fid
+        assert (not_applicable_in_mode(fx, "non_thinking") is not None) == (fid == "reasoning"), fid
 
 
 def test_a_model_without_a_documented_non_thinking_mode_refuses(qwen3):

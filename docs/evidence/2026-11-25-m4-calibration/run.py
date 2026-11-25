@@ -1,5 +1,6 @@
 """M4 calibration: the six Tier 1 checks and every planted fault on the calibration model, both serving modes, under
-the current checks (including t1.special_tokens' split padding rules, 2026-11-25).
+the current checks (including t1.special_tokens' split padding rules, 2026-11-25, and the serving-mode applicability
+rule: a fixture whose assistant turn carries reasoning is not applicable in non-thinking mode, 2026-11-25).
 
 Run from the repo root, in the framework's own environment:
     envs/trl-1.18.2/.venv/bin/python docs/evidence/2026-11-25-m4-calibration/run.py trl
@@ -34,6 +35,7 @@ def main() -> None:
     from parity.fixtures import load_all
     from parity.references.properties import template_properties_for
     from parity.release import load_release
+    from parity.serving import not_applicable_in_mode
     from parity.targets import CALIBRATION
 
     framework, relink = sys.argv[1], "--relink" in sys.argv
@@ -68,8 +70,9 @@ def main() -> None:
         write_verdict(v, out / "verdicts" / v.serving_mode)
     properties = []
     for mode in MODES:
+        applicable = [f for f in fixtures if not_applicable_in_mode(f, mode) is None]  # what the checks judged
         for source, template in templates.items():
-            properties += template_properties_for(release, template, source, fixtures, mode)
+            properties += template_properties_for(release, template, source, applicable, mode)
     (out / "summary.md").write_text(render_summary(verdicts, properties), encoding="utf-8")
     table = {
         f"{v.serving_mode} / {v.check} / {v.fixture}": {

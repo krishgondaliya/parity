@@ -175,6 +175,25 @@ def test_not_applicable_runs_nothing(official, single_turn):
     assert (v.result, v.self_test, v.plants, v.reason) == ("not_applicable", None, [], "nothing to test")
 
 
+def _in_mode(mode, **kw):
+    check = FakeCheck(**kw)
+    check.serving_mode = mode
+    return check
+
+
+def test_reasoning_is_not_applicable_in_non_thinking_mode_before_anything_runs(official):
+    """Human decision 2026-11-25 (M4): decided from the fixture and the mode, before any framework output."""
+    v = evaluate(_in_mode("non_thinking", raises=AssertionError("must not run")), official, load_fixture("reasoning"))
+    assert (v.result, v.self_test, v.plants, v.serving_mode) == ("not_applicable", None, [], "non_thinking")
+    assert v.reason.startswith("non-thinking mode: an assistant turn carries reasoning")
+
+
+def test_reasoning_still_runs_in_thinking_mode_and_other_fixtures_in_non_thinking(official, single_turn):
+    assert evaluate(_in_mode("thinking"), official, load_fixture("reasoning")).result == "pass"
+    for fid in ("single_turn", "multi_turn", "tool_call", "empty_assistant"):
+        assert evaluate(_in_mode("non_thinking"), official, load_fixture(fid)).result == "pass", fid
+
+
 def test_planted_adapter_passes_through_by_default(official, single_turn):
     planted = PlantedAdapter(official, "nothing")
     cfg = TrainCfg()
