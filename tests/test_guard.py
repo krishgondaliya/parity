@@ -8,6 +8,7 @@ output. The exit code is 0 either way.
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -33,7 +34,7 @@ def _guard_module():
 VAULT = _guard_module().HIDDEN_VAULT_MARKER
 
 
-def run_guard(tool_name: str, tool_input: dict) -> tuple[str, str | None]:
+def run_guard(tool_name: str, tool_input: dict, repo: Path | None = None) -> tuple[str, str | None]:
     event = {
         "session_id": "test",
         "hook_event_name": "PreToolUse",
@@ -46,6 +47,7 @@ def run_guard(tool_name: str, tool_input: dict) -> tuple[str, str | None]:
         capture_output=True,
         text=True,
         timeout=60,
+        env={**os.environ, "PARITY_GUARD_REPO": str(repo if repo is not None else ROOT)},
     )
     assert proc.returncode == 0, proc.stderr
     if not proc.stdout.strip():
@@ -118,3 +120,86 @@ def test_read_only_shell_commands_are_allowed(tool, command):
 def test_reading_a_source_file_is_allowed():
     path = ROOT / "src" / "parity" / "release.py"
     assert run_guard("Read", {"file_path": str(path)}) == ("allow", None)
+
+
+# Predictions first: nothing creates or runs code in envs/<framework>-<version> before a committed predictions.md
+# names that framework and version (the human's decision, 2026-11-24). Shell commands that merely write text
+# naming such an environment are caught too; write those files with the Edit/Write tools.
+
+
+def _git(repo: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
+
+
+@pytest.fixture
+def scratch_repo(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "test@example.com")
+    _git(repo, "config", "user.name", "test")
+    (repo / "README.md").write_text("scratch")
+    _git(repo, "add", "README.md")
+    _git(repo, "commit", "-q", "-m", "init")
+    return repo
+
+
+def _predict(repo: Path, title: str, commit: bool = True) -> None:
+    folder = repo / "docs" / "evidence" / "2026-12-01-m3-verl"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "predictions.md").write_text(f"{title}\n\nFrom the docs alone.\n")
+    if commit:
+        _git(repo, "add", "docs")
+        _git(repo, "commit", "-q", "-m", "predictions")
+
+
+TOUCHES_THE_ENV = [
+    "cd envs/verl-0.5.0 && uv sync",
+    "envs/verl-0.5.0/.venv/bin/python probe.py",
+    "envs/verl-0.5.0/.venv/bin/python -m pytest -q",
+    "uv pip install --python envs/verl-0.5.0/.venv verl==0.5.0",
+    "uv venv envs/verl-0.5.0/.venv",
+]
+
+
+@pytest.mark.parametrize("tool", SHELL_TOOLS)
+@pytest.mark.parametrize("command", TOUCHES_THE_ENV)
+def test_a_framework_env_is_off_limits_before_predictions_are_committed(tool, command, scratch_repo):
+    decision, reason = run_guard(tool, {"command": command}, repo=scratch_repo)
+    assert decision == "deny" and "Predictions first" in reason
+
+
+def test_uncommitted_predictions_dont_count(scratch_repo):
+    _predict(scratch_repo, "# Predictions: verl 0.5.0 on Qwen3-0.6B", commit=False)
+    assert run_guard("Bash", {"command": TOUCHES_THE_ENV[0]}, repo=scratch_repo)[0] == "deny"
+
+
+def test_predictions_for_another_version_dont_count(scratch_repo):
+    _predict(scratch_repo, "# Predictions: verl 0.4.9 on Qwen3-0.6B")
+    assert run_guard("Bash", {"command": TOUCHES_THE_ENV[0]}, repo=scratch_repo)[0] == "deny"
+
+
+@pytest.mark.parametrize("command", TOUCHES_THE_ENV)
+def test_committed_predictions_open_the_env(command, scratch_repo):
+    _predict(scratch_repo, "# Predictions: verl 0.5.0 on Qwen3-0.6B, from verl's docs alone")
+    assert run_guard("Bash", {"command": command}, repo=scratch_repo) == ("allow", None)
+
+
+def test_reading_an_env_file_is_not_running_it(scratch_repo):
+    assert run_guard("Bash", {"command": "cat envs/verl-0.5.0/pyproject.toml"}, repo=scratch_repo) == ("allow", None)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "envs/axolotl-0.21.1/.venv/bin/python -m pytest -q",  # predictions committed in 68c315f
+        "envs/unsloth-2026.11.10/.venv/bin/python docs/evidence/2026-11-24-m3-unsloth/run.py",  # in daba17e
+        "envs/trl-1.18.2/.venv/bin/python -m pytest -q",  # grandfathered: predates the rule
+    ],
+)
+def test_the_existing_environments_stay_usable(command):
+    assert run_guard("Bash", {"command": command}) == ("allow", None)
+
+
+def test_the_grandfather_list_holds_only_trl_1_18_2():
+    assert set(_guard_module().GRANDFATHERED) == {"trl-1.18.2"}

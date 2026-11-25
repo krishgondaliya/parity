@@ -6,6 +6,20 @@ argument-hint: "[framework-name]"
 
 Write the adapter for `$0`. Follow the contract in `docs/plan/02-detailed-blueprint.md` (section "Adapter interface").
 
+**Step 0: predictions first. Nothing else starts until this is committed.**
+
+1. Pin the framework version you will use (from the spike's freeze, or the human's choice).
+2. From the framework's **docs alone**, write `docs/evidence/<date>-<milestone>-$0/predictions.md`:
+   - its first line must be `# Predictions: <Framework> <version> on <model> ...`;
+   - list the docs pages, notebooks or READMEs used, each pinned (tag or commit);
+   - give a prediction for every primary cell (6 checks x 8 fixtures), and say what each rests on.
+   - The docs, notebooks, issue tracker and the framework's source on GitHub may be read. Nothing may be installed, imported or run: no environment, no probes, no adapter.
+3. Commit `predictions.md` on its own.
+4. Only then create `envs/<framework>-<version>/`.
+   - The guard hook (`.claude/hooks/guard.py`) refuses to create or run anything in `envs/<framework>-<version>` until a committed predictions file names that framework and version.
+   - Don't try to get around it. If a question can't be answered from the docs, write it into the predictions as an open question and predict anyway.
+   - If anything you learn before the run changes a prediction, don't edit the committed file. Add a dated note below it, so the original stays visible.
+
 Rules:
 
 1. **Call the framework's own public data path**, exactly as a user would: its dataset preparation, collator and trainer entry points. Never re-implement its tokenization, masking, packing or loss.
@@ -19,6 +33,7 @@ Rules:
 
 Deliverables:
 
+- `docs/evidence/<date>-<milestone>-$0/predictions.md`, committed before anything else (step 0).
 - `src/parity/adapters/$0.py`
 - Tests (run inside the framework's environment, skipped elsewhere): on the known-good calibration model (Qwen3 family), `declare()` matches the framework's documented defaults for our config, and `encode()`/`encode_batch()` run on every fixture. The rows' input_ids must match `apply_chat_template` exactly with the template the framework *declares*: a framework may swap in its own training template (TRL does; KD-0001). Comparing against the model's own template is `t1.template_parity`'s job. If they don't match, stop and report: it's either our bug or a finding, and `/triage` decides which.
 - A short note in `docs/DECISIONS.md` if anything about the framework's behavior surprised you.
