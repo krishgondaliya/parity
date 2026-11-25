@@ -1,4 +1,6 @@
-**Target:** https://github.com/unslothai/unsloth-zoo/issues (the code is `unsloth_zoo/dataset_utils.py`; `unsloth.chat_templates.train_on_responses_only` re-exports it). Use the repo's "Bug / Issue" template: keep its six questions as they are (answered below), and replace its default "[Bug]" title with the one below.
+**Posted 2026-11-25 as https://github.com/unslothai/unsloth/issues/19567**, in the main repo, with its template, because unsloth-zoo#698 asks for issues there. This file is the draft as reviewed.
+
+**Target (as drafted):** https://github.com/unslothai/unsloth-zoo/issues (the code is `unsloth_zoo/dataset_utils.py`; `unsloth.chat_templates.train_on_responses_only` re-exports it). Use the repo's "Bug / Issue" template: keep its six questions as they are (answered below), and replace its default "[Bug]" title with the one below.
 
 **Title:** [train_on_responses_only] `SFTConfig.pad_to_multiple_of` is silently dropped with padded batches (unsloth-zoo 2026.11.12 and main)
 

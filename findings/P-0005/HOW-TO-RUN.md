@@ -66,6 +66,8 @@ Both give the same three lines and `exit code: 1`. Both resolve to trl 1.15.0, t
 
 ## Then post
 
+Done 2026-11-25: posted as https://github.com/unslothai/unsloth/issues/19567, in the main repo, because unsloth-zoo#698 asks for issues there. The steps as written:
+
 1. Open a new issue at https://github.com/unslothai/unsloth-zoo/issues with the "Bug / Issue" template.
 2. Paste `findings/P-0005/issue.md` into it: keep the template's six questions, and replace its default "[Bug]" title with the draft's title. The notes at the top of the draft say the same.
 3. Don't attach anything; the draft says the pinned requirements are available on request.

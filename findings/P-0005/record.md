@@ -1,6 +1,6 @@
 # P-0005: Unsloth's `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of`
 
-- Status: **candidate, reproduced on GPU** (a Tesla T4, 2026-11-25; rule 4 cleared), repro shrunk, issue drafted, **not posted**. Class: **config value silently ignored**. "Candidate" until a maintainer confirms (rule 8).
+- Status: **candidate, posted 2026-11-25**: https://github.com/unslothai/unsloth/issues/19567, by the human. Reproduced on GPU (a Tesla T4; rule 4 cleared); repro shrunk. Class: **config value silently ignored**. "Candidate" until a maintainer confirms (rule 8).
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (the behavior is in the collator swap, not model-specific)
 - Framework: unsloth@2026.11.10 (unsloth-zoo 2026.11.10), with trl 1.15.0, on the CPU backend   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -160,7 +160,12 @@
   - The kit counts a run as complete only if it printed its "after" line, since a crash also exits 1.
 
 ## Upstream
-- **Drafted, not posted:** `findings/P-0005/issue.md`, for https://github.com/unslothai/unsloth-zoo/issues. The code is `unsloth_zoo/dataset_utils.py`; `unsloth.chat_templates` re-exports it.
+- **Posted 2026-11-25** (by the human): https://github.com/unslothai/unsloth/issues/19567. It was open when recorded (created 2026-11-25T20:15:48Z, checked read-only).
+  - **Repo:** unslothai/unsloth, with that repo's "Bug / Issue" template, not unsloth-zoo where the code lives. unsloth-zoo#698 ("[Notice] Please use main Unsloth repo for filing issues", open) asks for issues to go to the main repo, which the maintainers monitor more closely.
+  - **Title as posted:** "[Bug] `SFTConfig.pad_to_multiple_of` is silently dropped with padded batches (unsloth-zoo 2026.11.12 and main)". It starts with the template's default "[Bug]", where the draft had "[train_on_responses_only]".
+  - **Maintainer response:** none yet.
+  - **Fixed in:** not yet.
+- **Drafted first:** `findings/P-0005/issue.md`, written for https://github.com/unslothai/unsloth-zoo/issues. The code is `unsloth_zoo/dataset_utils.py`; `unsloth.chat_templates` re-exports it.
   - Uses unsloth-zoo's "Bug / Issue" template, with its six questions answered. Its default "[Bug]" title is replaced (rule 8).
   - States the scope, says labels are not affected and the loss is the same up to float rounding (verified on CPU), and ends with a one-line offer to send a fix with a test.
 - Duplicates searched again, read-only, in both repos, issues and PRs: "train_on_responses_only pad_to_multiple_of", "pad_to_multiple_of", "train_on_responses_only collator", "DataCollatorForSeq2Seq train_on_responses_only", "train_on_responses_only padding" and "pad_to_multiple_of ignored". No duplicate. #2703 stays related.

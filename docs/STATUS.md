@@ -45,15 +45,14 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
   - rule 4 cleared, the drop reaches a real training step, and Unsloth's padding-free default keeps the setting;
   - labels not affected, loss the same up to float rounding (CPU);
   - the repro is shrunk to 30 lines, and fails on 2026.11.12 and on unsloth-zoo main;
-  - the issue is drafted and reviewed, **not posted**.
+  - the issue was drafted, reviewed, and posted by the human on 2026-11-25 as unslothai/unsloth#19567.
 - `t1.special_tokens`' padding part is now two rules, each with its own plant: requested width honored (new real-world plant `pad_to_ignored`), and pad handling at the produced width. 22 planted faults (3 real-world).
 - Tests: core 486, Unsloth environment 507 (1 expected failure). TRL (495) and Axolotl (494) passed after the backend change; they're untouched since.
 
 ## Next actions
 
-1. **Human:** run the P-0005 repro as `findings/P-0005/HOW-TO-RUN.md` says (CPU; it should exit 1), then post `findings/P-0005/issue.md` to unslothai/unsloth-zoo with the repo's "Bug / Issue" template, after reading the notes at the top of the draft. Put the URL in P-0005's record.
-2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
-3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
+1. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
+2. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 
 ## Open questions
 
@@ -72,5 +71,5 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 - **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity. Issue drafted, **not posted**.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours; fixed. Never counted against TRL.
 - **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render. Card only; revisit after the kill test.
-- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk; issue drafted for unsloth-zoo, **not posted**.
+- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk. **Posted 2026-11-25:** [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567) (main repo, as unsloth-zoo#698 asks); awaiting a maintainer.
 - **P-0006** (Unsloth 2026.11.10, non-thinking mode): `train_on_responses_only` trains the last turn's empty think block, which our hard-switch reference treats as a pre-fill. **Closed: not_configurable.** Unsloth documents non-thinking training via the `/no_think` soft switch; hard-switch training is not configurable.
