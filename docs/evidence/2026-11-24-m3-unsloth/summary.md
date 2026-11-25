@@ -41,12 +41,12 @@ Not prefix-preserving: at 5 boundary(ies) across 4 fixture(s), rendering a conve
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| unsloth@2026.11.10 | t1.assistant_mask | inconclusive | 8 of 8 |  |
-| unsloth@2026.11.10 | t1.end_of_turn | pass | 8 of 8 |  |
-| unsloth@2026.11.10 | t1.multiturn_prefix | inconclusive | 4 of 8 | blocked by t1.template_parity on 4 fixture(s); not applicable on 4 fixture(s) |
-| unsloth@2026.11.10 | t1.special_tokens | inconclusive | 8 of 8 | blocked by t1.template_parity on 8 fixture(s) |
-| unsloth@2026.11.10 | t1.template_parity | fail | 8 of 8 | root cause: P-0004 |
-| unsloth@2026.11.10 | t1.truncation | inconclusive | 8 of 8 |  |
+| unsloth@2026.11.10 (cpu) | t1.assistant_mask | inconclusive | 8 of 8 |  |
+| unsloth@2026.11.10 (cpu) | t1.end_of_turn | pass | 8 of 8 |  |
+| unsloth@2026.11.10 (cpu) | t1.multiturn_prefix | inconclusive | 4 of 8 | blocked by t1.template_parity on 4 fixture(s); not applicable on 4 fixture(s) |
+| unsloth@2026.11.10 (cpu) | t1.special_tokens | inconclusive | 8 of 8 | blocked by t1.template_parity on 8 fixture(s) |
+| unsloth@2026.11.10 (cpu) | t1.template_parity | fail | 8 of 8 | root cause: P-0004 |
+| unsloth@2026.11.10 (cpu) | t1.truncation | inconclusive | 8 of 8 |  |
 
 ### Secondary results: non_thinking mode
 
@@ -54,18 +54,18 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| unsloth@2026.11.10 | t1.assistant_mask | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| unsloth@2026.11.10 | t1.end_of_turn | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| unsloth@2026.11.10 | t1.multiturn_prefix | inconclusive | 4 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 3 fixture(s); not applicable on 4 fixture(s) |
-| unsloth@2026.11.10 | t1.special_tokens | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 7 fixture(s) |
-| unsloth@2026.11.10 | t1.template_parity | fail | 8 of 8 | root cause: P-0004 |
-| unsloth@2026.11.10 | t1.truncation | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
+| unsloth@2026.11.10 (cpu) | t1.assistant_mask | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
+| unsloth@2026.11.10 (cpu) | t1.end_of_turn | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
+| unsloth@2026.11.10 (cpu) | t1.multiturn_prefix | inconclusive | 4 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 3 fixture(s); not applicable on 4 fixture(s) |
+| unsloth@2026.11.10 (cpu) | t1.special_tokens | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 7 fixture(s) |
+| unsloth@2026.11.10 (cpu) | t1.template_parity | fail | 8 of 8 | root cause: P-0004 |
+| unsloth@2026.11.10 (cpu) | t1.truncation | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
 
 ### Framework properties
 
 | Framework | Property | Declared | Verified by behavior |
 | --- | --- | --- | --- |
-| unsloth@2026.11.10 | tool-call arguments given as a string | rendered verbatim | mismatch: the tokens match neither the verbatim nor the re-serialized render (t1.multiturn_prefix on tool_call) |
+| unsloth@2026.11.10 (cpu) | tool-call arguments given as a string | rendered verbatim | mismatch: the tokens match neither the verbatim nor the re-serialized render (t1.multiturn_prefix on tool_call) |
 
 ### Fails by root cause
 
@@ -73,4 +73,4 @@ Secondary: the same encoded rows as the primary results, judged against a second
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
-| P-0004 (Unsloth CPU backend only; low impact) | 15 | unsloth@2026.11.10 t1.template_parity/empty_assistant; unsloth@2026.11.10 t1.template_parity/empty_assistant (non_thinking); unsloth@2026.11.10 t1.template_parity/long_answer; unsloth@2026.11.10 t1.template_parity/long_answer (non_thinking); unsloth@2026.11.10 t1.template_parity/multi_turn; unsloth@2026.11.10 t1.template_parity/multi_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/non_ascii; unsloth@2026.11.10 t1.template_parity/non_ascii (non_thinking); unsloth@2026.11.10 t1.template_parity/reasoning; unsloth@2026.11.10 t1.template_parity/single_turn; unsloth@2026.11.10 t1.template_parity/single_turn (non_thinking); unsloth@2026.11.10 t1.template_parity/system_prompt; unsloth@2026.11.10 t1.template_parity/system_prompt (non_thinking); unsloth@2026.11.10 t1.template_parity/tool_call; unsloth@2026.11.10 t1.template_parity/tool_call (non_thinking) |
+| P-0004 (Unsloth CPU backend only; low impact) | 15 | unsloth@2026.11.10 (cpu) t1.template_parity/empty_assistant; unsloth@2026.11.10 (cpu) t1.template_parity/empty_assistant (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/long_answer; unsloth@2026.11.10 (cpu) t1.template_parity/long_answer (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/multi_turn; unsloth@2026.11.10 (cpu) t1.template_parity/multi_turn (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/non_ascii; unsloth@2026.11.10 (cpu) t1.template_parity/non_ascii (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/reasoning; unsloth@2026.11.10 (cpu) t1.template_parity/single_turn; unsloth@2026.11.10 (cpu) t1.template_parity/single_turn (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/system_prompt; unsloth@2026.11.10 (cpu) t1.template_parity/system_prompt (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/tool_call; unsloth@2026.11.10 (cpu) t1.template_parity/tool_call (non_thinking) |

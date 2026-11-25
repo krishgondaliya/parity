@@ -25,6 +25,11 @@ One verdict per (check, model, framework, fixture). Rules the record enforces:
 - `flags` mark things the report card must show even on a pass (see FLAGS).
 - `root_cause` names the finding that explains a fail (parity.engine.root_causes).
   Fails are counted by root cause; an unlinked fail is untriaged.
+- `backend` is the compute backend the framework actually took ("gpu" or "cpu"),
+  read from the framework by the adapter, for frameworks that choose one at import
+  (Unsloth falls back to CPU when it finds no GPU). None for frameworks with no
+  such choice. The report keeps each backend's results apart, and a root cause
+  pinned on one backend never explains a verdict from another.
 """
 
 from __future__ import annotations
@@ -38,6 +43,7 @@ SCHEMA = "parity.verdict/v0"
 RESULTS = ("pass", "fail", "inconclusive", "not_applicable", "not_configurable")
 KINDS = ("bug", "difference")
 SELF_TESTS = ("caught", "missed")
+BACKENDS = ("gpu", "cpu")
 FLAGS = (
     "zero_trainable_tokens",  # a kept row has no token with loss (e.g. a cut that left only the prompt)
     "declared_actual_mismatch",  # behavior exactly matches a different declared value: route to /triage
@@ -69,6 +75,7 @@ class Verdict:
     env_lock: str | None = None
     env_fingerprint: str | None = None  # sha256 of the lockfile the framework environment was built from
     repro: str | None = None
+    backend: str | None = None  # "gpu" or "cpu": the backend the framework took; None if it has no such choice
     schema: str = SCHEMA
 
     def __post_init__(self) -> None:
@@ -92,6 +99,8 @@ class Verdict:
             raise ValueError(f"unknown flags {unknown}; known: {FLAGS}")
         if self.root_cause is not None and self.result != "fail":
             raise ValueError(f"root_cause is only set on a fail, not on {self.result!r}")
+        if self.backend is not None and self.backend not in BACKENDS:
+            raise ValueError(f"backend must be one of {BACKENDS} or None, got {self.backend!r}")
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -101,8 +110,13 @@ class Verdict:
         return json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n"
 
 
+def framework_label(verdict: Verdict) -> str:
+    """How reports name the framework: "<name>@<version>", plus the backend when one is recorded."""
+    return verdict.framework if verdict.backend is None else f"{verdict.framework} ({verdict.backend})"
+
+
 def make_verdict(check_id: str, adapter: Any, fixture_id: str, result: str, **fields: Any) -> Verdict:
-    """A verdict with the model, framework and lockfile filled in from the adapter."""
+    """A verdict with the model, framework, lockfile and backend filled in from the adapter."""
     return Verdict(
         check=check_id,
         model=adapter.release.release.spec,
@@ -111,6 +125,7 @@ def make_verdict(check_id: str, adapter: Any, fixture_id: str, result: str, **fi
         result=result,
         env_lock=adapter.env_lock,
         env_fingerprint=getattr(adapter, "env_fingerprint", None),
+        backend=getattr(adapter, "backend", None),
         **fields,
     )
 

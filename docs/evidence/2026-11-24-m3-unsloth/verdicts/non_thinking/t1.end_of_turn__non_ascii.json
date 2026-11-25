@@ -116,5 +116,6 @@
   "root_cause": null,
   "env_lock": "envs/unsloth-2026.11.10/uv.lock",
   "env_fingerprint": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
-  "repro": null
+  "repro": null,
+  "backend": "cpu"
 }

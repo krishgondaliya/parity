@@ -16,6 +16,7 @@ if "--relink" not in sys.argv:
 import json
 import shutil
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 OUT = Path(__file__).parent
@@ -52,7 +53,10 @@ def main() -> None:
     release = load_release(CALIBRATION)
     fixtures = load_all()
     if "--relink" in sys.argv:
+        # Every verdict here ran on Unsloth's CPU fallback (environment.json). Verdicts written before
+        # Verdict.backend existed get it recorded, so P-0004 (a CPU-backend root cause) still explains them.
         verdicts = [read_verdict(p) for p in sorted((OUT / "verdicts").rglob("*.json"))]
+        verdicts = [v if v.backend else replace(v, backend="cpu") for v in verdicts]
         templates = json.loads((OUT / "templates.json").read_text(encoding="utf-8"))
     else:
         adapter = UnslothAdapter(release)

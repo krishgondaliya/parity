@@ -7,14 +7,29 @@ if unsloth.__version__ != "2026.11.10":
     pytest.skip("needs unsloth==2026.11.10 (envs/unsloth-2026.11.10)", allow_module_level=True)
 
 from parity.adapters.base import TrainCfg  # noqa: E402
-from parity.adapters.unsloth import UnslothAdapter  # noqa: E402
+from parity.adapters.unsloth import BACKEND, UnslothAdapter  # noqa: E402
 from parity.fixtures import FIXTURE_IDS, load_fixture  # noqa: E402
 from parity.references.template import template_token_ids  # noqa: E402
+
+
+CPU_ONLY = pytest.mark.skipif(BACKEND != "cpu", reason="pins Unsloth's CPU-backend behavior (P-0004)")
 
 
 @pytest.fixture(scope="module")
 def adapter(qwen3):
     return UnslothAdapter(qwen3)
+
+
+def test_the_backend_is_read_from_unsloth_and_recorded(adapter):
+    assert adapter.backend == BACKEND == ("cpu" if unsloth.DEVICE_TYPE == "cpu" else "gpu")
+    assert f"backend: {BACKEND}" in " ".join(adapter.declare(TrainCfg()).sources)
+
+
+def test_the_lockfile_can_be_the_cuda_12_6_variant_but_nothing_else(qwen3):
+    variant = UnslothAdapter(qwen3, env_lock="envs/unsloth-2026.11.10/cu126/uv.lock")
+    assert variant.env_lock.endswith("cu126/uv.lock") and variant.env_fingerprint != UnslothAdapter(qwen3).env_fingerprint
+    with pytest.raises(ValueError, match="env_lock"):
+        UnslothAdapter(qwen3, env_lock="envs/trl-1.18.2/uv.lock")
 
 
 def test_declare_reads_the_recipes_live_objects(adapter, qwen3):
@@ -44,6 +59,7 @@ def test_encode_batch_runs(adapter):
     assert len({len(r.input_ids) for r in batch.rows}) == 1
 
 
+@CPU_ONLY
 @pytest.mark.parametrize("fid", FIXTURE_IDS)
 def test_rows_are_the_declared_render_plus_one_appended_eos(adapter, qwen3, fid):
     """What the recipe actually produces, pinned exactly: TRL 1.15 appends the EOS token to a "text" row that doesn't
@@ -55,6 +71,7 @@ def test_rows_are_the_declared_render_plus_one_appended_eos(adapter, qwen3, fid)
     assert list(row.input_ids) == template_token_ids(qwen3.tokenizer, fx, declared) + [eos]
 
 
+@CPU_ONLY
 @pytest.mark.xfail(strict=True, reason="rows carry one appended EOS (see the test above); under /triage, M3 Unsloth")
 def test_rows_match_the_declared_template_exactly(adapter, qwen3):
     """The adapter contract (the new-adapter skill): rows equal apply_chat_template with the declared template."""

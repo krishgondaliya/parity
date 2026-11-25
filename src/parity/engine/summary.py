@@ -1,4 +1,7 @@
-"""Roll verdicts up into one cell per (model, framework, check, serving mode).
+"""Roll verdicts up into one cell per (model, framework, backend, check, serving mode).
+
+A framework that records a backend (Unsloth: gpu or cpu) gets one cell per backend, named by
+`framework_label` ("unsloth@2026.11.10 (gpu)"), so results from two backends are never merged.
 
 Each cell reports how many fixtures the check actually ran on (everything that
 was not `not_applicable`). A cell where the check ran on zero fixtures is
@@ -19,13 +22,13 @@ from collections import Counter, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from parity.engine.verdict import Verdict, require_self_test
+from parity.engine.verdict import Verdict, framework_label, require_self_test
 
 
 @dataclass(frozen=True)
 class Cell:
     model: str
-    framework: str
+    framework: str  # framework_label: "<name>@<version>", plus " (<backend>)" when one is recorded
     check: str
     serving_mode: str  # the reference's mode (parity.serving); "unrecorded" for verdicts written before modes existed
     fixtures: int
@@ -43,12 +46,13 @@ class Cell:
     untriaged: int = 0  # fails in this cell with no root cause
     not_configurable: int = 0  # verdicts where the framework can't be set to this serving mode
     not_configurable_reasons: tuple[str, ...] = ()
+    backend: str | None = None  # Verdict.backend, shared by every verdict in the cell
 
 
 def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
     groups: dict[tuple[str, str, str, str], list[Verdict]] = defaultdict(list)
     for v in verdicts:
-        groups[(v.model, v.framework, v.check, v.serving_mode or "unrecorded")].append(require_self_test(v))
+        groups[(v.model, framework_label(v), v.check, v.serving_mode or "unrecorded")].append(require_self_test(v))
 
     cells = []
     for (model, framework, check, mode), vs in sorted(groups.items()):
@@ -92,6 +96,7 @@ def summarize(verdicts: Iterable[Verdict]) -> list[Cell]:
                 untriaged=sum(v.result == "fail" and not v.root_cause for v in vs),
                 not_configurable=not_configurable,
                 not_configurable_reasons=tuple(sorted({v.reason for v in vs if v.result == "not_configurable" and v.reason})),
+                backend=vs[0].backend,
             )
         )
     return cells

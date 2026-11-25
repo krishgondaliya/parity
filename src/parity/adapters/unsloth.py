@@ -4,6 +4,12 @@ Framework: unsloth==2026.11.10 (checked at import), with the TRL it runs (1.15.0
 `envs/unsloth-2026.11.10/`, every transitive version held at the 2026-11-23 WSL spike's resolution. Deviations from
 Unsloth's documented install, including the CPU fallback, are in `envs/unsloth-2026.11.10/environment.json`.
 
+Backend: Unsloth picks one at import, its GPU route when it finds an accelerator, otherwise its CPU fallback
+(`unsloth/_cpu_init.py`: stock transformers + PEFT + TRL). The adapter reads which one Unsloth took
+(`unsloth.DEVICE_TYPE`) and every verdict records it (`Verdict.backend`: "gpu" or "cpu"). The two routes prepare
+datasets differently (P-0004), so their results are never merged. GPU runs use the Colab kit (`docs/gpu-run/`),
+with the lockfile its CUDA driver allows: this environment's own, or the CUDA 12.6 variant in `cu126/`.
+
 The recipe (hard rule 2: Unsloth's public path, exactly as its notebooks run it)
     Unsloth's Qwen3 page recommends the "Qwen3 (14B) Reasoning + Conversational" notebook (DOCS["notebook"]):
     1. `FastLanguageModel.from_pretrained(max_seq_length=2048, load_in_4bit=True, ...)`, then `get_peft_model(...)`.
@@ -82,8 +88,12 @@ VERSION = "2026.11.10"
 if unsloth.__version__ != VERSION:
     raise ImportError(f"this adapter is pinned to unsloth=={VERSION}, found {unsloth.__version__}")
 
+DEVICE_TYPE = str(unsloth.DEVICE_TYPE)  # "cpu" on the CPU fallback; "cuda" (or another accelerator) on the GPU route
+BACKEND = "cpu" if DEVICE_TYPE == "cpu" else "gpu"
+
 REPO_ROOT = Path(parity.__file__).resolve().parents[2]
-ENV_LOCK = f"envs/unsloth-{VERSION}/uv.lock"
+ENV_DIR = f"envs/unsloth-{VERSION}"
+ENV_LOCK = f"{ENV_DIR}/uv.lock"
 NOTEBOOKS = "https://github.com/unslothai/notebooks/blob"
 DOCS = {
     "qwen3_docs": "https://unsloth.ai/docs/basics/qwen3-how-to-run-and-fine-tune",
@@ -111,11 +121,16 @@ class UnslothAdapter:
 
     name = "unsloth"
     version = VERSION
+    backend = BACKEND
 
-    def __init__(self, release: LoadedRelease):
+    def __init__(self, release: LoadedRelease, env_lock: str = ENV_LOCK):
+        """`env_lock`: the lockfile this environment was built from (rule 7). The GPU kit passes the CUDA 12.6
+        variant's lock when the machine's driver can't run this environment's own CUDA 13 torch."""
+        if not (env_lock.startswith(f"{ENV_DIR}/") and env_lock.endswith("/uv.lock")):
+            raise ValueError(f"env_lock must be a uv.lock under {ENV_DIR}/, got {env_lock!r}")
         self.release = release
-        self.env_lock = ENV_LOCK
-        self.env_fingerprint = hashlib.sha256((REPO_ROOT / ENV_LOCK).read_bytes()).hexdigest()
+        self.env_lock = env_lock
+        self.env_fingerprint = hashlib.sha256((REPO_ROOT / env_lock).read_bytes()).hexdigest()
         self._source = fetch_release_files(release.release)  # tokenizer, template and config files only
         self._local = self._tiny_model_folder()
         self._declarations: dict[TrainCfg, Declaration] = {}
@@ -306,6 +321,8 @@ def _declaration(trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting:
             "tool_arguments: no option; the recipe formats with tokenizer.apply_chat_template itself, so a string "
             f"argument is rendered verbatim by the template ({DOCS['tool_notebook']})",
             f"serving_mode_setting: {mode_setting}",
-            f"note: TRL appends the EOS token to a text row that doesn't end with it ({DOCS['trl_add_eos']})",
+            f"backend: {BACKEND} (unsloth.DEVICE_TYPE={DEVICE_TYPE!r})",
+            f"note: stock TRL appends the EOS token to a text row that doesn't end with it ({DOCS['trl_add_eos']}); "
+            "Unsloth's CPU backend runs that preparation, its GPU route replaces it (P-0004)",
         ),
     )

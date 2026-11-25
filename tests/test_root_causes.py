@@ -150,3 +150,59 @@ def test_p_0004_carries_its_card_label():
     from parity.engine.root_causes import card_labels
 
     assert card_labels()["P-0004"] == "Unsloth CPU backend only; low impact"
+
+
+# Backends (Unsloth records gpu or cpu): a root cause pinned on one backend never explains a verdict from another.
+
+UNSLOTH = "unsloth@2026.11.10"
+
+
+def p0004(*verdicts, backend="cpu"):
+    return RootCause(
+        id="P-0004", record="findings/P-0004/record.md", status="candidate (CPU backend only)", framework=UNSLOTH,
+        model=MODEL, summary="CPU backend appends a second <|im_end|>", pins=tuple(Pin(**pin(v)) for v in verdicts),
+        card_label="Unsloth CPU backend only; low impact", backend=backend,
+    )  # fmt: skip
+
+
+def test_a_cpu_root_cause_never_explains_the_same_fail_on_gpu():
+    evidence = {"first_divergence": 31, "expected": None, "got": "<|im_end|>"}
+    on_cpu = fail("t1.template_parity", fixture="single_turn", framework=UNSLOTH, backend="cpu", evidence=evidence)
+    on_gpu = fail("t1.template_parity", fixture="single_turn", framework=UNSLOTH, backend="gpu", evidence=evidence)
+    cpu, gpu = link_root_causes([on_cpu, on_gpu], [p0004(on_cpu)])
+    assert (cpu.root_cause, gpu.root_cause) == ("P-0004", None)
+    assert count_fails([gpu]).untriaged == (f"{UNSLOTH} (gpu) t1.template_parity/single_turn (thinking)",)
+
+
+def test_a_root_cause_with_no_backend_explains_only_verdicts_with_none():
+    triaged = fail("t1.end_of_turn")
+    on_gpu = fail("t1.end_of_turn", backend="gpu")
+    [v] = link_root_causes([on_gpu], [p0002(triaged)])
+    assert v.root_cause is None
+
+
+def test_the_registry_pins_p0004_to_the_cpu_backend():
+    [p0004_entry] = [r for r in load_root_causes() if r.id == "P-0004"]
+    assert p0004_entry.backend == "cpu"
+    assert all(r.backend is None for r in load_root_causes() if not r.framework.startswith("unsloth@"))
+
+
+def test_a_verdict_backend_must_be_gpu_or_cpu():
+    with pytest.raises(ValueError, match="backend"):
+        fail("t1.end_of_turn", backend="cuda")
+
+
+def test_the_report_puts_cpu_results_in_a_secondary_table_once_gpu_results_exist():
+    def passing(fixture, backend):
+        return Verdict(
+            check="t1.end_of_turn", model=MODEL, framework=UNSLOTH, fixture=fixture, result="pass",
+            self_test="caught", serving_mode="thinking", plants=[{"plant": "p", "caught": True}], backend=backend,
+        )  # fmt: skip
+
+    both = render_summary([passing("single_turn", "gpu"), passing("single_turn", "cpu")], [])
+    main, secondary = both.split("#### CPU backend (secondary): thinking mode")
+    assert f"| {UNSLOTH} (gpu) | t1.end_of_turn | pass |" in main and "(cpu)" not in main
+    assert f"| {UNSLOTH} (cpu) | t1.end_of_turn | pass |" in secondary.split("### Fails by root cause")[0]
+
+    cpu_only = render_summary([passing("single_turn", "cpu")], [])
+    assert "CPU backend (secondary)" not in cpu_only and f"| {UNSLOTH} (cpu) | t1.end_of_turn | pass |" in cpu_only

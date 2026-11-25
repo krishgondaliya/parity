@@ -64,6 +64,15 @@ def test_verdict_json_round_trip(tmp_path):
     assert path.read_text(encoding="utf-8").startswith('{\n  "schema": "parity.verdict/v0"')
 
 
+def test_the_backend_round_trips_and_older_verdicts_read_as_unrecorded(tmp_path):
+    on_gpu = _v(result="pass", backend="gpu", **CAUGHT)
+    assert read_verdict(write_verdict(on_gpu, tmp_path)).backend == "gpu"
+    older = json.loads(on_gpu.to_json())
+    del older["backend"]  # verdicts written before the field existed
+    (tmp_path / "older.json").write_text(json.dumps(older), encoding="utf-8")
+    assert read_verdict(tmp_path / "older.json").backend is None
+
+
 # Evidence
 
 

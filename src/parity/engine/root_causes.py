@@ -8,8 +8,11 @@ How a verdict gets its root cause (`Verdict.root_cause`):
 - A fail of kind `difference` links to the finding its known-differences entry came from (`KnownDifference.finding`),
   or to the entry itself when it came from no finding (KD-0001).
 - A fail of kind `bug` links to a triaged finding only by an exact pin in `findings/root_causes.json`: the same
-  framework version, model, check, fixture and serving mode, and the same evidence (sha256 of its canonical JSON).
-  A pin is written after /triage and the skeptic, from the verdict itself (`pin()`).
+  framework version, backend, model, check, fixture and serving mode, and the same evidence (sha256 of its canonical
+  JSON). A pin is written after /triage and the skeptic, from the verdict itself (`pin()`).
+- The backend is matched exactly, at the root-cause level: a root cause with `"backend": "cpu"` (P-0004) explains only
+  verdicts recorded on that backend, so a GPU fail with the same tokens is untriaged until it is triaged on GPU.
+  A root cause with no backend explains only verdicts with none (frameworks that don't choose one).
 - No wildcards. If the failure changes in any way, its evidence hash changes, the link breaks, and the cell is
   untriaged again. Untriaged fails are counted one per cell, so nothing is hidden by grouping.
 
@@ -28,7 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from parity.checks.known_differences import load_registry
-from parity.engine.verdict import Verdict
+from parity.engine.verdict import Verdict, framework_label
 
 SCHEMA = "parity.root_causes/v0"
 HARNESS_ERROR = "harness error"
@@ -53,6 +56,7 @@ class RootCause:
     summary: str
     pins: tuple[Pin, ...]
     card_label: str = ""  # how the report card labels it, e.g. "Unsloth CPU backend only, low impact" (human's call)
+    backend: str | None = None  # the backend its pins were recorded on (Verdict.backend); matched exactly
 
 
 def evidence_sha256(v: Verdict) -> str:
@@ -88,6 +92,7 @@ def load_root_causes(path: Path = DEFAULT_PATH) -> tuple[RootCause, ...]:
                 summary=e["summary"],
                 pins=pins,
                 card_label=e.get("card_label", ""),
+                backend=e.get("backend"),
             )
         )
     ids = [r.id for r in out]
@@ -107,7 +112,11 @@ def link_root_causes(verdicts: Iterable[Verdict], root_causes: Iterable[RootCaus
             cause = kd_finding.get(v.known_difference or "")
         elif v.result == "fail" and v.kind == "bug":
             key = Pin(v.check, v.fixture, v.serving_mode or "", evidence_sha256(v))
-            matches = [r.id for r in causes if r.framework == v.framework and r.model == v.model and key in r.pins]
+            matches = [
+                r.id
+                for r in causes
+                if r.framework == v.framework and r.backend == v.backend and r.model == v.model and key in r.pins
+            ]
             if len(matches) > 1:
                 raise ValueError(f"{v.check}/{v.fixture}: pinned to more than one root cause {matches}")
             cause = matches[0] if matches else None
@@ -157,7 +166,7 @@ def count_fails(verdicts: Iterable[Verdict], harness_errors: Iterable[str] = ())
         elif v.root_cause:
             causes[v.root_cause] = causes.get(v.root_cause, 0) + 1
         else:
-            untriaged.append(f"{v.framework} {v.check}/{v.fixture} ({v.serving_mode or 'unrecorded'})")
+            untriaged.append(f"{framework_label(v)} {v.check}/{v.fixture} ({v.serving_mode or 'unrecorded'})")
     return FailCount(
         dict(sorted(causes.items())), tuple(sorted(untriaged)), cells, bugs, differences, dict(sorted(harness.items()))
     )

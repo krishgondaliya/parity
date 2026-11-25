@@ -15,6 +15,11 @@ Results come in one table per serving mode (parity.serving). The primary mode
 comes first; any other mode is a clearly labeled secondary result: the same
 encoded rows, judged against a second reference rendered in that mode.
 
+Backends: a framework that records one (Unsloth) is named with it, e.g.
+"unsloth@2026.11.10 (gpu)". When a framework has GPU results, its CPU results
+go in a separate table under each mode, labeled "CPU backend (secondary)": the
+GPU route is what its users run (the human's decision, 2026-11-24).
+
 3. Framework properties: behavior a framework declares that no check grades
    pass/fail but users need to know (tool arguments parsed as JSON or passed
    through), with whether the framework's behavior confirmed it.
@@ -31,7 +36,7 @@ from collections.abc import Iterable
 
 from parity.engine.root_causes import card_labels, count_fails, harness_error_ids
 from parity.engine.summary import Cell, summarize
-from parity.engine.verdict import Verdict
+from parity.engine.verdict import Verdict, framework_label
 from parity.references.properties import TemplateProperty
 
 INHERITED_NOTE = {
@@ -98,7 +103,17 @@ def render_summary(
                     f"rendered in {mode} mode. No extra framework runs.",
                     "",
                 ]
-            lines += _results_table([c for c in model_cells if c.serving_mode == mode], by_id)
+            mode_cells = [c for c in model_cells if c.serving_mode == mode]
+            main, cpu_secondary = _split_backends(mode_cells)
+            lines += _results_table(main, by_id)
+            if cpu_secondary:
+                lines += [
+                    f"#### CPU backend (secondary): {mode} mode",
+                    "",
+                    "The same framework on its CPU fallback. Its GPU results above are its primary result.",
+                    "",
+                ]
+                lines += _results_table(cpu_secondary, by_id)
         lines += _framework_properties([v for v in verdicts if v.model == model])
         lines += _root_cause_section([v for v in verdicts if v.model == model], primary_mode, ours, labels)
     return "\n".join(lines)
@@ -112,10 +127,17 @@ PROPERTY_LABELS = {
 }
 
 
+def _split_backends(cells: list[Cell]) -> tuple[list[Cell], list[Cell]]:
+    """Main cells, and CPU-backend cells of frameworks that also have GPU cells (shown as a secondary table)."""
+    with_gpu = {c.framework.removesuffix(" (gpu)") for c in cells if c.backend == "gpu"}
+    secondary = [c for c in cells if c.backend == "cpu" and c.framework.removesuffix(" (cpu)") in with_gpu]
+    return [c for c in cells if c not in secondary], secondary
+
+
 def _framework_properties(verdicts: list[Verdict]) -> list[str]:
     rows = []
-    for framework in sorted({v.framework for v in verdicts}):
-        mine = [v for v in verdicts if v.framework == framework and v.declaration.get("verified")]
+    for framework in sorted({framework_label(v) for v in verdicts}):
+        mine = [v for v in verdicts if framework_label(v) == framework and v.declaration.get("verified")]
         for field, (label, values) in PROPERTY_LABELS.items():
             declared = {v.declaration.get(field) for v in mine} - {None}
             if not declared:
@@ -172,7 +194,8 @@ def _root_cause_section(
     for cause, label, n in rows:
         where = sorted(
             {
-                f"{v.framework} {v.check}/{v.fixture}" + ("" if v.serving_mode == primary_mode else f" ({v.serving_mode})")
+                f"{framework_label(v)} {v.check}/{v.fixture}"
+                + ("" if v.serving_mode == primary_mode else f" ({v.serving_mode})")
                 for v in verdicts
                 if v.result == "fail" and v.root_cause == cause
             }
