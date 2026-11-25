@@ -14,6 +14,31 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: Unsloth's GPU run is in: its primary result; the non-thinking table exploratory; P-0005 not yet attributed; H-10
+- **The run** (Colab Tesla T4, driver 580.82.07 = CUDA 13.0, so the main lockfile; 109 packages as locked; Unsloth on `cuda`):
+  - Verified by `docs/evidence/2026-11-25-m3-unsloth-gpu/ingest.py`: every file against its manifest, and `git archive` of `15ed6df` rebuilt here with the sha256 Colab recorded. The zip is kept byte for byte under `raw/`.
+  - Results: thinking (primary) 36 pass, 8 inconclusive, 4 n/a, 0 fail; non-thinking 17 pass, 14 fail, 13 inconclusive, 4 n/a.
+  - 81 of 96 cells as the docs-alone predictions said. All 15 misses are `t1.special_tokens`, the cells the predictions named in advance.
+- **Decisions (human):**
+  1. Unsloth's GPU results are its primary table, with CPU as the labeled secondary "CPU backend" table. The CPU summary now says so.
+  2. The non-thinking table is exploratory. Its 14 fails (assistant mask and truncation on 7 fixtures) share one mechanism, now P-0006, status "exploratory": `train_on_responses_only` trains the last turn's empty think block, which the reference treats as the generation prompt's pre-fill. Pinned (backend gpu), so nothing is untriaged; not counted against Unsloth.
+     - Skeptic, each point verified: Unsloth documents non-thinking training as the soft switch (the recommended notebook appends `/no_think`, and the empty block is model output). Our reference models the hard switch (`enable_thinking=False`; Qwen's model card and TRL's training template agree with that zone).
+     - Its proposal, open for the human: reclassify as `not_configurable` (Unsloth documents no hard-switch training), add a known difference, or add a soft-switch reference.
+  3. Rule 4 before linking `t1.special_tokens` to P-0005. The GPU evidence shows the swapped collator, `DataCollatorForSeq2Seq(pad_to_multiple_of=None)`, but not `trainer.args` or the collator before the swap. So the 15 cells aren't attributed yet.
+     - The adapter's declaration now also records `trainer.args.pad_to_multiple_of`.
+     - `findings/P-0005/adapter_check.py` (objective all vs assistant_only at the check's `pad_to`) settles it on the next trip.
+  4. H-10 (ours): the P-0005 repro loaded 4-bit without LoRA, and crashed on GPU. Fixed to follow the notebook (`get_peft_model` first).
+  5. The kit gains a P-0005-only mode (`RUN = "p0005"`, `colab_kit.py --only p0005`): install, smoke, then P-0005. The checks step it skips took 1147 s of the run's ~22 minutes. It runs:
+     - the repro padded, with `padding_free` left to Unsloth, and with one real `trainer.train()` step that records the batch training draws;
+     - then the adapter's `pad_to` check.
+- **H-11 (ours, found by the skeptic):** on GPU the adapter read the collator in the inference state that Unsloth's `SFTTrainer.__init__` ends in (padding left); `train()` enters training mode first (padding right).
+  - The adapter now makes the same `model.for_training(...)` call first.
+  - CPU re-run: 96 of 96 verdicts identical. No GPU verdict was affected.
+- **Stale report text (ours):** the secondary table's header still said "the same encoded rows… No extra framework runs", untrue since 2026-11-24. Fixed in `report.py`, and all four summaries re-rendered: only that line changed, plus the CPU banner.
+- **Also seen, recorded, not judged:** xformers can't load with torch 2.14.1+cu130, so Unsloth uses PyTorch attention. A consequence of not running `install-kernels`; off the data path.
+- **P-0004:** confirmed CPU-only. GPU rows equal the render in all 15 template-parity cells that run.
+- Reversible? yes
+
 ## 2026-11-25: The P-0005 repro rides along on the GPU run, as an optional notebook cell (human)
 - Decision (human): add `findings/P-0005/repro.py` to the GPU kit as an optional cell. Its output goes in its own folder inside the results zip, apart from the verdicts, and it must not affect the main run.
 - How:

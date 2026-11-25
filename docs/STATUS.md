@@ -2,8 +2,8 @@
 
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
-- **Current phase:** Phase 0, kill test. M0, M1 and M2 are done. M3 is in progress: TRL, Axolotl and Unsloth have run all six checks on the calibration model, in both serving modes. Unsloth ran only on its CPU backend, so its labels aren't judged yet. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-25 (GPU run kit built; waiting on the Colab run)
+- **Current phase:** Phase 0, kill test. M0, M1 and M2 are done. M3 is in progress: TRL, Axolotl and Unsloth have run all six checks on the calibration model, in both serving modes. Unsloth's primary result is now its GPU route; one P-0005 question remains for a short GPU trip. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
+- **Last updated:** 2026-11-25 (Unsloth GPU run ingested and triaged)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -18,44 +18,50 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 - M3 on Qwen3-0.6B, both modes:
   - **TRL 1.18.2** (`docs/evidence/2026-11-24-m3-rerun/trl/`): primary 40 pass, 4 KD-0001, 4 n/a. Its only root cause is KD-0001.
   - **Axolotl 0.21.1** (`docs/evidence/2026-11-24-m3-rerun/axolotl/`): primary 27 pass, 13 KD-0002/0003 (P-0001), 4 P-0002, 4 n/a. 21 fail verdicts from 2 root causes.
-  - **Unsloth 2026.11.10, CPU backend** (`docs/evidence/2026-11-24-m3-unsloth/`): primary 8 pass, 8 fail (P-0004), 28 inconclusive, 4 n/a. 48/48 as predicted, but the predictions came after a disclosed probe.
-- **Harness errors caught: 9** (`findings/LEDGER.md`). They are never counted against a framework.
+  - **Unsloth 2026.11.10, GPU route, primary** (`docs/evidence/2026-11-25-m3-unsloth-gpu/`; Colab T4, verified against commit `15ed6df`):
+    - thinking: 36 pass, 8 inconclusive (`t1.special_tokens` padding part), 4 n/a, no fails;
+    - non-thinking (exploratory): 14 fails, all P-0006;
+    - 81 of 96 cells as the docs-alone predictions said; the 15 misses are the special-tokens cells named in advance.
+  - **Unsloth CPU backend, secondary** (`docs/evidence/2026-11-24-m3-unsloth/`): primary 8 pass, 8 fail (P-0004), 28 inconclusive, 4 n/a.
+- **Harness errors caught: 11** (`findings/LEDGER.md`). They are never counted against a framework.
 
-## This session (2026-11-24 to 25)
+## This session (2026-11-25)
 
-- Unsloth adapter and environment:
-  - `src/parity/adapters/unsloth.py`, `envs/unsloth-2026.11.10`;
-  - the recommended Qwen3 notebook's recipe, plus `train_on_responses_only` from the Qwen3-Thinking-2507 notebook (no original-Qwen3 notebook has an assistant-only step);
-  - loaded through `FastLanguageModel.from_pretrained` on a local tiny model with the real tokenizer;
-  - the CPU fallback and other deviations are recorded in `environment.json`.
-- Triaged P-0004 (Unsloth CPU backend appends a second `<|im_end|>`) and P-0005 (`train_on_responses_only` silently drops `pad_to_multiple_of`); skeptic-reviewed both. P-0004 is on the report card as CPU-only, low impact, via the new root-cause `card_label`.
-- Predictions-first is enforced. The guard hook refuses to create or run anything in a framework environment until a committed `predictions.md` names that framework and version (`trl-1.18.2` grandfathered). `/new-adapter` starts with step 0.
-- Earlier in the session:
-  - P-0003 became harness error H-9; non-default modes now get each framework's mode setting;
-  - TRL's per-row setting is documented at the "docstring only" citation level;
-  - P-0002 was made template-agnostic, with permalinks and `HOW-TO-RUN.md`.
-- 451 tests pass in the core environment. The suite last passed inside TRL's (449), Axolotl's (448) and Unsloth's (446) environments before today's guard-hook and card-label changes; those changes don't touch adapter code.
+- GPU predictions first (`290eff2`, docs alone, 96 cells). Then the Colab kit (`docs/gpu-run/`):
+  - `Verdict.backend`, with backend-exact root causes;
+  - GPU primary and CPU secondary tables in the report;
+  - a CUDA 12.6 lock variant;
+  - P-0005 as an optional cell, and now a P-0005-only mode (`RUN = "p0005"`).
+- The GPU run came back and was ingested (`ingest.py`: manifests, `git archive` rebuild, lockfile, GPU route, every verdict).
+- Triaged:
+  - P-0006, exploratory: the non-thinking fails are the last turn's empty think block, trained by `train_on_responses_only`;
+  - P-0004 confirmed CPU-only;
+  - the special-tokens inconclusives are consistent with P-0005, but the adapter's `pad_to` mapping isn't yet ruled out on GPU;
+  - the P-0005 repro's GPU crash is ours (H-10, no LoRA attached); fixed;
+  - skeptic-reviewed: P-0006 reframed as a difference of non-thinking convention (Unsloth documents the `/no_think` soft switch), and a second harness error found and fixed (H-11, the adapter collated in Unsloth's post-`__init__` inference state);
+  - the stale secondary-table header in every summary was corrected.
+- Tests: core 486, Unsloth environment 507 (1 expected failure). TRL (495) and Axolotl (494) passed after the backend change; they're untouched since.
 
 ## Next actions
 
-1. **Unsloth GPU run, on Colab** (the human runs it):
-   - The kit is ready (`docs/gpu-run/GPU-RUN.md`): `uv run python docs/gpu-run/build_kit.py`, run the notebook on a T4, and bring back the results zip.
-   - The predictions are committed first (`docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, `290eff2`), and the backend record and report split are in.
-   - When the zip comes back:
-     - verify it (manifest, `git archive` sha256, the GPU route);
-     - compare with the predictions;
-     - triage any fails;
-     - commit the evidence to `docs/evidence/2026-11-25-m3-unsloth-gpu/`;
-     - revisit P-0004.
-   - Optional cell 6 runs the P-0005 repro (padded, and with `padding_free` left to Unsloth) into the zip's own `P-0005/` folder. If it's in the zip, triage it for P-0005's GPU confirmation, separately from the verdicts.
+1. **Short GPU trip for P-0005** (the human; a few minutes):
+   - `uv run python docs/gpu-run/build_kit.py`, then the notebook with `RUN = "p0005"` in cell 2 (`docs/gpu-run/GPU-RUN.md`).
+   - It runs the fixed repro (padded, with `padding_free` left to Unsloth, and with one real training step), then `findings/P-0005/adapter_check.py`.
+   - If the adapter check shows objective `all` padding to `pad_to` on GPU, the 15 special-tokens cells go to P-0005, and its GPU confirmation is done.
+   - The `train step:` line is the batch training actually draws (width and padding side).
 2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
-3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
+3. **Human decision:** P-0004 is confirmed CPU-only. Send Unsloth a short note (its CPU backend skips its own SFT dataset preparation), or leave it on the card?
+4. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 
 ## Open questions
 
 - The structural method's added-header widening is exercised only on DeepSeek (8 agreeing turns); the method as a whole covers 3 families. Accept, or ask for more coverage?
 - `reasoning` has no non-thinking reading in our reference (it refuses), though TRL's template gives one. Fine as inconclusive for now.
-- Unsloth: the two notebooks the recipe draws on differ on `padding_free` (the recommended one sets `False`; Thinking-2507 leaves it unset). On GPU that decides whether batches are padded, and so whether P-0005 applies.
+- Unsloth: the two notebooks the recipe draws on differ on `padding_free` (the recommended one sets `False`; Thinking-2507 leaves it unset). On GPU that decides whether batches are padded, and so whether P-0005 applies. The P-0005 trip's `padding_free_unset` run measures what Unsloth chooses.
+- P-0006: Unsloth documents non-thinking training as the soft switch (`/no_think`; the empty block is model output). Our non-thinking reference models the hard switch (`enable_thinking=False`). For Unsloth's non-thinking cells, choose:
+  - `not_configurable`;
+  - a known difference;
+  - or a soft-switch reference.
 - Possible docs gaps, not findings: Axolotl never says think tags go untrained by default; TRL's SFT docs never say how to pass `chat_template_kwargs`, and `SFTConfig` has no field for it.
 - The guard reads command text: a shell command that only writes text naming an environment with no committed predictions is refused too. Use the Edit/Write tools for such files.
 - Deferred to Phase 2 (the kill test is frozen at 8 fixtures): gpt-oss-20b and the `<|end|>` question; a truncation fixture.
@@ -67,5 +73,6 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 - **P-0001** (Axolotl 0.21.1): only the think opener is untrained. Known difference KD-0002/KD-0003, thinking mode only; possible docs gap.
 - **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity. Issue drafted, **not posted**.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours; fixed. Never counted against TRL.
-- **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior; Unsloth's GPU route doesn't add it). Candidate; on the card as CPU-only, low impact; not shrunk; revisit on GPU.
-- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches. Class: config value silently ignored. Candidate; confirm on GPU before any draft.
+- **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render.
+- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches. Class: config value silently ignored. Candidate. The GPU run is consistent with it (537, not 545), but the adapter's mapping isn't ruled out on GPU yet. Next: the P-0005 trip; no draft before.
+- **P-0006** (Unsloth 2026.11.10, GPU, non-thinking table only): `train_on_responses_only` trains the last turn's empty think block, which the reference treats as a pre-fill. **Exploratory** (the human's decision); 14 fails linked; not counted against Unsloth. Skeptic: intended under Unsloth's documented soft switch; reclassification is open.
