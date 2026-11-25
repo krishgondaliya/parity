@@ -17,7 +17,8 @@ from parity.engine.runner import evaluate
 from parity.fixtures import FIXTURE_IDS, load_fixture
 
 CHECK = SpecialTokens()
-PLANTS = {"extra_leading_special", "pad_is_closing_token_masked", "closing_token_masked_per_row"}
+PLANTS = {"extra_leading_special", "pad_is_closing_token_masked", "closing_token_masked_per_row", "pad_to_ignored"}
+ALL_PASS = {"special_tokens": "pass", "padding_width": "pass", "pad_handling": "pass"}
 
 
 @pytest.mark.parametrize("stub", ["official", "trl_markers"])
@@ -25,7 +26,7 @@ def test_passes_on_both_stand_ins_and_catches_both_plants(request, stub):
     for fid, v in run_on_all_fixtures(CHECK, request.getfixturevalue(stub)).items():
         assert (v.result, v.self_test) == ("pass", "caught"), (fid, v.reason, v.evidence, v.plants)
         assert {p["plant"] for p in v.plants} == PLANTS
-        assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "pass"}
+        assert v.evidence["parts"] == ALL_PASS
         assert v.conventions["padding_side"] == "right"
         assert v.conventions["pad_token"] == "<|endoftext|>" and v.conventions["pad_is_a_stop_token"] is True
 
@@ -39,7 +40,7 @@ def test_a_packing_framework_leaves_the_padding_part_inconclusive(qwen3):
     """Phase 0 never asks for packing; until the Phase 2 packing-isolation check exists, it can't pass."""
     for fid, v in run_on_all_fixtures(CHECK, TemplateStub(qwen3, batching="packed")).items():
         assert (v.result, v.self_test) == ("inconclusive", "caught"), (fid, v.reason, v.plants)
-        assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "inconclusive"}
+        assert v.evidence["parts"] == {"special_tokens": "pass", "padding_width": "inconclusive", "pad_handling": "inconclusive"}
         assert "Phase 2" in v.reason and v.conventions["batching"] == "packed"
 
 
@@ -106,17 +107,45 @@ def test_a_collator_that_masks_the_real_stop_token_fails(qwen3, official):
     v = CHECK.run(_batch_edit(official, mask_im_end), qwen3, load_fixture("single_turn"))
     assert v.result == "fail"
     assert {"padding_keeps_the_row", "stop_tokens_trained"} <= _rules(v)
-    assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "fail"}
+    assert v.evidence["parts"] == {"special_tokens": "pass", "padding_width": "pass", "pad_handling": "fail"}
 
 
-def test_a_row_not_padded_to_pad_to_is_inconclusive(qwen3, official):
-    def strip_pads(row: Encoded) -> Encoded:
-        keep = [i for i, a in enumerate(row.attention_mask) if a == 1]
-        return Encoded(*(tuple(seq[i] for i in keep) for seq in (row.input_ids, row.labels, row.attention_mask)))
+def _drops_pad_to(adapter):
+    """A framework whose collator pads only to the longest row, as P-0005's swapped collator does."""
+    return PlantedAdapter(adapter, "x", after_batch=lambda batch, convs, cfg: special_tokens_module._trim_to_longest(batch))
 
-    v = CHECK.run(_batch_edit(official, strip_pads), qwen3, load_fixture("single_turn"))
-    assert v.result == "inconclusive" and "pad_to" in v.reason
-    assert v.evidence["parts"]["padding"] == "inconclusive"
+
+@pytest.mark.parametrize("fid", ["single_turn", "long_answer"])  # the shorter and the longer row of one batch
+def test_a_dropped_width_fails_rule_2a_and_pads_are_still_judged_at_the_produced_width(qwen3, official, fid):
+    v = evaluate(CHECK, _drops_pad_to(official), load_fixture(fid))
+    assert (v.result, v.kind, v.self_test) == ("fail", "bug", "caught"), (v.reason, v.plants)
+    assert v.evidence["parts"] == {"special_tokens": "pass", "padding_width": "fail", "pad_handling": "pass"}
+    [width] = v.evidence["problems"]
+    assert (width["rule"], width["pad_to"], width["widths"]) == ("pad_to_honored", 545, [537])
+    assert all(p["caught"] for p in v.plants)  # every plant, pad handling's included, is caught at width 537
+
+
+def test_bad_pads_are_caught_even_when_the_width_is_dropped(qwen3, official):
+    def train_pads(row: Encoded) -> Encoded:
+        return replace(row, labels=tuple(t if a == 0 else lab for t, a, lab in zip(row.input_ids, row.attention_mask, row.labels)))
+
+    dropped = _drops_pad_to(official)
+    v = CHECK.run(PlantedAdapter(dropped, "y", after_batch=lambda b, c, cfg: Batch(tuple(train_pads(r) for r in b.rows))),
+                  qwen3, load_fixture("single_turn"))  # fmt: skip
+    assert v.evidence["parts"] == {"special_tokens": "pass", "padding_width": "fail", "pad_handling": "fail"}
+    assert {"pad_to_honored", "pads_untrained"} <= _rules(v)
+
+
+def test_the_partner_rows_pads_are_judged_too(qwen3, official):
+    """single_turn is the shorter row; long_answer, its partner, is padded only when the width is honored."""
+    def train_partner_pads(batch, convs, cfg):
+        a, b = batch.rows
+        b = replace(b, labels=tuple(t if m == 0 else lab for t, m, lab in zip(b.input_ids, b.attention_mask, b.labels)))
+        return Batch((a, b))
+
+    v = CHECK.run(PlantedAdapter(official, "x", after_batch=train_partner_pads), qwen3, load_fixture("single_turn"))
+    trained = [p for p in v.evidence["problems"] if p["rule"] == "pads_untrained"]
+    assert v.result == "fail" and [p["row"] for p in trained] == ["long_answer"]
 
 
 def test_packed_rows_when_padding_was_declared_are_an_adapter_error(qwen3, official):
@@ -171,16 +200,24 @@ def test_each_encode_call_records_the_declaration_for_its_own_config(official):
 # the pad fault used to be caught by the row rule alone, so the padding part was unguarded).
 
 
-def test_the_collator_pad_fault_is_caught_only_by_the_padding_part(qwen3, official, monkeypatch):
+@pytest.mark.parametrize(
+    "name, parts",
+    [
+        ("pad_is_closing_token_masked", {"special_tokens": "pass", "padding_width": "pass", "pad_handling": "fail"}),
+        ("pad_to_ignored", {"special_tokens": "pass", "padding_width": "fail", "pad_handling": "pass"}),
+    ],
+)
+def test_each_padding_rule_is_guarded_by_its_own_planted_fault(qwen3, official, name, parts):
     fx = load_fixture("single_turn")
-    plant = plant_named(CHECK, qwen3, fx, official.declare, "pad_is_closing_token_masked")
-    v = CHECK.run(plant.apply(official), qwen3, fx)
-    assert v.evidence["parts"] == {"special_tokens": "pass", "padding": "fail"}
+    v = CHECK.run(plant_named(CHECK, qwen3, fx, official.declare, name).apply(official), qwen3, fx)
+    assert v.evidence["parts"] == parts
 
+
+def test_without_the_padding_rules_both_padding_plants_are_missed(qwen3, official, monkeypatch):
     monkeypatch.setattr(SpecialTokens, "_padding", lambda self, *args: _PaddingResult(side="right"))
-    v = evaluate(CHECK, official, fx)
+    v = evaluate(CHECK, official, load_fixture("single_turn"))
     assert (v.result, v.self_test) == ("inconclusive", "missed")
-    assert [p["plant"] for p in v.plants if not p["caught"]] == ["pad_is_closing_token_masked"]
+    assert {p["plant"] for p in v.plants if not p["caught"]} == {"pad_is_closing_token_masked", "pad_to_ignored"}
 
 
 def test_the_per_row_pad_fault_guards_the_row_rule_when_the_framework_packs(qwen3, monkeypatch):

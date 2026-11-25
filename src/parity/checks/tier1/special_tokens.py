@@ -17,16 +17,22 @@ Pass rule, two parts, both exact:
      if it doesn't, it is unchecked and the result can be at best inconclusive.
 2. Padding, on a padded batch built by the framework's own collator. The
    fixture is batched with the other fixture whose length differs most from
-   it, and every row is padded to `pad_to` = the longer row + 8 tokens:
-   - padding sits at one end of the row and leaves the row's tokens and labels
-     exactly as the unpadded row has them;
-   - pad positions have no loss, and hold one token: the declared pad token;
-   - every stop token in a must-train position keeps its loss in the batch too.
-   If the framework declares packing for the batch's config, part 2 is
+   it, asking for every row to be padded to `pad_to` = the longer row + 8
+   tokens. Two rules, judged and reported separately (split 2026-11-25, so a
+   dropped width, P-0005, no longer hides how pads are handled):
+   2a. Requested width honored (`padding_width`): every row is exactly
+       `pad_to` tokens. Any other width fails. Per rule 4, /triage checks the
+       adapter's mapping of pad_to before it blames the framework.
+   2b. Pad tokens handled correctly at whatever width the collator produced
+       (`pad_handling`), in both rows: padding sits at one end and leaves the
+       row's tokens and labels exactly as its unpadded row has them; pad
+       positions have no loss and hold one token, the declared pad token. In
+       the fixture's own row, every stop token in a must-train position also
+       keeps its loss (the partner's content is judged in its own cells).
+   If the framework declares packing for the batch's config, both are
    inconclusive: Phase 0 configs never ask for packing, and packing isolation
-   is a Phase 2 check. A row that isn't padded to `pad_to` makes part 2
-   inconclusive (check the adapter's mapping). The row and the batch are each
-   judged against the declaration for their own config.
+   is a Phase 2 check. The row and the batch are each judged against the
+   declaration for their own config.
 
 Declarations are verified here: rows that show packing when padding was
 declared (a different number of rows, or position ids restarting inside a
@@ -40,7 +46,11 @@ Planted faults (each part of the check has one of its own):
 - pad_is_closing_token_masked (when the framework pads): the collator pads
   with the token that closes assistant turns and takes the loss off every
   occurrence while collating, as transformers' DataCollatorForLanguageModeling
-  does with pad = EOS. Only the padded batch shows it, so it guards part 2.
+  does with pad = EOS. Only the padded batch shows it, so it guards rule 2b.
+- pad_to_ignored (when the framework pads): the batch comes back padded only
+  to its longest row, the requested width dropped, as Unsloth's
+  train_on_responses_only does when it swaps the collator (P-0005). It guards
+  rule 2a.
 - closing_token_masked_per_row (every fixture): the same masking done in each
   row before batching. It guards part 1's stop-token rule, and is the only pad
   fault for a framework that packs.
@@ -144,25 +154,25 @@ class SpecialTokens(Tier1Check):
         batch_verified: dict[str, str] = {}
         if batch_declaration.batching == "packed":
             # Phase 0 configs never ask for packing. Until the Phase 2 packing-isolation check
-            # exists, a framework that packs anyway leaves this part open, never passed.
-            parts["padding"] = "inconclusive"
+            # exists, a framework that packs anyway leaves both padding rules open, never passed.
+            parts["padding_width"] = parts["pad_handling"] = "inconclusive"
             batch_verified["batching"] = "unverified: no Phase 0 check can confirm packing"
             open_questions.append(
-                "the framework declares packing for a config that doesn't ask for it; the padding part can't "
+                "the framework declares packing for a config that doesn't ask for it; the padding rules can't "
                 "be judged until the Phase 2 packing-isolation check exists"
             )
         else:
-            n_before = len(problems)
             try:
                 pad = self._padding(adapter, release, fixture, batch_declaration, batch_cfg, ref, out)
-            except Exception as exc:  # noqa: BLE001 - a padding crash leaves this part open, never passed
-                pad = _PaddingResult(question=f"padded batch failed: {type(exc).__name__}: {exc}")
-            problems += pad.problems
+            except Exception as exc:  # noqa: BLE001 - a padding crash leaves both rules open, never passed
+                pad = _PaddingResult(question=f"padded batch failed: {type(exc).__name__}: {exc}", judged=False)
+            problems += pad.width_problems + pad.problems
             if pad.question:
                 open_questions.append(pad.question)
             batch_verified.update(pad.verified)
             conventions["padding_side"] = pad.side
-            parts["padding"] = "fail" if len(problems) > n_before else ("inconclusive" if pad.question else "pass")
+            parts["padding_width"] = "fail" if pad.width_problems else ("pass" if pad.judged else "inconclusive")
+            parts["pad_handling"] = "fail" if pad.problems else ("inconclusive" if pad.question else "pass")
         batch_call = batch_declaration.record(batch_verified, batch_cfg)
 
         evidence = {"parts": parts, "problems": problems}
@@ -210,28 +220,68 @@ class SpecialTokens(Tier1Check):
             packed = "position ids restart inside the row"
         if packed:
             status = CONTRADICTED + packed + ", so the framework packed"
-            return _PaddingResult(question=adapter_error("batching", status), verified={"batching": status})
+            return _PaddingResult(question=adapter_error("batching", status), verified={"batching": status}, judged=False)
 
-        row = batch.rows[0]
-        if len(row.input_ids) != pad_to:
-            question = (
-                f"the padded row has {len(row.input_ids)} tokens, not pad_to={pad_to}; "
-                "check the adapter's mapping of pad_to"
+        # Rule 2a: the requested width.
+        widths = sorted({len(r.input_ids) for r in batch.rows})
+        width_problems = []
+        if widths != [pad_to]:
+            width_problems.append(
+                {
+                    "rule": "pad_to_honored",
+                    "detail": f"asked to pad every row to {pad_to} tokens, the batch is {widths} wide",
+                    "pad_to": pad_to,
+                    "widths": widths,
+                    "note": "rule 4: check the adapter's mapping of pad_to before blaming the framework",
+                }
             )
-            return _PaddingResult(question=question)
 
+        # Rule 2b: pad handling at whatever width the collator produced, in both rows.
+        out = self._pad_handling(release, batch.rows[0], single, ref, declaration, own_row=True)
+        partner_single = adapter.encode(partner, replace(cfg, pad_to=None))
+        if isinstance(partner_single, Dropped):
+            question = f"the batch partner {partner.id} was dropped unpadded: {partner_single.reason}"
+            return _PaddingResult(width_problems=width_problems, question=question)
+        other = self._pad_handling(release, batch.rows[1], partner_single, None, declaration, own_row=False)
+        sides = {s for s in (out.side, other.side) if s is not None}
+        verified = {"batching": CONSISTENT}
+        pad_tokens = sorted(set(out.pad_tokens) | set(other.pad_tokens))
+        question = None
+        problems = [{**p, "row": fixture.id} for p in out.problems] + [{**p, "row": partner.id} for p in other.problems]
+        if len(sides) > 1:
+            problems.append({"rule": "padding_at_one_end", "detail": "the two rows are padded on different sides"})
+        if not pad_tokens:
+            verified["pad_token_id"] = "unverified: no row has pad positions at this width"
+        elif pad_tokens == [declaration.pad_token_id]:
+            verified["pad_token_id"] = CONSISTENT
+        elif len(pad_tokens) == 1:
+            shown = decode_each(release.tokenizer, pad_tokens)[0]
+            verified["pad_token_id"] = CONTRADICTED + f"the framework pads with {shown!r} (id {pad_tokens[0]})"
+            question = adapter_error("pad_token_id", verified["pad_token_id"])
+        else:
+            verified["pad_token_id"] = MISMATCH + "pad positions hold several different tokens"
+            problems.append({"rule": "pad_token", "detail": "pad positions hold several different tokens"})
+        side = next(iter(sides)) if len(sides) == 1 else None
+        return _PaddingResult(side, width_problems, problems, question, verified)
+
+    def _pad_handling(
+        self,
+        release: LoadedRelease,
+        row: Encoded,
+        single: Encoded,
+        ref: TemplateReference | None,
+        declaration: Declaration,
+        own_row: bool,
+    ) -> _RowPadding:
+        """Rule 2b on one row of the batch. Stop-token loss is judged only on the fixture's own row (ref given)."""
         content = [i for i, a in enumerate(row.attention_mask) if a == 1]
         if not content or content != list(range(content[0], content[-1] + 1)):
-            problem = {"rule": "padding_at_one_end", "detail": "attended positions are not one contiguous block"}
-            return _PaddingResult(problems=[problem])
+            return _RowPadding(problems=[{"rule": "padding_at_one_end", "detail": "attended positions are not one contiguous block"}])
         start, end = content[0], content[-1] + 1
         if start > 0 and end < len(row.input_ids):
-            return _PaddingResult(problems=[{"rule": "padding_at_one_end", "detail": "padding on both sides of the row"}])
-        side = "left" if start > 0 else "right"
-
+            return _RowPadding(problems=[{"rule": "padding_at_one_end", "detail": "padding on both sides of the row"}])
+        side = "left" if start > 0 else ("right" if end < len(row.input_ids) else None)  # None: no pads in this row
         problems = []
-        verified = {"batching": CONSISTENT}
-        question = None
         body = Encoded(row.input_ids[start:end], row.labels[start:end], row.attention_mask[start:end])
         if (body.input_ids, body.labels) != (single.input_ids, single.labels):
             pairs = zip(zip(body.input_ids, body.labels), zip(single.input_ids, single.labels))
@@ -244,22 +294,12 @@ class SpecialTokens(Tier1Check):
                 }
             )
         pads = [i for i in range(len(row.input_ids)) if not start <= i < end]
-        pad_tokens = sorted({row.input_ids[i] for i in pads})
-        if pad_tokens == [declaration.pad_token_id]:
-            verified["pad_token_id"] = CONSISTENT
-        elif len(pad_tokens) == 1:
-            shown = decode_each(release.tokenizer, pad_tokens)[0]
-            verified["pad_token_id"] = CONTRADICTED + f"the framework pads with {shown!r} (id {pad_tokens[0]})"
-            question = adapter_error("pad_token_id", verified["pad_token_id"])
-        else:
-            verified["pad_token_id"] = MISMATCH + "pad positions hold several different tokens"
-            problems.append({"rule": "pad_token", "detail": "pad positions hold several different tokens"})
         trained = [i for i in pads if row.labels[i] != LABEL_IGNORE]
         if trained:
             problems.append({"rule": "pads_untrained", "detail": "pad positions have loss", "positions": trained[:16]})
-        if body.input_ids == ref.input_ids:
+        if own_row and ref is not None and body.input_ids == ref.input_ids:
             problems += _untrained_stop_tokens(release.tokenizer, release, ref, body, where="padded batch")
-        return _PaddingResult(side=side, problems=problems, question=question, verified=verified)
+        return _RowPadding(side=side, problems=problems, pad_tokens=sorted({row.input_ids[i] for i in pads}))
 
     def plants(self, release: LoadedRelease, fixture: Fixture, declare: Declare) -> list[Plant]:
         tokenizer = release.tokenizer
@@ -300,7 +340,7 @@ class SpecialTokens(Tier1Check):
 
             if batch_declaration.batching == "padded":
                 # The real mechanism masks pad ids while collating, so only the padded batch shows it:
-                # this fault guards the padding part of the check.
+                # this fault guards rule 2b, pad handling.
                 out.append(
                     Plant(
                         "pad_is_closing_token_masked",
@@ -336,15 +376,58 @@ class SpecialTokens(Tier1Check):
                     origin="synthetic",
                 )
             )
+        if batch_declaration.batching == "padded":
+            out.append(
+                Plant(
+                    "pad_to_ignored",
+                    "the batch comes back padded only to its longest row: the requested width is dropped",
+                    lambda adapter: PlantedAdapter(
+                        adapter,
+                        "pad_to_ignored",
+                        after_batch=lambda batch, convs, cfg: _trim_to_longest(batch),
+                    ),
+                    origin="real-world",
+                    source=(
+                        "Unsloth's train_on_responses_only replaces TRL's collator with DataCollatorForSeq2Seq and "
+                        "keeps none of its settings, so SFTConfig.pad_to_multiple_of is dropped (P-0005): "
+                        "https://github.com/unslothai/unsloth-zoo/blob/cad81ef2dc557b1060896d3b294ef6b9a7f9c1ea/"
+                        "unsloth_zoo/dataset_utils.py#L2547-L2583"
+                    ),
+                )
+            )
         return out
 
 
 @dataclass
 class _PaddingResult:
     side: str | None = None
-    problems: list[dict[str, Any]] = field(default_factory=list)
-    question: str | None = None  # why the padding part can't be judged (makes the verdict inconclusive)
+    width_problems: list[dict[str, Any]] = field(default_factory=list)  # rule 2a
+    problems: list[dict[str, Any]] = field(default_factory=list)  # rule 2b
+    question: str | None = None  # why a padding rule can't be judged (makes the verdict inconclusive)
     verified: dict[str, str] = field(default_factory=dict)
+    judged: bool = True  # False when the batch couldn't be read at all (packing, a crash): rule 2a is open too
+
+
+@dataclass
+class _RowPadding:
+    side: str | None = None
+    problems: list[dict[str, Any]] = field(default_factory=list)
+    pad_tokens: list[int] = field(default_factory=list)
+
+
+def _trim_to_longest(batch: Batch) -> Batch:
+    """Every row cut back to the batch's longest attended length, keeping its padding side: the requested width
+    dropped, as P-0005's swapped collator does."""
+    width = max(sum(r.attention_mask) for r in batch.rows)
+
+    def trim(row: Encoded) -> Encoded:
+        n = len(row.input_ids)
+        keep = range(n - width, n) if row.attention_mask[0] == 0 else range(width)  # left-padded rows keep their tail
+        cut = lambda seq: tuple(seq[i] for i in keep)  # noqa: E731
+        positions = cut(row.position_ids) if row.position_ids is not None else None
+        return Encoded(cut(row.input_ids), cut(row.labels), cut(row.attention_mask), positions)
+
+    return Batch(tuple(trim(r) for r in batch.rows))
 
 
 def _positions_restart(row: Encoded) -> bool:
