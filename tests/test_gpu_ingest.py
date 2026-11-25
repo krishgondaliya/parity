@@ -70,3 +70,38 @@ def test_both_prediction_tables_are_read():
     assert predicted[("non_thinking", "t1.assistant_mask", "single_turn")] == "fail"
     assert predicted[("non_thinking", "t1.truncation", "reasoning")] == "inconclusive"
     assert predicted[("thinking", "t1.multiturn_prefix", "long_answer")] == "not_applicable"
+
+
+# The P-0005-only trip (docs/evidence/2026-11-25-p0005-gpu/), through the same parity.gpu_results checks
+
+P0005_EVIDENCE = ROOT / "docs" / "evidence" / "2026-11-25-p0005-gpu"
+P0005_RAW = next((P0005_EVIDENCE / "raw").glob("parity-gpu-results-*.zip"))
+
+
+def test_the_p0005_zip_verifies_as_a_p0005_only_run(tmp_path):
+    from parity.gpu_results import safe_extract, verify_zip
+
+    root = safe_extract(P0005_RAW, tmp_path)
+    facts = verify_zip(P0005_RAW, root, ROOT, mode="p0005-only")
+    assert facts["commit"].startswith("25c3dc83997d") and facts["mode"] == "p0005-only"
+    assert (facts["files_verified"], facts["unsloth_device_type"]) == (12, "cuda")
+
+
+def test_a_zip_from_the_other_kind_of_run_is_refused(tmp_path):
+    from parity.gpu_results import Refused, safe_extract, verify_zip
+
+    with pytest.raises(Refused, match="expected a 'full' run"):
+        verify_zip(P0005_RAW, safe_extract(P0005_RAW, tmp_path / "a"), ROOT, mode="full")
+    with pytest.raises(Refused, match="expected a 'p0005-only' run"):
+        verify_zip(RAW, safe_extract(RAW, tmp_path / "b"), ROOT, mode="p0005-only")
+
+
+def test_the_p0005_ingest_refuses_a_missing_run(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location("p0005_ingest", P0005_EVIDENCE / "ingest.py")
+    p0005 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(p0005)
+    monkeypatch.setattr(p0005, "OUT", tmp_path)  # never touch the committed evidence
+    monkeypatch.setattr(p0005, "EXPECTED_RUNS", (*p0005.EXPECTED_RUNS, "impact"))
+    with pytest.raises(p0005.Refused, match="expected the runs"):
+        p0005.ingest(P0005_RAW)
+    assert not any(tmp_path.iterdir())

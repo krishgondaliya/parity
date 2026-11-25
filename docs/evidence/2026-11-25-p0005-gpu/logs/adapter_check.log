@@ -1,0 +1,82 @@
+$ /content/parity/envs/unsloth-2026.11.10/.venv/bin/python /content/parity/findings/P-0005/adapter_check.py
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+W1125 19:02:01.682000 2337 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1125 19:02:01.723000 2337 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unsloth: xformers is installed but cannot load with torch 2.14.1+cu130, so PyTorch attention is used instead.
+To install a matching xformers, run `unsloth install-kernels xformers`, or `pip uninstall xformers` to hide this. UNSLOTH_ENABLE_LOGGING=1 shows the full error.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 31.22it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 31.14it/s]
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 1514.92it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]
+Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 206.99it/s]
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 545.73it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 1173.48it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+backend gpu; unpadded rows [25, 537]; pad_to=545 (the longer row + 8, as t1.special_tokens asks)
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 1064.29it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 1102.72it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+objective all: batch width 545; pad_token_id: DataCollatorForLanguageModeling.tokenizer.pad_token_id=151643, pad_to_multiple_of=545 (trainer.args.pad_to_multiple_of=545), label_pad_token_id=None, padding_side=None
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 1161.61it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 1067.27it/s]
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+objective assistant_only: batch width 537; pad_token_id: DataCollatorForSeq2Seq.tokenizer.pad_token_id=151643, pad_to_multiple_of=None (trainer.args.pad_to_multiple_of=545), label_pad_token_id=-100, padding_side='right'
+mapping: reaches the trainer; objective all pads to 545, assistant_only to 537, asked 545
+[exit 0]

@@ -1,0 +1,43 @@
+{
+ "mode": "p0005-only",
+ "ok": true,
+ "steps": [
+  {
+   "name": "platform",
+   "ok": true,
+   "seconds": 0.2,
+   "detail": "Tesla T4, driver 580.82.07 (CUDA 13.0)"
+  },
+  {
+   "name": "choose",
+   "ok": true,
+   "seconds": 0.0,
+   "detail": "envs/unsloth-2026.11.10/uv.lock: the driver supports CUDA 13.0, enough for the main lock's CUDA 13.0 torch"
+  },
+  {
+   "name": "uv",
+   "ok": true,
+   "seconds": 5.3,
+   "detail": "uv 0.11.3"
+  },
+  {
+   "name": "sync",
+   "ok": true,
+   "seconds": 66.9,
+   "detail": "Python 3.12.3 (system)"
+  },
+  {
+   "name": "freeze",
+   "ok": true,
+   "seconds": 0.3,
+   "detail": "109 packages, all as locked"
+  },
+  {
+   "name": "smoke",
+   "ok": true,
+   "seconds": 46.8,
+   "detail": "torch 2.14.1+cu130 (CUDA 13.0) on Tesla T4; Unsloth cuda"
+  }
+ ],
+ "finished_utc": "2026-11-25T18:59:44+00:00"
+}

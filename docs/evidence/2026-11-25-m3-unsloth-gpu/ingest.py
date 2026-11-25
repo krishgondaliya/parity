@@ -6,14 +6,9 @@ Run from the repo root, in the core environment:
     uv run python docs/evidence/2026-11-25-m3-unsloth-gpu/ingest.py dist/gpu-results/<results zip>
     uv run python docs/evidence/2026-11-25-m3-unsloth-gpu/ingest.py --relink   (re-link and re-render, no zip needed)
 
-Verified before anything is kept (the zip is untrusted data: it is unpacked into a fresh temporary folder, and entry
-names that are absolute, climb out with "..", or are links are refused):
-- every file against the zip's MANIFEST.json (and P-0005/MANIFEST.json, when the optional repro ran);
-- the commit exists here, and `git archive --format=zip <commit>` rebuilt here has the sha256 Colab recorded for the
-  uploaded code, so the code that ran is exactly that commit;
-- the run finished, Unsloth took its CUDA route (the smoke step), the lockfile's sha256 is the committed one at that
-  commit, and every installed version was as locked;
-- every verdict: framework unsloth@2026.11.10, backend gpu, that lockfile and its fingerprint.
+Verified before anything is kept: `parity.gpu_results.verify_zip` (the zip is unpacked into a fresh temporary folder;
+manifests, `git archive` of the commit rebuilt here, the run's steps, Unsloth's CUDA route, the lockfile), plus every
+verdict: framework unsloth@2026.11.10, backend gpu, that lockfile and its fingerprint.
 
 Writes here: raw/<zip> (byte for byte), provenance.json (what was verified), environment.json, status.json,
 run.json, declaration.json, templates.json, verdicts/<mode>/*.json (linked to findings/root_causes.json), summary.md,
@@ -30,17 +25,14 @@ The verdicts as run are always read from the raw zip.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import posixpath
 import shutil
-import stat
-import subprocess
 import sys
 import tempfile
-import zipfile
 from collections import Counter
 from pathlib import Path
+
+from parity.gpu_results import Refused, safe_extract, verify_zip
 
 OUT = Path(__file__).parent
 REPO = OUT.parents[2]
@@ -53,79 +45,15 @@ KEPT_PER_MODEL = ("run.json", "declaration.json", "templates.json")
 CELL = {"pass": "pass", "fail": "fail", "n/a": "not_applicable", "inconclusive": "inconclusive"}
 
 
-class Refused(RuntimeError):
-    pass
-
-
-def sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def git(*args: str) -> bytes:
-    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, check=True).stdout
-
-
-def safe_extract(zip_path: Path, dest: Path) -> Path:
-    with zipfile.ZipFile(zip_path) as zf:
-        tops = set()
-        for info in zf.infolist():
-            name = info.filename
-            if name.startswith("/") or "\\" in name or posixpath.normpath(name).startswith(".."):
-                raise Refused(f"unsafe entry name {name!r}")
-            if stat.S_ISLNK(info.external_attr >> 16):
-                raise Refused(f"link entry {name!r}")
-            tops.add(name.split("/", 1)[0])
-        if len(tops) != 1:
-            raise Refused(f"expected one top folder, got {sorted(tops)}")
-        zf.extractall(dest)
-    return dest / tops.pop()
-
-
 def verify(zip_path: Path, root: Path) -> dict:
-    """Every check from the module docstring. Returns what was verified; raises Refused on the first failure."""
-    facts: dict = {"zip": zip_path.name, "zip_sha256": sha256(zip_path.read_bytes())}
-    manifest = json.loads((root / "MANIFEST.json").read_text(encoding="utf-8"))
-    listed = dict(manifest["files"])
-    if (root / "P-0005" / "MANIFEST.json").is_file():
-        extra = json.loads((root / "P-0005" / "MANIFEST.json").read_text(encoding="utf-8"))["files"]
-        listed.update({f"P-0005/{k}": v for k, v in extra.items()})
-    present = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file()} - {"MANIFEST.json", "P-0005/MANIFEST.json"}
-    if present != set(listed):
-        raise Refused(f"files and manifests differ: {sorted(present ^ set(listed))}")
-    bad = [name for name, digest in listed.items() if sha256((root / name).read_bytes()) != digest]
-    if bad:
-        raise Refused(f"sha256 mismatch: {bad}")
-    facts["files_verified"] = len(listed)
-
-    commit = manifest["commit"]
-    environment = json.loads((root / "environment.json").read_text(encoding="utf-8"))
-    if environment["archive"]["commit"] != commit:
-        raise Refused("MANIFEST.json and environment.json name different commits")
-    git("cat-file", "-e", f"{commit}^{{commit}}")
-    rebuilt = git("archive", "--format=zip", commit)
-    if not sha256(rebuilt) == manifest["archive_sha256"] == environment["archive"]["sha256"]:
-        raise Refused("git archive of the commit doesn't match the sha256 recorded for the uploaded code")
-    facts.update(commit=commit, archive_sha256=manifest["archive_sha256"], archive_rebuilt_here=True)
-
-    status = json.loads((root / "status.json").read_text(encoding="utf-8"))
-    if not status["ok"]:
-        raise Refused("the run didn't finish (status.json ok is false)")
-    smoke = environment["platform"].get("torch", {})
-    if environment["backend"] != "gpu" or smoke.get("unsloth_device_type") != "cuda":
-        raise Refused("the smoke step didn't confirm Unsloth's CUDA route")
-    lock = environment["lockfile"]
-    if sha256(git("show", f"{commit}:{lock}")) != environment["lockfile_sha256"]:
-        raise Refused(f"{lock} at {commit[:12]} isn't the lockfile the run recorded")
-    if environment["lock_mismatches"]:
-        raise Refused(f"installed versions differ from the lockfile: {environment['lock_mismatches']}")
-    facts.update(lockfile=lock, lockfile_sha256=environment["lockfile_sha256"], gpu=environment["platform"]["gpu"],
-                 driver=environment["platform"]["driver"], torch=smoke["torch"], unsloth_device_type="cuda")  # fmt: skip
-
+    """parity.gpu_results.verify_zip for a full run, plus: every verdict records unsloth@2026.11.10, backend gpu,
+    and the run's lockfile and its fingerprint."""
     from parity.engine.verdict import read_verdict
 
+    facts = verify_zip(zip_path, root, REPO, mode="full")
     verdicts = [read_verdict(p) for p in sorted((root / "results" / MODEL_FOLDER / "verdicts").rglob("*.json"))]
     records = {(v.framework, v.backend, v.env_lock, v.env_fingerprint) for v in verdicts}
-    if records != {(FRAMEWORK, "gpu", lock, environment["lockfile_sha256"])}:
+    if records != {(FRAMEWORK, "gpu", facts["lockfile"], facts["lockfile_sha256"])}:
         raise Refused(f"verdicts don't all record {FRAMEWORK}, backend gpu and the run's lockfile: {records}")
     facts["verdicts_verified"] = len(verdicts)
     return facts
@@ -215,8 +143,10 @@ def render() -> None:
         "non-thinking training via the /no_think soft switch; hard-switch training is not configurable (the human's "
         "decision, 2026-11-25; P-0006). Those cells were run, and re-derived; their as-run results are in "
         "`compare.md` and the raw zip. `t1.special_tokens` is "
-        "inconclusive everywhere because its padding part saw 537 tokens, not pad_to=545. That is consistent with "
-        "P-0005, but not attributed to it until the adapter's pad_to mapping is checked on GPU (P-0005's record).\n\n"
+        "inconclusive everywhere because its padding part saw 537 tokens, not pad_to=545. That is explained by P-0005: "
+        "confirmed on GPU with rule 4 cleared (`docs/evidence/2026-11-25-p0005-gpu/`). The verdicts are as the "
+        "check stood then; since 2026-11-25 a dropped width is its own rule (2a) and pad handling is judged "
+        "separately (2b).\n\n"
     )
     (OUT / "summary.md").write_text(header + render_summary(gpu + cpu, properties), encoding="utf-8")
 

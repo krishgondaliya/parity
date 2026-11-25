@@ -1,0 +1,41 @@
+$ /content/parity/envs/unsloth-2026.11.10/.venv/bin/python /content/parity/findings/P-0005/repro.py
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+W1125 18:59:50.736000 1633 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W1125 18:59:50.778000 1633 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+Unsloth: xformers is installed but cannot load with torch 2.14.1+cu130, so PyTorch attention is used instead.
+To install a matching xformers, run `unsloth install-kernels xformers`, or `pip uninstall xformers` to hide this. UNSLOTH_ENABLE_LOGGING=1 shows the full error.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]
+Fetching 5 files:  20%|██        | 1/5 [00:00<00:00,  7.27it/s]
+Fetching 5 files:  60%|██████    | 3/5 [00:00<00:00, 12.41it/s]
+Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00,  4.95it/s]
+Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00,  5.59it/s]
+
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]
+Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 82.29it/s]
+==((====))==  Unsloth 2026.11.10: Fast Qwen3 patching. Transformers: 5.17.0.
+   \\   /|    Tesla T4. Num GPUs = 1. Max memory: 14.563 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.14.1+cu130. CUDA: 7.5. CUDA Toolkit: 13.0. Triton: 3.8.0
+\        /    Bfloat16 = FALSE. FA [Xformers = None. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+
+Loading weights:   0%|          | 0/13 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 13/13 [00:00<00:00, 365.12it/s]
+Unsloth 2026.11.10 patched 1 layers with 1 QKV layers, 1 O layers and 1 MLP layers.
+Unsloth: compiling each transformer block as one region (Qwen3DecoderLayer).
+
+Unsloth: Tokenizing ["text"] (num_proc=2):   0%|          | 0/2 [00:00<?, ? examples/s]
+Unsloth: Tokenizing ["text"] (num_proc=2):  50%|█████     | 1/2 [00:04<00:04,  4.41s/ examples]
+Unsloth: Tokenizing ["text"] (num_proc=2): 100%|██████████| 2/2 [00:07<00:00,  3.36s/ examples]
+Unsloth: Tokenizing ["text"] (num_proc=2): 100%|██████████| 2/2 [00:07<00:00,  3.58s/ examples]
+
+Map:   0%|          | 0/2 [00:00<?, ? examples/s]
+Map: 100%|██████████| 2/2 [00:00<00:00, 396.23 examples/s]
+SFTConfig(pad_to_multiple_of=64)
+batching: packing=False, padding_free=False (set explicitly)
+before train_on_responses_only: collator DataCollatorForLanguageModeling(pad_to_multiple_of=64), batch width 64
+after  train_on_responses_only: collator DataCollatorForSeq2Seq(pad_to_multiple_of=None), batch width 25
+padding: the shorter row is padded on the left; collator tokenizer padding_side='left'
+[exit 1]
