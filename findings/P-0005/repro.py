@@ -11,10 +11,16 @@ padding-free, the batch is one flattened row and the exit code is not the findin
 LoRA is attached with get_peft_model before the trainer, exactly as the recommended Qwen3 notebook does (fixed
 2026-11-25, harness error H-10: without it, the GPU route's real 4-bit model can't be trained and SFTTrainer refuses
 to build; on CPU, Unsloth loads 16-bit weights, so the gap never showed). The extra "padding:" line shows which side
-the shorter row was padded on, and the tokenizer's padding_side after the swap."""
+the shorter row was padded on, and the tokenizer's padding_side after the swap. On the GPU route that is the state
+SFTTrainer.__init__ leaves (it ends with model.for_inference(), padding left), not the training state.
+
+--train-step (added 2026-11-25): one real trainer.train() step (max_steps=1), with the collator wrapped to record the
+batch training actually draws: its width and which side the shorter row is padded on ("train step:" line). This is
+what training sees: Unsloth's train() calls model.for_training() first, which sets padding back to the right."""
 import os, shutil, sys, tempfile
 os.environ.setdefault("UNSLOTH_DISABLE_STATISTICS", "1")
 UNSET = "--padding-free-unset" in sys.argv
+TRAIN_STEP = "--train-step" in sys.argv
 import unsloth  # noqa: F401  (import first, as the notebooks do)
 from unsloth import FastLanguageModel
 from unsloth.chat_templates import train_on_responses_only
@@ -43,6 +49,8 @@ chats = [[{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "
          [{"role": "user", "content": "Name the primary colors."}, {"role": "assistant", "content": "Red, yellow and blue."}]]
 texts = [tokenizer.apply_chat_template(c, tokenize=False) for c in chats]
 batching = dict(max_steps=60) if UNSET else dict(packing=False, padding_free=False)  # padded: as the recommended Qwen3 notebook sets
+if TRAIN_STEP:
+    batching["max_steps"] = 1
 trainer = SFTTrainer(model=model, tokenizer=tokenizer, train_dataset=datasets.Dataset.from_dict({"text": texts}),
                      args=SFTConfig(output_dir=tempfile.mkdtemp(), dataset_text_field="text", report_to="none", pad_to_multiple_of=64,
                                    **batching))
@@ -61,4 +69,15 @@ print("before train_on_responses_only: collator %s(pad_to_multiple_of=%s), batch
 print("after  train_on_responses_only: collator %s(pad_to_multiple_of=%s), batch width %d" % after)
 print("padding: the shorter row is padded on the %s; collator tokenizer padding_side=%r" % (
       side, getattr(getattr(trainer.data_collator, "tokenizer", None), "padding_side", None)))
+if TRAIN_STEP:
+    seen, inner = [], trainer.data_collator
+    def recording(features):
+        out = inner(features)
+        m = out["attention_mask"].tolist()
+        seen.append((out["input_ids"].shape[1], "left" if any(r[0] == 0 for r in m) else "right" if any(r[-1] == 0 for r in m) else "neither side"))
+        return out
+    trainer.data_collator = recording
+    trainer.train()
+    print("train step: batch width %d during trainer.train(); the shorter row is padded on the %s" % seen[0])
+    after = after[:2] + (seen[0][0],)
 sys.exit(1 if after[1] != 64 or after[2] % 64 else 0)

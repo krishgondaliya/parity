@@ -222,6 +222,7 @@ PRINTS_EVERY_RESULT = (
     "print('before train_on_responses_only: collator DataCollatorForLanguageModeling(pad_to_multiple_of=64), batch width 64')\n"
     "print('after  train_on_responses_only: collator DataCollatorForSeq2Seq(pad_to_multiple_of=None), batch width 26')\n"
     "print('padding: the shorter row is padded on the right; collator tokenizer padding_side=\\'right\\'')\n"
+    "print('train step: batch width 26 during trainer.train(); the shorter row is padded on the right')\n"
     "print('mapping: reaches the trainer; objective all pads to 545, assistant_only to 537, asked 545')\n"
     "sys.exit(1)\n"
 )
@@ -240,7 +241,7 @@ def test_p0005_adds_its_own_folder_and_leaves_every_main_entry_byte_identical(tm
     record = json.loads(after[f"{top}/P-0005/run.json"])
     assert record["environment"] == kit.CU126_ENV and set(record["runs"]) == set(kit.P0005_RUNS)
     padded = record["runs"]["padded"]
-    assert (padded["completed"], padded["exit_code"]) == (True, 1) and len(padded["lines"]) == 6
+    assert (padded["completed"], padded["exit_code"]) == (True, 1) and len(padded["lines"]) == 7
     assert "P-0005" not in json.loads(after[f"{top}/MANIFEST.json"])["files"]  # its own manifest, not the main one
 
 
@@ -306,10 +307,11 @@ def test_p0005_runs_the_fixed_repro_twice_and_the_adapters_pad_to_check():
     assert [(script, args) for script, args, _, _ in kit.P0005_RUNS.values()] == [
         ("findings/P-0005/repro.py", []),
         ("findings/P-0005/repro.py", ["--padding-free-unset"]),
+        ("findings/P-0005/repro.py", ["--train-step"]),
         ("findings/P-0005/adapter_check.py", []),
     ]
     repro = (ROOT / "findings/P-0005/repro.py").read_text(encoding="utf-8")
-    assert "--padding-free-unset" in repro
+    assert "--padding-free-unset" in repro and "--train-step" in repro and "trainer.train()" in repro
     assert repro.index("get_peft_model(") < repro.index("SFTTrainer(")  # H-10: LoRA before the trainer, as the notebook
     assert (ROOT / "findings/P-0005/adapter_check.py").is_file()
 

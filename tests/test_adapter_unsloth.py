@@ -78,3 +78,26 @@ def test_rows_match_the_declared_template_exactly(adapter, qwen3):
     fx = load_fixture("single_turn")
     declared = adapter.declare(TrainCfg()).chat_template
     assert list(adapter.encode(fx, TrainCfg()).input_ids) == template_token_ids(qwen3.tokenizer, fx, declared)
+
+
+def test_collators_are_read_in_training_mode_the_way_unsloths_train_enters_it():
+    """H-11: on the GPU route SFTTrainer.__init__ ends in model.for_inference() (padding left); train() first calls
+    model.for_training(use_gradient_checkpointing=...) (padding right). The adapter makes that same call."""
+    from types import SimpleNamespace
+
+    from parity.adapters.unsloth import _enter_training_mode
+
+    calls = []
+    model = SimpleNamespace(_unsloth_gradient_checkpointing="unsloth", for_training=lambda **kw: calls.append(kw))
+    _enter_training_mode(SimpleNamespace(model=model, args=SimpleNamespace(gradient_checkpointing=False)))
+    assert calls == [{"use_gradient_checkpointing": "unsloth"}]  # the recorded mode wins, as in Unsloth's wrapper
+
+    calls.clear()
+    bare = SimpleNamespace(for_training=lambda **kw: calls.append(kw))
+    _enter_training_mode(SimpleNamespace(model=bare, args=SimpleNamespace(gradient_checkpointing=True)))
+    assert calls == [{"use_gradient_checkpointing": True}]  # else the training args
+
+
+def test_padded_batches_come_out_padded_on_the_right_as_training_pads_them(adapter):
+    d = adapter.declare(TrainCfg(pad_to=545))
+    assert "padding_side='right'" in next(s for s in d.sources if s.startswith("pad_token_id:"))

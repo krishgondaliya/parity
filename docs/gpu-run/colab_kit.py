@@ -19,7 +19,8 @@ Steps, each logged to <out>/logs/<step>.log; any failure stops the run but still
 Then environment.json (what ran, and every deviation from Unsloth's documented install), MANIFEST.json (sha256 of
 every file) and one zip.
 
-P-0005 (P0005_RUNS: the repro padded and with padding_free left to Unsloth, then the adapter's pad_to check) runs in
+P-0005 (P0005_RUNS: the repro padded, with padding_free left to Unsloth, and with one real training step, then the
+adapter's pad_to check) runs in
 the same environment, two ways:
 - `--extra p0005` (notebook cell 6, optional) after a full run;
 - `--only p0005` (RUN = "p0005" in the notebook): every step but the checks, then P-0005. Minutes, not about 20.
@@ -427,6 +428,13 @@ P0005_RUNS = {
         "flattened row, so read the printed lines, not the exit code.",
         "after  train_on_responses_only:",
     ),
+    "padded_train_step": (
+        "findings/P-0005/repro.py", ["--train-step"],
+        "The padded repro plus one real trainer.train() step, with the collator wrapped to record the batch training "
+        "actually draws (width and padding side). Unsloth's train() calls model.for_training() first, so this is the "
+        "training state; the 'padding:' line before it is the state SFTTrainer.__init__ leaves.",
+        "train step:",
+    ),
     "adapter_check": (
         "findings/P-0005/adapter_check.py", [],
         "Rule 4: Parity's own adapter at the pad_to t1.special_tokens asks, with objective all (no "
@@ -437,7 +445,7 @@ P0005_RUNS = {
 }  # fmt: skip
 P0005_LINES = (
     "SFTConfig(", "batching:", "before train_on_responses_only:", "after  train_on_responses_only:", "padding:",
-    "backend ", "objective ", "mapping:",
+    "train step:", "backend ", "objective ", "mapping:",
 )  # fmt: skip
 
 

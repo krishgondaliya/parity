@@ -24,8 +24,8 @@ The recipe (hard rule 2: Unsloth's public path, exactly as its notebooks run it)
        response_part="<|im_start|>assistant\\n")`, from the Qwen3-4B-Thinking-2507 notebook (DOCS["assistant_only"]).
        No notebook for the original Qwen3 models has an assistant-only step; the choice is logged in
        docs/DECISIONS.md (2026-11-24).
-    Then the adapter reads what Unsloth produced: rows of `trainer.train_dataset`, passed through
-    `trainer.data_collator`. Formatting with the tokenizer is the recipe's own user code; the adapter never
+    Then the adapter puts the model in training mode the way Unsloth's train() does (`model.for_training`), and reads
+    what Unsloth produced: rows of `trainer.train_dataset`, passed through `trainer.data_collator`. Formatting with the tokenizer is the recipe's own user code; the adapter never
     tokenizes, masks or pads anything itself, and never changes what Unsloth returns.
 
 Objective mapping (`TrainCfg.objective`)
@@ -212,6 +212,7 @@ class UnslothAdapter:
         )
         if cfg.objective == "assistant_only":
             trainer = train_on_responses_only(trainer, instruction_part=INSTRUCTION_PART, response_part=RESPONSE_PART)
+        _enter_training_mode(trainer)
         return trainer
 
     def _mode_setting(self, cfg: TrainCfg) -> str:
@@ -259,6 +260,25 @@ class UnslothAdapter:
             batch = trainer.data_collator([trainer.train_dataset[i] for i in range(len(convs))])
             self._batches[key] = Batch(tuple(_row(batch, i) for i in range(len(convs))))
         return self._batches[key]
+
+
+def _enter_training_mode(trainer: SFTTrainer) -> None:
+    """Put the model in the state Unsloth's own train() puts it in before it draws any batch, so the collator is
+    read as training uses it (harness error H-11, found by the skeptic on the GPU run).
+
+    Unsloth's patched SFTTrainer.__init__ ends with `model.for_inference()`, which sets the tokenizer's padding side to
+    left. Its train() wrapper (`unsloth/models/rl.py`, `prepare_for_training_mode`) first calls
+    `model.for_training(use_gradient_checkpointing=...)`, which sets it back to right. This calls the same public
+    method with the same argument the wrapper computes, and nothing else; the CPU route's model has it too.
+    """
+    model = trainer.model
+    if not hasattr(model, "for_training"):
+        return
+    if hasattr(model, "_unsloth_gradient_checkpointing"):
+        use_gc = model._unsloth_gradient_checkpointing
+    else:
+        use_gc = getattr(trainer.args, "gradient_checkpointing", True)
+    model.for_training(use_gradient_checkpointing=use_gc)
 
 
 def _row(batch: dict[str, Any], i: int) -> Encoded:

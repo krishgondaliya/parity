@@ -58,9 +58,10 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
     - `checks`: the six checks, both modes.
 
     It ends with either `DONE:` or `STOPPED EARLY:`, followed by the results zip's name. **Both are fine to bring back.** A stopped run's zip holds the logs that say why.
-16. **Cell 6 (optional, P-0005):** ▶, or skip straight to cell 7. With `RUN = "p0005"`, skip it: cell 5 already did this. It takes a few minutes and runs three things in the same environment:
+16. **Cell 6 (optional, P-0005):** ▶, or skip straight to cell 7. With `RUN = "p0005"`, skip it: cell 5 already did this. It takes a few minutes and runs four things in the same environment:
     - the P-0005 repro with padded batches;
     - the repro with batching left to Unsloth;
+    - the repro with one real training step, recording the batch training actually uses;
     - Parity's adapter at the padding size the check asks for, with and without the assistant-only step.
 
     Its output goes into the same results zip, in its own `P-0005` folder, apart from the verdicts.
@@ -119,7 +120,7 @@ The zip is treated as untrusted data and unpacked into a new, empty folder. Then
 - `docs/gpu-run/build_kit.py`: builds the kit from HEAD (part A).
 - `docs/gpu-run/parity_gpu_run.ipynb`: the notebook.
 - `docs/gpu-run/colab_kit.py`: what cell 5 runs, using only Python's standard library. Steps: platform, choose, uv, sync, freeze, smoke, checks. Cell 6 runs it again with `--extra p0005`.
-- `findings/P-0005/repro.py` (padded, and with `--padding-free-unset`) and `findings/P-0005/adapter_check.py`: what P-0005 runs, from cell 6 or with `RUN = "p0005"` (`colab_kit.py --only p0005`).
+- `findings/P-0005/repro.py` (padded, `--padding-free-unset`, `--train-step`) and `findings/P-0005/adapter_check.py`: what P-0005 runs, from cell 6 or with `RUN = "p0005"` (`colab_kit.py --only p0005`).
 - `docs/gpu-run/run_checks.py`: the checks inside Unsloth's environment (`--allow-cpu` exists only to test the kit without a GPU).
 - `envs/unsloth-2026.11.10/uv.lock`: the main lockfile (torch 2.14.1 for CUDA 13.0).
 - `envs/unsloth-2026.11.10/cu126/uv.lock`: the CUDA 12.6 variant, for drivers older than CUDA 13. It differs from the main lock only in torch, torchvision and their CUDA libraries (a test holds it to that).
