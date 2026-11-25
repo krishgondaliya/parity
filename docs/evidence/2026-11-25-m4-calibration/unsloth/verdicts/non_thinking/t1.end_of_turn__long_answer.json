@@ -1,0 +1,27 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.end_of_turn",
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "framework": "unsloth@2026.11.10",
+  "fixture": "long_answer",
+  "result": "not_configurable",
+  "kind": null,
+  "self_test": null,
+  "known_difference": null,
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+  "evidence": {},
+  "conventions": {},
+  "reference": {},
+  "plants": [],
+  "declaration": {
+    "error": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "non_thinking",
+  "root_cause": null,
+  "env_lock": "envs/unsloth-2026.11.10/uv.lock",
+  "env_fingerprint": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+  "repro": null,
+  "backend": "gpu"
+}

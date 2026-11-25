@@ -269,6 +269,65 @@
       ]
     },
     {
+      "id": "P-0005",
+      "record": "findings/P-0005/record.md",
+      "status": "candidate, posted 2026-11-25 (unslothai/unsloth#19567)",
+      "framework": "unsloth@2026.11.10",
+      "backend": "gpu",
+      "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+      "summary": "With padded batches (packing=False, padding_free=False), train_on_responses_only swaps the collator to DataCollatorForSeq2Seq without pad_to_multiple_of, so the requested width is dropped and each batch comes back at its longest row (pad_to 545, width 537). Labels not affected; loss the same up to float rounding.",
+      "pins": [
+        {
+          "check": "t1.special_tokens",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "long_answer",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "multi_turn",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "non_ascii",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "reasoning",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "single_turn",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "system_prompt",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "tool_call",
+          "serving_mode": "thinking",
+          "evidence_sha256": "b6ef64d02c4c7d02fa694f8741de8da9e47575fe5472e55a292dcbcfc6d45c57"
+        }
+      ]
+    },
+    {
       "id": "P-0006",
       "record": "findings/P-0006/record.md",
       "status": "closed: not_configurable (the human's decision, 2026-11-25); pins kept for the as-run verdicts",

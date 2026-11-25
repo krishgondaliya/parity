@@ -14,7 +14,7 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
-## 2026-11-25: A fixture whose assistant turn carries reasoning is not applicable in non-thinking mode (M4, option a); calibration re-run
+## 2026-11-25: A fixture whose assistant turn carries reasoning is not applicable in non-thinking mode (M4, option a); calibration green for all three
 - **Decision (human):** option (a). Applicability is decided from the fixture and the declared serving mode, before any framework output. Reasoning stays fully covered in the primary (thinking) table.
   - Not (b): borrowing TRL's training-template reading of reasoning history into the reference would make TRL's verdicts circular.
   - Not (c): the green definition is not loosened.
@@ -26,7 +26,12 @@ Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and i
   - TRL non-thinking: 35 pass, 3 KD-0001, 10 n/a. Axolotl non-thinking: 34 pass, 4 P-0002, 10 n/a.
   - Every planted fault that ran before still runs in non-thinking mode, and all are caught: TRL 22, Axolotl 20. The 3 that were missed on `reasoning` (`history_edit`, `mask_closing_tokens`, `wrong_closing_token`) are caught on the other fixtures.
   - Axolotl runs 20 of 22 plants in both modes, as before: `history_false_as_python` is skipped where tool arguments are parsed as JSON (2026-11-24), and `reappend_stop` applies only to right-side truncation that cuts.
-- **Result:** TRL and Axolotl are green.
+- **Unsloth's GPU calibration** (`unsloth/`, Colab Tesla T4, kit commit `b73da05`, RUN = "full"), verified and merged by `report.py --unsloth-zip`: 107 files against their manifests, `git archive` rebuilt here with the kit's sha256, all 96 verdicts unsloth@2026.11.10 on the GPU backend with the run's lockfile.
+  - Thinking: 36 pass, 8 fail, 4 n/a. Non-thinking: not configurable (P-0006), 44 cells, 4 n/a.
+  - The kit predates this rule, which is the only code change since. So its 6 `reasoning` × non-thinking cells record `not_configurable`, where today's runner would record `not_applicable`. Neither is judged; every judged cell is unaffected. Kept as run, and noted in the summary and the report.
+  - **The 8 fails, triaged against P-0005 and pinned** (new P-0005 entry in `findings/root_causes.json`, backend `gpu`): `t1.special_tokens` on all 8 fixtures. In each, the one failing rule is `pad_to_honored` (545 asked, 537 produced, the longer row). `special_tokens` and `pad_handling` pass, and all 4 plants are caught.
+  - Rule 4, from each verdict's own declaration: `trainer.args.pad_to_multiple_of=545`, while the collator `train_on_responses_only` installed records `DataCollatorForSeq2Seq(pad_to_multiple_of=None)` on the padded path. `padding_width` passes on the same fixtures through TRL and Axolotl. Details in `findings/P-0005/record.md`.
+- **Result: calibration GREEN for all three frameworks** (`runs/calibration-2026-11-25.md`). Allowed and listed: TRL 7 KD-0001; Axolotl 13 P-0001 and 8 P-0002; Unsloth (GPU) 8 P-0005.
 - **Saved earlier evidence is not re-derived:** the M3 runs keep their `reasoning` × non-thinking cells as run.
 - Reversible? yes
 

@@ -133,6 +133,16 @@
   - Root-cause pins link fail verdicts only, so no pin is added; this is the link.
   - Since 2026-11-25 the check judges a dropped width as its own fail (rule 2a, `pad_to_honored`) and pad handling separately (rule 2b). The next full GPU run's width fails get pinned here after /triage.
 
+## Cells linked to this root cause (2026-11-25, M4 calibration GPU run, `docs/evidence/2026-11-25-m4-calibration/unsloth/`)
+- **The run:** Colab Tesla T4 (driver 580.82.07), Unsloth on `cuda`, torch 2.14.1+cu130, `envs/unsloth-2026.11.10/uv.lock`, kit commit `b73da05`, RUN = "full". Verified by `report.py --unsloth-zip`: 107 files against their manifests, `git archive` rebuilt here with the kit's sha256 (`e7e6c894…`), all 96 verdicts unsloth@2026.11.10 on the GPU backend with the run's lockfile.
+- **8 fail verdicts, pinned in `findings/root_causes.json`** (new P-0005 entry, backend `gpu`): `t1.special_tokens` on all 8 fixtures, thinking mode. Non-thinking mode is not configurable for Unsloth (P-0006), so it has no cells here.
+- **/triage, cell by cell, before pinning:**
+  - **The one failing rule is `pad_to_honored`** (rule 2a): asked for 545, the batch is 537 wide, which is the longer row's reference length (`pad_to` = longer row + 8). That is the batch cut back to its longest row.
+  - **Everything else passes:** `special_tokens` and `pad_handling` (rule 2b, both rows judged at the produced width), and all 4 planted faults are caught (including `pad_to_ignored`, P-0005's own mechanism).
+  - **Rule 4, from each verdict's own declaration:** the batch call (pad_to=545) records `trainer.args.pad_to_multiple_of=545`. Our adapter's value reaches the trainer. The collator that `train_on_responses_only` installed records `DataCollatorForSeq2Seq(pad_to_multiple_of=None)`, on the padded path (`packing=False, padding_free=False`). So the drop is after our adapter, as the P-0005-only trip showed.
+  - **Check logic:** `padding_width` passes on the same fixtures through TRL 1.18.2 and Axolotl 0.21.1 (M4 calibration), so the rule itself is not the suspect.
+- **Calibration:** P-0005 explains these 8 fails and nothing else. They are allowed under the green definition (a fail linked to a triaged candidate) and listed in `runs/calibration-2026-11-25.md`.
+
 ## Labels not affected; loss the same up to float rounding (verified on CPU, 2026-11-25)
 - `findings/P-0005/impact.py`, run 8 times in the fresh pinned environment: 3 by me, 5 by the issue reviewer. It compares, on the same two rows with the model in training mode, the swapped collator's batch (width 26) with the same collator class keeping `pad_to_multiple_of=64` (width 64).
 - Results:

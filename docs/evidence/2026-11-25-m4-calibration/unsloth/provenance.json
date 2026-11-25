@@ -1,0 +1,16 @@
+{
+ "zip": "parity-gpu-results-b73da059b614-20261125T221035Z.zip",
+ "zip_sha256": "66505055d50ba4c96502b74887cb7802206e31a07c59cc05cabab1b24986f3c1",
+ "files_verified": 107,
+ "commit": "b73da059b6141e3f7d1c8c5bd77728f10bd73b04",
+ "archive_sha256": "e7e6c8946da57ac2d0b99e0004b4e0f915eaf6fcc915705aff28394696695690",
+ "archive_rebuilt_here": true,
+ "mode": "full",
+ "lockfile": "envs/unsloth-2026.11.10/uv.lock",
+ "lockfile_sha256": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+ "gpu": "Tesla T4",
+ "driver": "580.82.07",
+ "torch": "2.14.1+cu130",
+ "unsloth_device_type": "cuda",
+ "verdicts_verified": 96
+}

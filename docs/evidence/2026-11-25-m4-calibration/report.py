@@ -7,8 +7,8 @@ Run from the repo root, in the core environment:
 TRL and Axolotl run locally (run.py, in their own environments). Unsloth runs on GPU, with the Colab kit and
 RUN = "full". `--unsloth-zip` verifies that run's zip (`parity.gpu_results.verify_zip`, plus every verdict: framework
 unsloth@2026.11.10, backend gpu, the run's lockfile). It then keeps the zip byte for byte under unsloth/raw/, writes
-unsloth/verdicts (linked to findings/root_causes.json), environment.json, provenance.json and summary.md, and
-renders the report with all three.
+unsloth/verdicts (linked to findings/root_causes.json), environment.json, status.json, templates.json,
+provenance.json and summary.md, and renders the report with all three.
 
 Green (`parity.engine.calibration`): no untriaged fail, no harness-caused inconclusive, every planted fault caught.
 Fails linked to a triaged finding or a known difference are allowed and listed.
@@ -64,11 +64,50 @@ def load(framework: str) -> list:
     if not folder.is_dir():
         return []
     verdicts = link_root_causes(read_verdict(p) for p in sorted(folder.rglob("*.json")))
-    if framework == "unsloth":  # the run.py of the other two writes linked verdicts itself
+    if framework == "unsloth":  # the run.py of the other two writes linked verdicts and a summary itself
         shutil.rmtree(folder)
         for v in verdicts:
             write_verdict(v, folder / v.serving_mode)
+        write_unsloth_summary(verdicts)
     return verdicts
+
+
+def write_unsloth_summary(verdicts: list) -> None:
+    """unsloth/summary.md, as run.py writes the other two: properties judged on the fixtures each mode applies to."""
+    from parity.engine.report import render_summary
+    from parity.fixtures import load_all
+    from parity.references.properties import template_properties_for
+    from parity.release import load_release
+    from parity.serving import not_applicable_in_mode
+    from parity.targets import CALIBRATION
+
+    release, fixtures = load_release(CALIBRATION), load_all()
+    templates = json.loads((OUT / "unsloth" / "templates.json").read_text(encoding="utf-8"))
+    properties = []
+    for mode in MODES:
+        applicable = [f for f in fixtures if not_applicable_in_mode(f, mode) is None]
+        for source, template in templates.items():
+            properties += template_properties_for(release, template, source, applicable, mode)
+    facts = json.loads((OUT / "unsloth" / "provenance.json").read_text(encoding="utf-8"))
+    note = f"> {unsloth_note(facts['commit'])}\n\n" if unsloth_note(facts["commit"]) else ""
+    (OUT / "unsloth" / "summary.md").write_text(note + render_summary(verdicts, properties), encoding="utf-8")
+
+
+BEFORE_APPLICABILITY_RULE = "b73da059b6141e3f7d1c8c5bd77728f10bd73b04"  # the kit commit of the 2026-11-25 run
+
+
+def unsloth_note(commit: str) -> str:
+    """What a reader needs about a GPU run whose kit predates the serving-mode applicability rule; else nothing."""
+    if commit != BEFORE_APPLICABILITY_RULE:
+        return ""
+    return (
+        "**Unsloth's calibration run is its GPU route** (Colab kit, RUN = \"full\"; verified in `provenance.json`). "
+        "Non-thinking mode is not configurable for Unsloth (P-0006, the human's decision). The kit was built at "
+        "commit `b73da05`, before the serving-mode applicability rule (2026-11-25), and that rule is the only code "
+        "change since. So the six `reasoning` × non-thinking cells record `not_configurable`, where today's runner "
+        "would record `not_applicable`. Neither is judged, and neither counts toward green. Every judged cell is "
+        "unaffected."
+    )
 
 
 def render(statuses: dict, rows: list[str], unsloth_facts: dict | None) -> str:
@@ -82,7 +121,8 @@ def render(statuses: dict, rows: list[str], unsloth_facts: dict | None) -> str:
         "# Calibration, 2026-11-25 (M4)",
         "",
         f"- **Model:** `{CALIBRATION.spec}`, all 8 fixtures, both serving modes, every planted fault.",
-        f"- **Checks:** as of commit `{commit}`, including `t1.special_tokens`' split padding rules.",
+        f"- **Checks:** as of commit `{commit}`, including `t1.special_tokens`' split padding rules and the serving-mode "
+        "applicability rule (a fixture whose assistant turn carries reasoning is not applicable in non-thinking mode).",
         "- **Green means:** no untriaged fail, no harness-caused inconclusive, every planted fault caught "
         "(`parity.engine.calibration`). Fails linked to triaged findings or known differences are allowed, and listed.",
         f"- **Overall: {'GREEN' if green else 'NOT GREEN'}.**",
@@ -97,6 +137,8 @@ def render(statuses: dict, rows: list[str], unsloth_facts: dict | None) -> str:
         if framework == "unsloth" and unsloth_facts:
             lines += [f"GPU run `{unsloth_facts['zip']}` (commit `{unsloth_facts['commit'][:12]}`, {unsloth_facts['gpu']}), "
                       "verified (`unsloth/provenance.json`).", ""]  # fmt: skip
+            if unsloth_note(unsloth_facts["commit"]):
+                lines += [unsloth_note(unsloth_facts["commit"]), ""]
         lines.append("- Results: " + ", ".join(f"{n} {r}" for r, n in s.results.items()))
         for cause, cells in sorted(s.linked_fails.items()):
             lines.append(f"- Linked fails, {cause}: {len(cells)} ({'; '.join(map(str, cells))})")
