@@ -3,7 +3,7 @@
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
 - **Current phase:** Phase 0, kill test. M0, M1 and M2 are done. M3 is in progress: TRL, Axolotl and Unsloth have run all six checks on the calibration model, in both serving modes. Unsloth ran only on its CPU backend, so its labels aren't judged yet. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-25
+- **Last updated:** 2026-11-25 (GPU run kit built; waiting on the Colab run)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -38,13 +38,16 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## Next actions
 
-1. **Unsloth GPU run** (needs a CUDA machine; human to provide one).
-   - On it, `cd envs/unsloth-2026.11.10 && uv sync` (the lock already resolves the CUDA torch wheel).
-   - Before running, add a `backend` (cpu/gpu) record to Unsloth's verdicts and a backend split to the report: the GPU route becomes Unsloth's primary result, and the current results become the labeled secondary "CPU backend" table.
-   - Then run `docs/evidence/2026-11-24-m3-unsloth/run.py`:
-     - judge Unsloth's labels;
-     - revisit P-0004;
-     - run `findings/P-0005/repro.py` (padded batches), and once with Unsloth's GPU defaults (`padding_free` unset).
+1. **Unsloth GPU run, on Colab** (the human runs it):
+   - The kit is ready (`docs/gpu-run/GPU-RUN.md`): `uv run python docs/gpu-run/build_kit.py`, run the notebook on a T4, and bring back the results zip.
+   - The predictions are committed first (`docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, `290eff2`), and the backend record and report split are in.
+   - When the zip comes back:
+     - verify it (manifest, `git archive` sha256, the GPU route);
+     - compare with the predictions;
+     - triage any fails;
+     - commit the evidence to `docs/evidence/2026-11-25-m3-unsloth-gpu/`;
+     - revisit P-0004.
+   - Still open: P-0005's GPU confirmation needs `findings/P-0005/repro.py` on a GPU (padded batches, and once with `padding_free` unset). The kit doesn't run it (scoped to the adapter and the six checks).
 2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
 3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 

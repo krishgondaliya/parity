@@ -14,6 +14,39 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: The Unsloth GPU run: predictions first, a backend record, a Colab kit, and a CUDA 12.6 lock variant
+- **Predictions first** (`docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, commit `290eff2`): 96 cells (both modes) from Unsloth's docs and pinned notebooks alone, committed before any kit code existed.
+  - They're not blind: the CPU run and P-0004/P-0005's code reading were already known, and the file says so.
+  - It names in advance the cells where that code-based evidence disagrees with the docs. The main one is special tokens: the docs say pass; P-0005 says inconclusive.
+  - The docs-alone score is the headline.
+- **`Verdict.backend`** ("gpu" or "cpu", None for frameworks with no such choice):
+  - The Unsloth adapter reads it from `unsloth.DEVICE_TYPE`.
+  - Root causes carry a backend too, matched exactly. So P-0004 (`"backend": "cpu"`) never explains a GPU fail, even with identical evidence (tested on the real CPU verdicts relabeled as GPU: 15 untriaged, 0 linked).
+  - Reports name the framework with its backend, e.g. "unsloth@2026.11.10 (gpu)". Once a framework has GPU results, its CPU results go in a separate "CPU backend (secondary)" table under each mode, as decided 2026-11-24.
+  - The CPU run's saved verdicts predate the field. Its `--relink` records `backend: "cpu"` on them (the run was on CPU, per `environment.json`); only that line changed in the 96 files.
+- **The kit** (`docs/gpu-run/`): a Colab notebook, plus `colab_kit.py` (standard library only) and `run_checks.py`, packaged by `build_kit.py` as `git archive` of a clean HEAD.
+  - The commit id travels in the zip comment.
+  - The kit refuses to run on CPU (`UNSLOTH_DISABLE_CPU_FALLBACK=1`, then a smoke step).
+  - Subprocesses get no secret-looking variables and no `PYTHONPATH`, and Hugging Face's implicit token lookup is off.
+  - Every step is logged, and a failed run still produces the zip.
+  - The model list is a parameter, for M5.
+- **CUDA 12.6 lock variant** (`envs/unsloth-2026.11.10/cu126/`):
+  - The main lock's torch 2.14.1 is PyPI's CUDA 13.0 build, which needs a driver that supports CUDA 13. Colab's T4 runtime reported CUDA 12.4 in Unsloth's own saved notebook output (2025).
+  - The variant takes torch 2.14.1+cu126 and torchvision 0.29.1+cu126 from PyTorch's CUDA 12.6 index, which has no 0.29.2 build.
+  - On Linux x86_64 it is identical to the main lock otherwise (Unsloth, unsloth-zoo, TRL, transformers, tokenizers, datasets, PEFT, bitsandbytes, triton, xformers); `tests/test_gpu_kit.py` holds it to that.
+  - The kit picks a lock from the driver's CUDA version (13.0 or newer: main; 12.x: the variant; older: stop) and records the variant as a deviation.
+  - A committed lock, rather than an ad hoc `pip install` of another torch, so every version stays pinned (rule 7).
+- **Deviations from Unsloth's documented Colab install, recorded in the run's `environment.json`:**
+  - a locked uv environment instead of the notebook's `pip install --no-deps` cell on top of Colab's torch;
+  - `unsloth install-kernels` not run: optional compute kernels, off the data path, and no forward pass runs;
+  - TRL 1.15.0 and transformers 5.17.0, not the notebook's pins, as on CPU;
+  - Python 3.12.
+- **Not in the kit:** the P-0004 and P-0005 repros. The human scoped the kit to the adapter and the six checks. P-0005's GPU confirmation still needs `findings/P-0005/repro.py` run on a GPU.
+- Evidence: `docs/gpu-run/GPU-RUN.md`, `tests/test_gpu_kit.py`, `tests/test_root_causes.py`, `tests/test_adapter_unsloth.py`.
+  - Local check of `run_checks.py` on CPU (`--allow-cpu`, 2 min 43 s): it reproduces the CPU M3 counts exactly, and all 15 fails link to P-0004.
+  - Also checked: `uv sync --locked --dry-run` of the variant, and the kit's freeze script on the main environment (109 packages, no mismatches).
+- Reversible? yes
+
 ## 2026-11-24: After M3 Unsloth: P-0004 on the card as CPU-only, a GPU run next, P-0005 opened, predictions-first enforced
 - Decisions (human):
   1. **P-0004:** shown on the report card as Unsloth CPU-backend behavior, labeled CPU-only, low impact (`card_label` in `findings/root_causes.json`, rendered next to the id).
