@@ -146,6 +146,7 @@
 - **Shrunk:** `findings/P-0005/repro.py`, 30 lines, no Parity code. It runs the recommended notebook's path (`FastLanguageModel.from_pretrained`, `get_peft_model`, `SFTTrainer`, `train_on_responses_only`) on a tiny random model with Qwen3-0.6B's tokenizer and config.
   - It prints the collator and batch width before and after, and exits 1 if the width isn't a multiple of 64.
   - Pinned environment: `findings/P-0005/requirements.txt` (the lock's exact versions, without Parity) and `findings/P-0005/uv.lock`.
+  - How to run it: `findings/P-0005/HOW-TO-RUN.md` (CPU only, with the telemetry opt-outs). Those exact commands were run from a scratch folder on 2026-11-25: exit 1 on 2026.11.10, on 2026.11.12 and on unsloth-zoo `cad81ef2`.
 - **Fresh environment** (`uv venv --python 3.12` + `uv pip install -r requirements.txt`, Parity not importable): fails 3/3 (64 to 26, exit 1). unsloth and unsloth-zoo 2026.11.10, trl 1.15.0, transformers 5.17.0, torch 2.14.1.
 - **Newest release** (unsloth and unsloth-zoo 2026.11.12, fresh venv): fails 3/3, same output.
 - **unsloth-zoo main** at `cad81ef2dc55` (installed from git, checked via `direct_url.json`; fresh venv): fails 3/3. The collator-swap block is byte-identical to 2026.11.10, now at L2547-L2583.

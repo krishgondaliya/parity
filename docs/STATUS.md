@@ -51,7 +51,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## Next actions
 
-1. **Human:** post `findings/P-0005/issue.md` to unslothai/unsloth-zoo with the repo's "Bug / Issue" template, after reading the notes at the top of the draft. Put the URL in P-0005's record.
+1. **Human:** run the P-0005 repro as `findings/P-0005/HOW-TO-RUN.md` says (CPU; it should exit 1), then post `findings/P-0005/issue.md` to unslothai/unsloth-zoo with the repo's "Bug / Issue" template, after reading the notes at the top of the draft. Put the URL in P-0005's record.
 2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
 3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 
