@@ -14,6 +14,23 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: M4 calibration, TRL and Axolotl: not green, for one harness reason only
+- **Run:** `runs/calibration-2026-11-25.md`, from `docs/evidence/2026-11-25-m4-calibration/` (`run.py` per framework, `report.py`). Under the current checks, including the special-tokens split.
+- **Green rule as code** (`parity.engine.calibration`, the human's definition): no untriaged fail, no harness-caused inconclusive, every planted fault caught; linked fails are allowed.
+  - An inconclusive counts as the framework's only when a linked template-parity fail on the same fixture explains it (blocked, or rows that don't line up).
+  - Anything else counts as harness-caused, unrecognized reasons included.
+- **Result:** both frameworks fail the green rule for the same reason, and only that one: the `reasoning` fixture in non-thinking mode, 6 cells each.
+  - Our reference refuses it ("generation prompt render is not a prefix of the full render; structural method: … no generation prompt"), and 3 planted faults go uncaught on those cells.
+  - This is the open question logged on 2026-11-24 ("`reasoning` has no non-thinking reading in our reference"), which was then "fine as inconclusive for now". Under today's green definition it blocks calibration.
+  - Everything else is green. TRL: 75 pass, 7 KD-0001 differences linked. Axolotl: 61 pass, 13 P-0001 (KD-0002/0003) and 8 P-0002 fails linked. No untriaged fail, and every other planted fault caught.
+- **P-0002 re-pinned:** the special-tokens split changed the evidence of its two `t1.special_tokens/empty_assistant` cells. Checked as the same mechanism (only `<|im_end|>` at position 14, row and batch; `padding_width` passes); two pins added, the M3 pins kept.
+- **Open for the human:** how to resolve `reasoning` × non-thinking. Options:
+  - (a) **not_applicable, decided from the fixture and the mode.** Qwen's model card says that with `enable_thinking=False` the model "will not generate think content", so a conversation whose assistant turns carry reasoning is not non-thinking data. (Recommended.)
+  - (b) **teach the reference a non-thinking reading** of reasoning history; TRL's training template has one.
+  - (c) **count documented reference limits as allowed** in the green definition.
+- Unsloth calibrates on GPU (the kit with RUN = "full"), and its non-thinking cells are `not_configurable`, so this question doesn't touch it. Its special-tokens cells should now fail `pad_to_honored` (P-0005); they need /triage and P-0005 pins (backend gpu) when the zip comes back.
+- Reversible? yes
+
 ## 2026-11-25: A severity bar for continuing Parity, set before any target results exist (M4)
 - **Decision (human):** Gate A passes as written. But continuing Parity with full energy after the kill test needs at least one **medium-severity** finding.
 - **Medium:** a finding that changes what the model learns: its labels, its loss, or its stop behavior.

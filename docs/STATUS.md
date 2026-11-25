@@ -2,8 +2,8 @@
 
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
-- **Current phase:** Phase 0, kill test. M0, M1 and M2 are done. M3 is in progress: TRL, Axolotl and Unsloth have run all six checks on the calibration model, in both serving modes. Unsloth's primary result is now its GPU route; one P-0005 question remains for a short GPU trip. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-25 (P-0005 reproduced on GPU, shrunk, issue drafted; special tokens' padding split)
+- **Current phase:** Phase 0, kill test. M0-M3 done; **M4 (formal calibration) in progress.** TRL and Axolotl ran locally and are not green, for one harness reason: our reference refuses the `reasoning` fixture in non-thinking mode (a decision for the human). Unsloth calibrates on GPU next. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
+- **Last updated:** 2026-11-25 (M4 calibration: TRL and Axolotl run; Unsloth's GPU kit built)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -40,6 +40,8 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
   - the P-0005 repro's GPU crash is ours (H-10, no LoRA attached); fixed;
   - skeptic-reviewed: P-0006 reframed as a difference of non-thinking convention (Unsloth documents the `/no_think` soft switch), and a second harness error found and fixed (H-11, the adapter collated in Unsloth's post-`__init__` inference state);
   - the stale secondary-table header in every summary was corrected.
+- Severity bar recorded before any target results: continuing with full energy needs a medium finding (changes labels, loss or stop behavior). P-0002 and P-0005 are low (P-0002's kind of effect flagged for confirmation).
+- M4 calibration, TRL and Axolotl (`runs/calibration-2026-11-25.md`): no untriaged fails (P-0002's special-tokens cells re-pinned after the split). Not green: the `reasoning` × non-thinking reference refusal.
 - The human's decisions: Unsloth's non-thinking mode is `not_configurable` (P-0006 closed; the saved cells were re-derived, as-run results kept), and P-0004 stays card-only until after the kill test. A soft-switch reference is a Phase 2 idea.
 - P-0005-only GPU trip ingested (`docs/evidence/2026-11-25-p0005-gpu/`):
   - rule 4 cleared, the drop reaches a real training step, and Unsloth's padding-free default keeps the setting;
@@ -51,13 +53,15 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## Next actions
 
-1. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
-2. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
+1. **Human decision:** resolve `reasoning` × non-thinking (`docs/DECISIONS.md`, M4 calibration entry): (a) not_applicable from the fixture and mode (recommended), (b) a non-thinking reading in the reference, or (c) allow documented reference limits. Then re-run TRL and Axolotl calibration (`docs/evidence/2026-11-25-m4-calibration/run.py`, `report.py`).
+2. **Unsloth GPU calibration** (the human): the kit with `RUN = "full"` (folder in this session's notes; rebuild with `docs/gpu-run/build_kit.py` after any commit). When the zip is back: `report.py --unsloth-zip <zip>`; /triage the special-tokens width fails (expected `pad_to_honored`, P-0005) and pin them to P-0005 (backend gpu).
+3. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
+4. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 
 ## Open questions
 
 - The structural method's added-header widening is exercised only on DeepSeek (8 agreeing turns); the method as a whole covers 3 families. Accept, or ask for more coverage?
-- `reasoning` has no non-thinking reading in our reference (it refuses), though TRL's template gives one. Fine as inconclusive for now.
+- `reasoning` has no non-thinking reading in our reference (it refuses), though TRL's template gives one. It was fine as inconclusive, but it now blocks M4 green: see Next actions 1.
 - Unsloth: the two notebooks the recipe draws on differ on `padding_free` (the recommended one sets `False`; Thinking-2507 leaves it unset). On GPU that decides whether batches are padded, and so whether P-0005 applies. The P-0005 trip's `padding_free_unset` run measures what Unsloth chooses.
 - Possible docs gaps, not findings: Axolotl never says think tags go untrained by default; TRL's SFT docs never say how to pass `chat_template_kwargs`, and `SFTConfig` has no field for it.
 - The guard reads command text: a shell command that only writes text naming an environment with no committed predictions is refused too. Use the Edit/Write tools for such files.

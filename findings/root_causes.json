@@ -57,6 +57,18 @@
           "fixture": "empty_assistant",
           "serving_mode": "non_thinking",
           "evidence_sha256": "62123f7a9fdc0ce36ce06dbfaf2e1a6d8ff1ddd8279236d7223db858eceae037"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "empty_assistant",
+          "serving_mode": "thinking",
+          "evidence_sha256": "75dee429bc5a8ac6896d2e5455f378df94b686c21d1412e5fe77d29d3da65920"
+        },
+        {
+          "check": "t1.special_tokens",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "75dee429bc5a8ac6896d2e5455f378df94b686c21d1412e5fe77d29d3da65920"
         }
       ]
     },

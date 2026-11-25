@@ -71,6 +71,14 @@
   - In thinking mode, `assistant_mask` and `truncation` also contain the think opener that KD-0002/0003 explain; the known-difference residual is exactly position 14.
   - `special_tokens` flags it in the row and in the padded batch.
 
+## Re-pinned after the special-tokens rule split (2026-11-25, M4 calibration, `docs/evidence/2026-11-25-m4-calibration/axolotl/`)
+- `t1.special_tokens`' padding part became two rules (`padding_width`, `pad_handling`), and batch problems now name their row. So the two `t1.special_tokens/empty_assistant` cells (thinking, non-thinking) got new evidence, and their M3 pins stopped matching.
+- Checked before re-pinning: the evidence is the same mechanism and nothing else, in both modes.
+  - In the row and in the padded batch, the one problem is `stop_tokens_trained` at position 14, `<|im_end|>`.
+  - `padding_width` passes: Axolotl honors the requested width.
+- Two new pins added. The M3 pins stay, because the saved M3 verdicts still link through them.
+- Calibration: P-0002 explains 8 fail verdicts, the same cells as in M3.
+
 ## Variants tested (2026-11-24, strategy level and full preprocess, identical)
 | Case | Empty turn's `<|im_end|>` trained? |
 | --- | --- |
