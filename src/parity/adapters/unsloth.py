@@ -38,8 +38,12 @@ Other settings
       (what TRL truncates by; on CPU the loader's value doesn't reach it). None: the notebook's 2048, and TRL's
       default `max_length`.
     - `packing` -> `SFTConfig.packing`. `pad_to` -> `SFTConfig.pad_to_multiple_of`.
-    - Serving mode: in a non-default mode, the mode's chat-template arguments go to `tokenizer.apply_chat_template`
-      in step 2 (`enable_thinking=False` for Qwen3, as Unsloth's Qwen3 page shows: DOCS["qwen3_docs"]).
+    - Serving mode: any non-default mode raises ModeNotConfigurable, so those cells are not_configurable.
+      - Unsloth documents non-thinking training only as the `/no_think` soft switch. It documents no way to train
+        for the hard switch our reference models (`enable_thinking=False`).
+      - `parity.adapters.unsloth_docs` has the text and the sources (the human's decision, 2026-11-25, P-0006).
+      - Until then the adapter passed `enable_thinking=False` to the formatting call; on training text that changes
+        nothing.
     - Training-only settings are the notebook's (`optim="adamw_8bit"`, ...); no training step ever runs.
 
 Labels: aligned. `declare()` reads the model's loss function and refuses to guess if it isn't one that shifts labels.
@@ -79,10 +83,11 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer  # noqa
 from trl import SFTConfig, SFTTrainer  # noqa: E402
 
 import parity  # noqa: E402
-from parity.adapters.base import Batch, Declaration, Dropped, Encoded, TrainCfg  # noqa: E402
+from parity.adapters.base import Batch, Declaration, Dropped, Encoded, ModeNotConfigurable, TrainCfg  # noqa: E402
+from parity.adapters.unsloth_docs import NOT_CONFIGURABLE  # noqa: E402
 from parity.fixtures import Conversation  # noqa: E402
 from parity.release import LoadedRelease, fetch_release_files  # noqa: E402
-from parity.serving import framework_mode, template_kwargs  # noqa: E402
+from parity.serving import framework_mode  # noqa: E402
 
 VERSION = "2026.11.10"
 if unsloth.__version__ != VERSION:
@@ -109,6 +114,7 @@ TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num
         "num_key_value_heads": 1, "head_dim": 8}  # fmt: skip
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 LABEL_SHIFTING_LOSSES = ("ForCausalLMLoss",)
+MODE_SETTING = "framework defaults (the model's default mode); other modes are not configurable (unsloth_docs)"
 
 datasets.disable_progress_bars()
 transformers.logging.set_verbosity_error()
@@ -177,9 +183,8 @@ class UnslothAdapter:
             use_rslora=False,
             loftq_config=None,
         )
-        mode_kwargs = template_kwargs(self.release, cfg.serving_mode) if cfg.serving_mode else {}
         texts = [
-            tokenizer.apply_chat_template(copy.deepcopy(conv.messages), tools=conv.tools, tokenize=False, **mode_kwargs)
+            tokenizer.apply_chat_template(copy.deepcopy(conv.messages), tools=conv.tools, tokenize=False)
             for conv in convs
         ]
         args: dict[str, Any] = {
@@ -215,28 +220,26 @@ class UnslothAdapter:
         _enter_training_mode(trainer)
         return trainer
 
-    def _mode_setting(self, cfg: TrainCfg) -> str:
-        if not cfg.serving_mode:
-            return "framework defaults (the model's default mode)"
-        kwargs = template_kwargs(self.release, cfg.serving_mode)
-        return (
-            f"{kwargs!r} passed to tokenizer.apply_chat_template when formatting the dataset, as Unsloth's Qwen3 page "
-            f"shows (citation level: docs page, an inference example; {DOCS['qwen3_docs']})"
-        )
+    def _framework_cfg(self, cfg: TrainCfg) -> TrainCfg:
+        """The config as Unsloth gets it: in the model's default mode it is told nothing; any other mode refuses."""
+        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
+        if cfg.serving_mode is not None:
+            raise ModeNotConfigurable(NOT_CONFIGURABLE)
+        return cfg
 
     # The adapter contract
 
     def declare(self, cfg: TrainCfg) -> Declaration:
         """Read Unsloth's live objects for exactly this config. Nothing here is hardcoded."""
-        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
+        cfg = self._framework_cfg(cfg)
         if cfg not in self._declarations:
             probe = Conversation(id="probe", messages=copy.deepcopy(PROBE), tools=None)
             trainer = self._trainer([probe], cfg)
-            self._declarations[cfg] = _declaration(trainer, cfg, self._source, self._mode_setting(cfg))
+            self._declarations[cfg] = _declaration(trainer, cfg, self._source, MODE_SETTING)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
-        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))
+        cfg = self._framework_cfg(cfg)
         key = (conv.id, conv.content_key, cfg)
         if key not in self._encoded:
             trainer = self._trainer([conv], cfg)
@@ -251,7 +254,7 @@ class UnslothAdapter:
         return self._encoded[key]
 
     def encode_batch(self, convs: Sequence[Conversation], cfg: TrainCfg) -> Batch:
-        cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))
+        cfg = self._framework_cfg(cfg)
         key = (tuple(f"{conv.id}:{conv.content_key}" for conv in convs), cfg)
         if key not in self._batches:
             trainer = self._trainer(convs, cfg)

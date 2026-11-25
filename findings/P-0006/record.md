@@ -1,6 +1,6 @@
 # P-0006: In non-thinking mode, Unsloth's assistant-only recipe trains the last turn's empty think block, which our reference puts on the prompt side
 
-- Status: **exploratory** (non-thinking table only; not a candidate). Decided by the human, 2026-11-25: the non-thinking table is exploratory. This record exists so the 14 fails are triaged and linked (Gate A, A4), not to put anything on Unsloth.
+- Status: **closed: not_configurable** (the human's decision, 2026-11-25; see "Decision"). Before that: exploratory (non-thinking table only; not a candidate). The pins stay in `findings/root_causes.json`, so the as-run verdicts in the raw zip still link here.
 - Date found: 2026-11-25 (predicted before the run: `docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, `290eff2`)
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
 - Framework: unsloth@2026.11.10 on its GPU route (Tesla T4), running trl 1.15.0   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -69,12 +69,15 @@
   - Also: the summary's secondary-table header still said "the same encoded rows… No extra framework runs", stale since 2026-11-24. Fixed in `src/parity/engine/report.py`, and every summary re-rendered.
 - **The skeptic's proposal:** reclassify the 14 cells as a known difference, or as `not_configurable` (Unsloth documents no hard-switch training), not `bug`. Not done: it changes how the harness models Unsloth's non-thinking mode, and the human decided the table is exploratory.
 
-## Open (for the human)
-- How should the non-thinking table judge a framework whose documented non-thinking training is the soft switch?
-  - (a) `not_configurable` for Unsloth, since it documents no hard-switch training;
-  - (b) a known-differences entry for this zone signature;
-  - (c) a second, soft-switch reference (`/no_think` in the user turn).
-- Until then P-0006 stays exploratory, pinned, and never counted against Unsloth.
+## Decision (human, 2026-11-25)
+- **(a), `not_configurable`, by the existing rule** (2026-11-24: a framework that documents no way to set a serving mode gets `not_configurable` cells). Unsloth documents no way to train for the hard switch (`enable_thinking=False`), so its non-thinking cells can't be judged against that reference.
+- **Card line:** "Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable." It is `parity.adapters.unsloth_docs.NOT_CONFIGURABLE`, shown on every such cell.
+- **Implemented:**
+  - the Unsloth adapter raises `ModeNotConfigurable` for any non-default mode;
+  - the saved non-thinking cells of both runs (GPU and CPU) are re-derived with `parity.engine.runner.as_not_configurable`, which a test holds to what the runner gives on the real adapter;
+  - each re-derived cell keeps its as-run result in its evidence;
+  - `compare.md` still judges the predictions against the verdicts as run.
+- **Not now:** a soft-switch reference (`/no_think` in the user turn). Logged as a Phase 2 idea (`docs/phases/phase-2-tier1-breadth.md`).
 
 ## Repro
 - No separate repro: the 14 verdicts are the evidence, and `docs/evidence/2026-11-25-m3-unsloth-gpu/ingest.py --relink` re-renders them.

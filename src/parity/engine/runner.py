@@ -69,6 +69,37 @@ def _blocked(v: Verdict, parity: Verdict) -> Verdict:
     )
 
 
+def as_not_configurable(verdict: Verdict, reason: str, decision: str) -> Verdict:
+    """The verdict the runner now gives this saved cell, after a decision made its serving mode not configurable.
+
+    Used only to re-render saved evidence (P-0006, 2026-11-25). No new framework run is needed: the runner decides
+    not_configurable when `declare()` raises ModeNotConfigurable, before the framework is touched. The fields follow
+    `_evaluate` and `evaluate`:
+    - a not_applicable verdict stays as it is, since the runner decides that first, from the fixture alone;
+    - an already re-derived verdict stays as it is.
+    The earlier result is kept in the evidence, next to the decision that changed it.
+    """
+    if verdict.result in ("not_applicable", "not_configurable"):
+        return verdict
+    full = f"serving mode: {reason}"
+    return replace(
+        verdict,
+        result="not_configurable",
+        kind=None,
+        known_difference=None,
+        self_test=None,
+        reason=full,
+        evidence={"rederived": decision, "as_run_result": verdict.result, "as_run_kind": verdict.kind},
+        conventions={},
+        reference={},
+        plants=[],
+        declaration={"error": full},
+        template_properties=[],
+        flags=[],
+        root_cause=None,
+    )
+
+
 def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     """Every verdict this returns records the adapter's declaration (or why it couldn't be read)."""
     verdict = _evaluate(check, adapter, fixture)

@@ -57,6 +57,13 @@ def main() -> None:
         # Verdict.backend existed get it recorded, so P-0004 (a CPU-backend root cause) still explains them.
         verdicts = [read_verdict(p) for p in sorted((OUT / "verdicts").rglob("*.json"))]
         verdicts = [v if v.backend else replace(v, backend="cpu") for v in verdicts]
+        # Non-thinking cells are not_configurable since the human's 2026-11-25 decision (P-0006). A fresh run gets
+        # that from the adapter; saved ones are re-derived, with their as-run result kept in the evidence.
+        from parity.adapters.unsloth_docs import DECISION, NOT_CONFIGURABLE
+        from parity.engine.runner import as_not_configurable
+
+        verdicts = [as_not_configurable(v, NOT_CONFIGURABLE, DECISION) if v.serving_mode == "non_thinking" else v
+                    for v in verdicts]  # fmt: skip
         templates = json.loads((OUT / "templates.json").read_text(encoding="utf-8"))
     else:
         adapter = UnslothAdapter(release)
@@ -81,7 +88,9 @@ def main() -> None:
         "> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's "
         "CPU-backend results, its **secondary** result. Unsloth's primary result is its GPU route "
         "(`docs/evidence/2026-11-25-m3-unsloth-gpu/summary.md`), where these appear as the labeled \"CPU backend\" "
-        "table (the human's decision, 2026-11-24).\n\n"
+        "table (the human's decision, 2026-11-24). Non-thinking mode: not configurable. Unsloth documents "
+        "non-thinking training via the /no_think soft switch; hard-switch training is not configurable (2026-11-25, "
+        "P-0006). Those cells were re-derived; each keeps its as-run result in its evidence.\n\n"
     )
     (OUT / "summary.md").write_text(backend + render_summary(verdicts, properties), encoding="utf-8")
 

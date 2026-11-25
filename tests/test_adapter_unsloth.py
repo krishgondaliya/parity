@@ -42,9 +42,34 @@ def test_declare_reads_the_recipes_live_objects(adapter, qwen3):
     assert any("train_on_responses_only" in s for s in d.sources)
 
 
-def test_a_non_default_mode_reaches_the_formatting_step(adapter):
-    d = adapter.declare(TrainCfg(serving_mode="non_thinking"))
-    assert "{'enable_thinking': False} passed to tokenizer.apply_chat_template" in d.serving_mode_setting
+def test_non_thinking_mode_is_not_configurable(adapter):
+    """P-0006 (2026-11-25): Unsloth documents only the /no_think soft switch, no hard-switch training."""
+    from parity.adapters.base import ModeNotConfigurable
+    from parity.adapters.unsloth_docs import NOT_CONFIGURABLE
+
+    for call in (lambda c: adapter.declare(c), lambda c: adapter.encode(load_fixture("single_turn"), c),
+                 lambda c: adapter.encode_batch([load_fixture("single_turn")], c)):  # fmt: skip
+        with pytest.raises(ModeNotConfigurable, match="soft switch"):
+            call(TrainCfg(serving_mode="non_thinking"))
+    assert str(NOT_CONFIGURABLE).startswith("Unsloth documents non-thinking training via the /no_think soft switch")
+    assert adapter.declare(TrainCfg(serving_mode="thinking")).serving_mode_setting.startswith("framework defaults")
+
+
+def test_saved_non_thinking_cells_rederive_to_exactly_what_the_runner_now_gives(adapter):
+    from dataclasses import replace
+
+    from parity.adapters.unsloth_docs import DECISION, NOT_CONFIGURABLE
+    from parity.checks.tier1 import tier1_checks
+    from parity.engine.runner import as_not_configurable, evaluate_suite
+    from parity.fixtures import load_all
+
+    fields = ("check", "fixture", "result", "kind", "self_test", "reason", "declaration", "serving_mode", "plants")
+    for real in evaluate_suite(tier1_checks("non_thinking"), adapter, load_all()):
+        saved = replace(real, result="pass", reason=None, self_test="caught", plants=[{"plant": "p", "caught": True}],
+                        declaration={}) if real.result == "not_configurable" else real  # fmt: skip
+        derived = as_not_configurable(saved, NOT_CONFIGURABLE, DECISION)
+        assert real.result in ("not_configurable", "not_applicable")
+        assert {f: getattr(derived, f) for f in fields} == {f: getattr(real, f) for f in fields}, real.check
 
 
 @pytest.mark.parametrize("fid", FIXTURE_IDS)

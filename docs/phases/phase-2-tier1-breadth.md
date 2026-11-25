@@ -41,6 +41,10 @@ The kill test is frozen at 8 fixtures and 432 runs. Real results exist, so chang
 - **A second calibration tokenizer for per-turn closing tokens.** No Phase 0 target has more than one stop token per turn, or different closing tokens on different turns. `openai/gpt-oss-20b` (ungated, Apache-2.0, tokenizer and template only) does: `<|return|>` for a final answer, `<|call|>` for a tool call, `<|end|>` for history. But `<|end|>` isn't one of its stop tokens, so the reference refuses its history turns today.
   - Open question: when is a closing token valid? Likely rule: if it's a declared stop token, or a documented history-form replacement of one, with the doc link recorded.
   - Evidence: `docs/evidence/2026-11-24-rule-coverage.md`.
+- **A soft-switch non-thinking reference** (idea, from P-0006; the human's decision, 2026-11-25).
+  - Today's non-thinking reference is the hard switch (`enable_thinking=False`): the generation prompt pre-fills an empty think block, so it is prompt side.
+  - Some frameworks document only the soft switch: Unsloth appends `/no_think` to user turns, and the model emits the empty block itself, so it is model output. Those get `not_configurable` cells today.
+  - A second reference, with `/no_think` in the user turn, would let those cells be judged. It needs its own zone rules, and Qwen's model card for which switches are valid when.
 - **A truncation fixture where modes disagree beyond `long_answer`.** For example, a multi-turn conversation long enough that a right cut falls inside an earlier assistant turn and a left cut drops the system prompt. Adding it changes the run count, so it starts here, not in Phase 0.
 
 ## Definition of done

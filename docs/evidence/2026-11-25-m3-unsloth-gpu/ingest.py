@@ -18,6 +18,14 @@ names that are absolute, climb out with "..", or are links are refused):
 Writes here: raw/<zip> (byte for byte), provenance.json (what was verified), environment.json, status.json,
 run.json, declaration.json, templates.json, verdicts/<mode>/*.json (linked to findings/root_causes.json), summary.md,
 compare.md (against predictions.md, both tables), results.json, untriaged.json.
+
+The verdicts as run are always read from the raw zip.
+- compare.md judges the predictions against them.
+- The non-thinking cells are then re-derived under the human's 2026-11-25 decision: Unsloth's non-default serving
+  modes are not configurable (`parity.adapters.unsloth_docs`; P-0006). `as_not_configurable` gives exactly what the
+  runner now gives, which a test checks against the real adapter.
+- verdicts/, summary.md, results.json and untriaged.json show the re-derived cells. Each keeps its as-run result in
+  its evidence.
 """
 
 from __future__ import annotations
@@ -135,8 +143,6 @@ def ingest(zip_path: Path) -> None:
             shutil.copyfile(root / name, OUT / name)
         for name in KEPT_PER_MODEL:
             shutil.copyfile(root / "results" / MODEL_FOLDER / name, OUT / name)
-        shutil.rmtree(OUT / "verdicts", ignore_errors=True)
-        shutil.copytree(root / "results" / MODEL_FOLDER / "verdicts", OUT / "verdicts")
         if (root / "P-0005" / "run.json").is_file():
             facts["p0005_optional_run"] = json.loads((root / "P-0005" / "run.json").read_text(encoding="utf-8"))
     (OUT / "provenance.json").write_text(json.dumps(facts, indent=1) + "\n", encoding="utf-8")
@@ -158,6 +164,25 @@ def predictions() -> dict[tuple[str, str, str], str]:
     return out
 
 
+def as_run_verdicts() -> list:
+    """The GPU verdicts exactly as the run wrote them, from the kept zip."""
+    from parity.engine.verdict import read_verdict
+
+    zip_path = next((OUT / "raw").glob("parity-gpu-results-*.zip"))
+    with tempfile.TemporaryDirectory(prefix="parity-ingest-") as tmp:
+        root = safe_extract(zip_path, Path(tmp))
+        return [read_verdict(p) for p in sorted((root / "results" / MODEL_FOLDER / "verdicts").rglob("*.json"))]
+
+
+def under_mode_decision(verdicts: list) -> list:
+    """Unsloth's non-thinking cells are not_configurable (the human's decision, 2026-11-25; P-0006)."""
+    from parity.adapters.unsloth_docs import DECISION, NOT_CONFIGURABLE
+    from parity.engine.runner import as_not_configurable
+
+    return [as_not_configurable(v, NOT_CONFIGURABLE, DECISION) if v.serving_mode == "non_thinking" else v
+            for v in verdicts]  # fmt: skip
+
+
 def render() -> None:
     from parity.engine.report import render_summary
     from parity.engine.root_causes import count_fails, link_root_causes, pin
@@ -167,11 +192,12 @@ def render() -> None:
     from parity.release import load_release
     from parity.targets import CALIBRATION
 
-    gpu = link_root_causes(read_verdict(p) for p in sorted((OUT / "verdicts").rglob("*.json")))
-    cpu = link_root_causes(read_verdict(p) for p in sorted((CPU_RUN / "verdicts").rglob("*.json")))
+    as_run = link_root_causes(as_run_verdicts())
+    gpu = link_root_causes(under_mode_decision(as_run))
+    cpu = link_root_causes(under_mode_decision([read_verdict(p) for p in sorted((CPU_RUN / "verdicts").rglob("*.json"))]))
     if {v.backend for v in gpu} != {"gpu"} or {v.backend for v in cpu} != {"cpu"}:
         raise Refused("the GPU folder must hold only gpu verdicts, and the CPU run only cpu ones")
-    shutil.rmtree(OUT / "verdicts")
+    shutil.rmtree(OUT / "verdicts", ignore_errors=True)
     for v in gpu:
         write_verdict(v, OUT / "verdicts" / v.serving_mode)
 
@@ -185,9 +211,10 @@ def render() -> None:
     header = (
         "> **Unsloth's primary result is its GPU route** (Tesla T4, `envs/unsloth-2026.11.10/uv.lock`; verified in "
         "`provenance.json`). Its CPU fallback (`docs/evidence/2026-11-24-m3-unsloth/`) is the labeled secondary "
-        "\"CPU backend\" table under each mode. The non-thinking table is exploratory: its fails share one mechanism "
-        "(P-0006): Unsloth documents non-thinking training as the `/no_think` soft switch, and our reference models "
-        "the `enable_thinking=False` hard switch. `t1.special_tokens` is "
+        "\"CPU backend\" table under each mode. **Non-thinking mode: not configurable.** Unsloth documents "
+        "non-thinking training via the /no_think soft switch; hard-switch training is not configurable (the human's "
+        "decision, 2026-11-25; P-0006). Those cells were run, and re-derived; their as-run results are in "
+        "`compare.md` and the raw zip. `t1.special_tokens` is "
         "inconclusive everywhere because its padding part saw 537 tokens, not pad_to=545. That is consistent with "
         "P-0005, but not attributed to it until the adapter's pad_to mapping is checked on GPU (P-0005's record).\n\n"
     )
@@ -195,15 +222,15 @@ def render() -> None:
 
     predicted = predictions()
     rows, misses = [], []
-    for v in gpu:
+    for v in as_run:
         actual = v.result if v.result != "fail" else ("fail" if v.kind == "bug" else "difference")
         expected = predicted[(v.serving_mode, v.check, v.fixture)]
         rows.append(f"| {v.serving_mode} | {v.check} | {v.fixture} | {expected} | {actual} | "
                     f"{'yes' if actual == expected else '**no**'} | {v.self_test} |")  # fmt: skip
         if actual != expected:
             misses.append(v)
-    score = {mode: sum(1 for v in gpu if v.serving_mode == mode and v not in misses) for mode in MODES}
-    totals = {mode: sum(1 for v in gpu if v.serving_mode == mode) for mode in MODES}
+    score = {mode: sum(1 for v in as_run if v.serving_mode == mode and v not in misses) for mode in MODES}
+    totals = {mode: sum(1 for v in as_run if v.serving_mode == mode) for mode in MODES}
     compare = [
         "# Unsloth on Qwen3, GPU route: predicted (docs alone) vs actual",
         "",
@@ -213,6 +240,9 @@ def render() -> None:
         "",
         "Every miss is a `t1.special_tokens` cell: one of the cells predictions.md named in advance, where the docs "
         "predict pass and P-0005's code reading predicts an inconclusive padding part. See P-0005's record.",
+        "",
+        "These are the verdicts as run. Since the human's 2026-11-25 decision (P-0006), the summary shows the "
+        "non-thinking cells as not_configurable.",
         "",
         "| Mode | Check | Fixture | Predicted | Actual | Match | Self-test |",
         "| --- | --- | --- | --- | --- | --- | --- |",
@@ -239,6 +269,7 @@ def render() -> None:
           f"{sorted(Counter((v.serving_mode, v.check) for v in misses).items())}")  # fmt: skip
     count = count_fails(gpu)
     print(f"GPU fail verdicts: {count.cells}; root causes {count.root_causes}; untriaged {len(count.untriaged)}")
+    print("GPU non-thinking:", dict(Counter(v.result for v in gpu if v.serving_mode == "non_thinking")))
 
 
 def main() -> int:

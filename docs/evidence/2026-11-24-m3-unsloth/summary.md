@@ -1,4 +1,4 @@
-> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's CPU-backend results, its **secondary** result. Unsloth's primary result is its GPU route (`docs/evidence/2026-11-25-m3-unsloth-gpu/summary.md`), where these appear as the labeled "CPU backend" table (the human's decision, 2026-11-24).
+> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's CPU-backend results, its **secondary** result. Unsloth's primary result is its GPU route (`docs/evidence/2026-11-25-m3-unsloth-gpu/summary.md`), where these appear as the labeled "CPU backend" table (the human's decision, 2026-11-24). Non-thinking mode: not configurable. Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable (2026-11-25, P-0006). Those cells were re-derived; each keeps its as-run result in its evidence.
 
 # Tier 1 summary
 
@@ -54,12 +54,12 @@ Secondary: each framework encoded again with its documented setting for non_thin
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| unsloth@2026.11.10 (cpu) | t1.assistant_mask | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| unsloth@2026.11.10 (cpu) | t1.end_of_turn | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
-| unsloth@2026.11.10 (cpu) | t1.multiturn_prefix | inconclusive | 4 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 3 fixture(s); not applicable on 4 fixture(s) |
-| unsloth@2026.11.10 (cpu) | t1.special_tokens | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)); blocked by t1.template_parity on 7 fixture(s) |
-| unsloth@2026.11.10 (cpu) | t1.template_parity | fail | 8 of 8 | root cause: P-0004 |
-| unsloth@2026.11.10 (cpu) | t1.truncation | inconclusive | 8 of 8 | spans anchored past a pre-fill missing from history (see [Qwen/Qwen3-0.6B@c1899de289a0#prefill-missing@a55ee1b16601/non_thinking](#qwen-qwen3-0-6b-c1899de289a0-prefill-missing-a55ee1b16601-non-thinking)) |
+| unsloth@2026.11.10 (cpu) | t1.assistant_mask | not_configurable | 0 of 8 | not configurable on 8 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
+| unsloth@2026.11.10 (cpu) | t1.end_of_turn | not_configurable | 0 of 8 | not configurable on 8 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
+| unsloth@2026.11.10 (cpu) | t1.multiturn_prefix | not_configurable | 0 of 8 | not applicable on 4 fixture(s); not configurable on 4 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
+| unsloth@2026.11.10 (cpu) | t1.special_tokens | not_configurable | 0 of 8 | not configurable on 8 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
+| unsloth@2026.11.10 (cpu) | t1.template_parity | not_configurable | 0 of 8 | not configurable on 8 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
+| unsloth@2026.11.10 (cpu) | t1.truncation | not_configurable | 0 of 8 | not configurable on 8 fixture(s): serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable. |
 
 ### Framework properties
 
@@ -69,8 +69,8 @@ Secondary: each framework encoded again with its documented setting for non_thin
 
 ### Fails by root cause
 
-15 fail verdict(s) (15 of kind bug, 0 known differences; 8 thinking (primary), 7 non_thinking) come from 1 framework root cause(s): 1 linked, 0 untriaged (each untriaged fail counts as its own).
+8 fail verdict(s) (8 of kind bug, 0 known differences; 8 thinking (primary), 0 non_thinking) come from 1 framework root cause(s): 1 linked, 0 untriaged (each untriaged fail counts as its own).
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
-| P-0004 (Unsloth CPU backend only; low impact) | 15 | unsloth@2026.11.10 (cpu) t1.template_parity/empty_assistant; unsloth@2026.11.10 (cpu) t1.template_parity/empty_assistant (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/long_answer; unsloth@2026.11.10 (cpu) t1.template_parity/long_answer (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/multi_turn; unsloth@2026.11.10 (cpu) t1.template_parity/multi_turn (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/non_ascii; unsloth@2026.11.10 (cpu) t1.template_parity/non_ascii (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/reasoning; unsloth@2026.11.10 (cpu) t1.template_parity/single_turn; unsloth@2026.11.10 (cpu) t1.template_parity/single_turn (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/system_prompt; unsloth@2026.11.10 (cpu) t1.template_parity/system_prompt (non_thinking); unsloth@2026.11.10 (cpu) t1.template_parity/tool_call; unsloth@2026.11.10 (cpu) t1.template_parity/tool_call (non_thinking) |
+| P-0004 (Unsloth CPU backend only; low impact) | 8 | unsloth@2026.11.10 (cpu) t1.template_parity/empty_assistant; unsloth@2026.11.10 (cpu) t1.template_parity/long_answer; unsloth@2026.11.10 (cpu) t1.template_parity/multi_turn; unsloth@2026.11.10 (cpu) t1.template_parity/non_ascii; unsloth@2026.11.10 (cpu) t1.template_parity/reasoning; unsloth@2026.11.10 (cpu) t1.template_parity/single_turn; unsloth@2026.11.10 (cpu) t1.template_parity/system_prompt; unsloth@2026.11.10 (cpu) t1.template_parity/tool_call |

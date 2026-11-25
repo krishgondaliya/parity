@@ -4,6 +4,8 @@
 
 Every miss is a `t1.special_tokens` cell: one of the cells predictions.md named in advance, where the docs predict pass and P-0005's code reading predicts an inconclusive padding part. See P-0005's record.
 
+These are the verdicts as run. Since the human's 2026-11-25 decision (P-0006), the summary shows the non-thinking cells as not_configurable.
+
 | Mode | Check | Fixture | Predicted | Actual | Match | Self-test |
 | --- | --- | --- | --- | --- | --- | --- |
 | non_thinking | t1.assistant_mask | empty_assistant | fail | fail | yes | caught |

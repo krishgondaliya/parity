@@ -261,3 +261,25 @@ def test_reading_a_hand_edited_pass_is_refused(tmp_path):
 def test_not_applicable_never_carries_a_self_test(tmp_path):
     with pytest.raises(ValueError, match="not_applicable"):
         write_verdict(_v(result="not_applicable", reason="x", plants=[{"plant": "p", "caught": True}]), tmp_path)
+
+
+# Re-deriving saved cells after a serving mode becomes not configurable (P-0006)
+
+
+def test_a_saved_cell_rederives_to_the_runners_not_configurable_form():
+    from parity.engine.runner import as_not_configurable
+
+    failed = _v(result="fail", kind="bug", evidence={"x": 1}, serving_mode="non_thinking", backend="gpu", **CAUGHT)
+    v = as_not_configurable(failed, "no hard switch", "the decision")
+    assert (v.result, v.kind, v.self_test, v.plants, v.root_cause) == ("not_configurable", None, None, [], None)
+    assert v.reason == "serving mode: no hard switch" and v.declaration == {"error": v.reason}
+    assert v.evidence == {"rederived": "the decision", "as_run_result": "fail", "as_run_kind": "bug"}
+    assert (v.serving_mode, v.backend, v.check, v.fixture) == ("non_thinking", "gpu", failed.check, failed.fixture)
+    assert as_not_configurable(v, "other", "other") == v  # idempotent
+
+
+def test_a_not_applicable_cell_stays_not_applicable():
+    from parity.engine.runner import as_not_configurable
+
+    na = _v(result="not_applicable", reason="fewer than two assistant turns")
+    assert as_not_configurable(na, "no hard switch", "the decision") == na

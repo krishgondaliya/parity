@@ -1,139 +1,139 @@
 {
  "non_thinking / t1.assistant_mask / empty_assistant": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / long_answer": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / multi_turn": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / non_ascii": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / single_turn": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / system_prompt": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.assistant_mask / tool_call": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / empty_assistant": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / long_answer": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / multi_turn": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / non_ascii": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / single_turn": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / system_prompt": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.end_of_turn / tool_call": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.multiturn_prefix / empty_assistant": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.multiturn_prefix / long_answer": {
   "result": "not_applicable",
@@ -144,12 +144,12 @@
   "reason": "no prefix of this conversation ends in an assistant turn before the last message"
  },
  "non_thinking / t1.multiturn_prefix / multi_turn": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.multiturn_prefix / non_ascii": {
   "result": "not_applicable",
@@ -160,12 +160,12 @@
   "reason": "no prefix of this conversation ends in an assistant turn before the last message"
  },
  "non_thinking / t1.multiturn_prefix / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also planted fault(s) not caught: history_edit"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.multiturn_prefix / single_turn": {
   "result": "not_applicable",
@@ -184,204 +184,204 @@
   "reason": "no prefix of this conversation ends in an assistant turn before the last message"
  },
  "non_thinking / t1.multiturn_prefix / tool_call": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / empty_assistant": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / long_answer": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / multi_turn": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / non_ascii": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / single_turn": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / system_prompt": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.special_tokens / tool_call": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to; also planted fault(s) not caught: pad_is_closing_token_masked"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / empty_assistant": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / long_answer": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / multi_turn": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / non_ascii": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / single_turn": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / system_prompt": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.template_parity / tool_call": {
-  "result": "pass",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "caught",
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.truncation / empty_assistant": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
-  "flags": [],
-  "reason": null
- },
- "non_thinking / t1.truncation / long_answer": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
-  "flags": [],
-  "reason": null
- },
- "non_thinking / t1.truncation / multi_turn": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
-  "flags": [],
-  "reason": null
- },
- "non_thinking / t1.truncation / non_ascii": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
-  "flags": [],
-  "reason": null
- },
- "non_thinking / t1.truncation / reasoning": {
-  "result": "inconclusive",
+  "result": "not_configurable",
   "kind": null,
   "root_cause": null,
-  "self_test": "missed",
+  "self_test": null,
   "flags": [],
-  "reason": "reference: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header; also could not set up the planted faults: TemplateReferenceError: message 1: generation prompt render is not a prefix of the full render; structural method: message 1: no generation prompt (default or thinking off) matches the text after its header"
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+ },
+ "non_thinking / t1.truncation / long_answer": {
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+ },
+ "non_thinking / t1.truncation / multi_turn": {
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+ },
+ "non_thinking / t1.truncation / non_ascii": {
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+ },
+ "non_thinking / t1.truncation / reasoning": {
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.truncation / single_turn": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.truncation / system_prompt": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "non_thinking / t1.truncation / tool_call": {
-  "result": "fail",
-  "kind": "bug",
-  "root_cause": "P-0006",
-  "self_test": "caught",
+  "result": "not_configurable",
+  "kind": null,
+  "root_cause": null,
+  "self_test": null,
   "flags": [],
-  "reason": null
+  "reason": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
  },
  "thinking / t1.assistant_mask / empty_assistant": {
   "result": "pass",

@@ -259,12 +259,12 @@
     {
       "id": "P-0006",
       "record": "findings/P-0006/record.md",
-      "status": "exploratory (non-thinking table only; not a candidate)",
+      "status": "closed: not_configurable (the human's decision, 2026-11-25); pins kept for the as-run verdicts",
       "framework": "unsloth@2026.11.10",
       "backend": "gpu",
       "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
       "summary": "Non-thinking mode: train_on_responses_only trains the last turn's empty think block (<think>\\n\\n</think>\\n\\n), which the reference puts on the prompt side as the generation prompt's pre-fill. Same labels pass in thinking mode.",
-      "card_label": "non-thinking table only; exploratory",
+      "card_label": "non-thinking mode not configurable for Unsloth",
       "pins": [
         {
           "check": "t1.assistant_mask",

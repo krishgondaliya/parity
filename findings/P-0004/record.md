@@ -90,8 +90,9 @@
   - `t1.template_parity` passes on all 15 cells that run (8 thinking, 7 non-thinking): every row equals the declared template's render, with no second `<|im_end|>`;
   - the tool-call property is consistent there, where on CPU the extra token made it a mismatch.
 - So the GPU route's dataset preparation leaves chat-formatted text alone, as its code and unsloth-zoo PR #2558 say. The GPU patch did apply: a failed patch would have fallen back to stock TRL and appended the token.
-- The 15 CPU fails stay linked here: P-0004's root cause carries `"backend": "cpu"`, so no GPU verdict can link to it.
-- Open for the human: the record's proposed handling (2) said a short upstream note "possibly worth" sending once confirmed on a GPU. It is now confirmed: Unsloth's CPU backend skips its own SFT dataset preparation, so CPU and GPU runs train on different rows. Nothing is drafted.
+- The CPU fails stay linked here (15 as run; 8 shown since the non-thinking cells became `not_configurable`). P-0004's root cause carries `"backend": "cpu"`, so no GPU verdict can link to it.
+- Decision (human, 2026-11-25): **card only for now.** No upstream note. Revisit after the kill test, once it's clear which Unsloth findings matter most.
+- Since the same day's decision on P-0006, Unsloth's non-thinking cells are `not_configurable`. So P-0004 now explains the 8 thinking-mode template-parity fails. Its 7 non-thinking pins stay, and still match the as-run verdicts in git history.
 
 ## Upstream
-- None. Not an Unsloth report yet (the GPU contrast is now confirmed; the human decides), and not a TRL report: TRL #3318 already covers the append, and TRL treats it as intended for text rows.
+- None. Card only (the human's decision, 2026-11-25); revisit after the kill test. Not a TRL report either: TRL #3318 already covers the append, and TRL treats it as intended for text rows.
