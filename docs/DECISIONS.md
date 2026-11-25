@@ -14,6 +14,21 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: A severity bar for continuing Parity, set before any target results exist (M4)
+- **Decision (human):** Gate A passes as written. But continuing Parity with full energy after the kill test needs at least one **medium-severity** finding.
+- **Medium:** a finding that changes what the model learns: its labels, its loss, or its stop behavior.
+- **Low:** ignored settings, performance-only effects, and CPU-only behavior.
+- **Current findings under this bar** (the human's classification):
+  - **P-0002, low.** Axolotl: an empty assistant turn's end-of-turn token is never labeled.
+  - **P-0005, low.** Unsloth: `train_on_responses_only` drops `pad_to_multiple_of`. An ignored setting; labels not affected, loss the same up to float rounding.
+  - P-0004 (Unsloth, CPU backend only) is low by the bar's own "CPU-only" clause. P-0006 is closed (`not_configurable`). P-0001 and P-0003 are a known difference and a harness error.
+- **Flagged for the human to confirm:** P-0002's effect is a label change. The empty turn's `<|im_end|>` gets no loss, which bears on stop behavior, and an empty last turn loses all its loss.
+  - Its record rates it low because the input is narrow: deliberately empty replies, or Qwen3 history turns whose only content was reasoning.
+  - Read literally, the bar's medium definition is about the kind of effect, and P-0002's kind is a label change.
+  - Recorded as low, as decided. If the bar means "changes what the model learns on ordinary data", that clause should be added to the definition.
+- **Why now:** set before any target results exist, so the bar can't be fitted to what the targets turn up.
+- Reversible? only before target results exist
+
 ## 2026-11-25: P-0005 reproduced on GPU, shrunk and drafted; `t1.special_tokens`' padding part split into two rules
 - **The P-0005-only trip** (`docs/evidence/2026-11-25-p0005-gpu/`, kit commit `25c3dc8`, Tesla T4): verified by its ingest script (manifests, `git archive` rebuilt here, the lockfile, Unsloth on `cuda`); all four runs completed.
   - **Rule 4 cleared:** our adapter's `pad_to` reaches `trainer.args` (545) and TRL's collator, which pads to 545; with `train_on_responses_only`, 537.
