@@ -14,6 +14,20 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: Unsloth's non-thinking mode is not configurable (P-0006 closed); P-0004 stays card-only
+- **Decisions (human):**
+  1. **P-0006: `not_configurable`, by the existing rule** (2026-11-24: a framework that documents no way to set a serving mode gets `not_configurable` cells). Unsloth documents no way to train for the hard switch (`enable_thinking=False`); its documented non-thinking training is the `/no_think` soft switch. So its non-thinking cells can't be judged against our hard-switch reference.
+     - Card line, shown on every such cell: "Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+     - No soft-switch reference now; logged as a Phase 2 idea (`docs/phases/phase-2-tier1-breadth.md`, deferred list).
+  2. **P-0004: card only for now.** No upstream note; revisit after the kill test, once it's clear which Unsloth findings matter most.
+- **How (1) is implemented:**
+  - The Unsloth adapter raises `ModeNotConfigurable` for any non-default serving mode. The text is in `parity.adapters.unsloth_docs`, importable without Unsloth. The adapter no longer passes `enable_thinking=False` to the formatting call (it changed nothing on training text).
+  - Saved cells: not_configurable is decided before the framework is touched, so no new run is needed. `parity.engine.runner.as_not_configurable` re-derives the saved non-thinking cells of both Unsloth runs.
+    - A test runs the real runner on the real adapter and checks the same fields come out (result, reason, declaration, mode, plants).
+    - Each re-derived cell keeps its as-run result in its evidence. The GPU verdicts as run stay in the raw zip, and `compare.md` judges the predictions against them (still 81 of 96).
+  - Results: non-thinking is 44 `not_configurable` and 4 n/a on both backends. Unsloth's GPU route has no fails. The CPU backend's 8 thinking-mode fails are P-0004. P-0006 is closed, with its pins kept for the as-run verdicts.
+- Reversible? yes
+
 ## 2026-11-25: Unsloth's GPU run is in: its primary result; the non-thinking table exploratory; P-0005 not yet attributed; H-10
 - **The run** (Colab Tesla T4, driver 580.82.07 = CUDA 13.0, so the main lockfile; 109 packages as locked; Unsloth on `cuda`):
   - Verified by `docs/evidence/2026-11-25-m3-unsloth-gpu/ingest.py`: every file against its manifest, and `git archive` of `15ed6df` rebuilt here with the sha256 Colab recorded. The zip is kept byte for byte under `raw/`.
