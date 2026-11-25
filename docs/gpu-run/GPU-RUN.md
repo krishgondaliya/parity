@@ -1,6 +1,6 @@
 # GPU run: Unsloth on a free Colab GPU
 
-This runs Parity's six Tier 1 checks on Unsloth's real GPU route, in both serving modes, and gives you one zip to bring back. Unsloth's own notebooks target Colab's free T4 GPU, so that's where this runs.
+This runs Parity's six Tier 1 checks on Unsloth's real GPU route, in both serving modes, and gives you one zip to bring back. An optional cell also runs the P-0005 repro on the same GPU. Unsloth's own notebooks target Colab's free T4 GPU, so that's where this runs.
 
 - **Time:** about 30 to 45 minutes, most of it waiting. The run itself (cell 5) takes about 20 to 40 minutes.
 - **Needs:** a Google account, to use Colab. The kit itself uses no tokens and no logins: the models are ungated, nothing from `.env` goes in the kit, and the kit turns off Hugging Face's token lookup.
@@ -12,7 +12,7 @@ Three files, built on your computer from the committed code (`git archive` of HE
 
 | File | What it is |
 | --- | --- |
-| `parity_gpu_run.ipynb` | The Colab notebook: 6 short cells. |
+| `parity_gpu_run.ipynb` | The Colab notebook: 7 short cells (cell 6 is optional). |
 | `parity-src-<commit>.zip` | The code at that commit. Git writes the commit id into the zip, and the notebook checks it. |
 | `KIT.txt` | The commit, the zip's sha256, and when it was built. |
 
@@ -56,14 +56,17 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
     - `checks`: the six checks, both modes.
 
     It ends with either `DONE:` or `STOPPED EARLY:`, followed by the results zip's name. **Both are fine to bring back.** A stopped run's zip holds the logs that say why.
-16. **Cell 6 (download):** ▶. Your browser downloads `parity-gpu-results-<commit>-<time>.zip`. If the browser asks to allow downloads, allow it.
+16. **Cell 6 (optional, P-0005 repro):** ▶, or skip straight to cell 7. It takes a few minutes and runs the P-0005 repro twice in the same environment: once with padded batches, once with batching left to Unsloth. Its output goes into the same results zip, in its own `P-0005` folder, apart from the verdicts.
+    - It ends with `P-0005 done` or `P-0005 did not complete`. **Both are fine.**
+    - It never changes the main results. If it fails, the zip from cell 5 stays exactly as it was. If it works, the zip gets the extra folder.
+17. **Cell 7 (download):** ▶. Your browser downloads `parity-gpu-results-<commit>-<time>.zip`. If the browser asks to allow downloads, allow it.
     - If nothing downloads, click the **folder icon** in Colab's left sidebar. Find `parity-gpu-results-....zip` (in `/content`, you may need to click `..` once), click its **⋮** menu, and choose **Download**.
 
 ### E. Bring the zip back
 
-17. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zip into it. **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
-18. Tell Claude Code: "The GPU results zip is at `dist/gpu-results/<file name>.zip`".
-19. Back in Colab: menu **Runtime > Disconnect and delete runtime**, so the free GPU isn't held.
+18. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zip into it. **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
+19. Tell Claude Code: "The GPU results zip is at `dist/gpu-results/<file name>.zip`".
+20. Back in Colab: menu **Runtime > Disconnect and delete runtime**, so the free GPU isn't held.
 
 ## If something goes wrong
 
@@ -73,9 +76,11 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
 | Cell 3 says "No GPU" | Steps 9 to 11, then run cells 2 and 3 again. |
 | Cell 4 says "Upload exactly one parity-src-<commit>.zip" | Run cell 4 again and pick only that one file. |
 | Cell 4 says "This zip wasn't made by build_kit.py" | Rebuild the kit (part A) and use the new files together. |
-| Colab disconnected during cell 5 | Reconnect, then run cells 2 to 6 again (cell 4 needs the upload again). |
-| Cell 5 ends with `STOPPED EARLY` | Run cell 6 anyway and bring the zip back. |
-| Cell 6 says "No results zip was written" | Copy everything cell 5 printed into a text file and bring that back instead. |
+| Colab disconnected during cell 5 or 6 | Reconnect, then run cells 2 to 7 again (cell 4 needs the upload again). |
+| Cell 5 ends with `STOPPED EARLY` | Skip cell 6 (it refuses without a confirmed GPU route), run cell 7, and bring the zip back. |
+| Cell 6 says "Run cell 5 first" | Run cell 5, then cell 6 again. Or skip cell 6: it's optional. |
+| Cell 6 ends with `P-0005 did not complete` | Fine: run cell 7. The reason is in the zip's `P-0005/run.json` and logs. |
+| Cell 7 says "No results zip was written" | Copy everything cell 5 printed into a text file and bring that back instead. |
 
 ## What the kit never does
 
@@ -96,16 +101,18 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
 
 The zip is treated as untrusted data and unpacked into a new, empty folder. Then:
 
-1. Every file's sha256 is checked against the zip's `MANIFEST.json`.
+1. Every file's sha256 is checked against the zip's `MANIFEST.json`. The optional `P-0005/` folder has its own `MANIFEST.json`, since it was added after the main run.
 2. The commit must be in this repo. `git archive` of that commit is rebuilt, and its sha256 must equal the one Colab recorded, which shows that the code that ran is exactly that commit.
 3. `environment.json` must say the GPU route ran (the smoke facts), and its lockfile, mismatches and deviations are read.
-4. The verdicts are compared with `docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, every fail goes through `/triage`, and the evidence is committed under `docs/evidence/2026-11-25-m3-unsloth-gpu/`.
+4. The P-0005 repro's output, if present, goes to `/triage` for P-0005, separately from the verdicts.
+5. The verdicts are compared with `docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, every fail goes through `/triage`, and the evidence is committed under `docs/evidence/2026-11-25-m3-unsloth-gpu/`.
 
 ## Files
 
 - `docs/gpu-run/build_kit.py`: builds the kit from HEAD (part A).
 - `docs/gpu-run/parity_gpu_run.ipynb`: the notebook.
-- `docs/gpu-run/colab_kit.py`: what cell 5 runs, using only Python's standard library. Steps: platform, choose, uv, sync, freeze, smoke, checks.
+- `docs/gpu-run/colab_kit.py`: what cell 5 runs, using only Python's standard library. Steps: platform, choose, uv, sync, freeze, smoke, checks. Cell 6 runs it again with `--extra p0005`.
+- `findings/P-0005/repro.py`: the repro cell 6 runs, padded and with `--padding-free-unset`.
 - `docs/gpu-run/run_checks.py`: the checks inside Unsloth's environment (`--allow-cpu` exists only to test the kit without a GPU).
 - `envs/unsloth-2026.11.10/uv.lock`: the main lockfile (torch 2.14.1 for CUDA 13.0).
 - `envs/unsloth-2026.11.10/cu126/uv.lock`: the CUDA 12.6 variant, for drivers older than CUDA 13. It differs from the main lock only in torch, torchvision and their CUDA libraries (a test holds it to that).

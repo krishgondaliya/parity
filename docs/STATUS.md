@@ -47,7 +47,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
      - triage any fails;
      - commit the evidence to `docs/evidence/2026-11-25-m3-unsloth-gpu/`;
      - revisit P-0004.
-   - Still open: P-0005's GPU confirmation needs `findings/P-0005/repro.py` on a GPU (padded batches, and once with `padding_free` unset). The kit doesn't run it (scoped to the adapter and the six checks).
+   - Optional cell 6 runs the P-0005 repro (padded, and with `padding_free` left to Unsloth) into the zip's own `P-0005/` folder. If it's in the zip, triage it for P-0005's GPU confirmation, separately from the verdicts.
 2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
 3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 

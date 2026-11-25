@@ -79,6 +79,12 @@
 ## Repro
 - `findings/P-0005/repro.py` (triage repro, not shrunk; CPU; tokenizer and config files only; padded batches set explicitly): exits 1 (the setting is dropped), 3/3 on unsloth 2026.11.10, before and after the `packing=False, padding_free=False` change.
 - On a GPU: not tested. Required before any draft.
+- 2026-11-25: added `--padding-free-unset` (opt-in; without it the repro behaves as before, checked on CPU: width 64, then 26, exit 1).
+  - It leaves packing and padding_free to Unsloth's defaults, with `max_steps=60` as the Thinking-2507 notebook sets.
+  - It prints a `batching:` line showing what Unsloth chose. Under packing or padding-free the exit code is not the verdict; read the lines.
+  - On CPU, Unsloth's defaults choose padded batches too, so the result is the same (exit 1).
+  - The GPU kit's optional cell 6 runs both variants and puts the output in the results zip's own `P-0005/` folder (`docs/gpu-run/GPU-RUN.md`).
+  - The kit counts a run as complete only if it printed its "after" line, since a crash also exits 1.
 
 ## Upstream
 - None. No draft until the GPU run confirms it (the human's decision).

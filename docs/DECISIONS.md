@@ -14,6 +14,20 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: The P-0005 repro rides along on the GPU run, as an optional notebook cell (human)
+- Decision (human): add `findings/P-0005/repro.py` to the GPU kit as an optional cell. Its output goes in its own folder inside the results zip, apart from the verdicts, and it must not affect the main run.
+- How:
+  - Notebook cell 6 runs `colab_kit.py --extra p0005` after the main run, in the environment the main run synced. It refuses unless that run's smoke step confirmed Unsloth's GPU route.
+  - It writes only `P-0005/` (two logs, `run.json`, its own `MANIFEST.json`).
+  - The zip is rebuilt with every main entry copied byte for byte, and swapped in only once it reads back clean. A failed repro is recorded, and the main results still zip; a failed rewrite leaves the original zip untouched (tested, and the failure path checked for real on CPU).
+- Two variants:
+  - padded (`packing=False, padding_free=False`), the repro as committed;
+  - `--padding-free-unset`, new and opt-in: batching left to Unsloth's GPU defaults, with `max_steps=60` as the Thinking-2507 notebook sets.
+  - Without `max_steps`, Unsloth's GPU route picks packing, by P-0005's code reading, and two short rows would pack into one.
+- A crash also exits 1, the repro's "dropped" code, so a run counts as complete only if it printed its result line.
+- Evidence: `docs/gpu-run/colab_kit.py` (`run_p0005`, `add_folder_to_zip`), `tests/test_gpu_kit.py`, `findings/P-0005/record.md` (Repro).
+- Reversible? yes
+
 ## 2026-11-25: The Unsloth GPU run: predictions first, a backend record, a Colab kit, and a CUDA 12.6 lock variant
 - **Predictions first** (`docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md`, commit `290eff2`): 96 cells (both modes) from Unsloth's docs and pinned notebooks alone, committed before any kit code existed.
   - They're not blind: the CPU run and P-0004/P-0005's code reading were already known, and the file says so.
@@ -41,7 +55,7 @@ Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and i
   - `unsloth install-kernels` not run: optional compute kernels, off the data path, and no forward pass runs;
   - TRL 1.15.0 and transformers 5.17.0, not the notebook's pins, as on CPU;
   - Python 3.12.
-- **Not in the kit:** the P-0004 and P-0005 repros. The human scoped the kit to the adapter and the six checks. P-0005's GPU confirmation still needs `findings/P-0005/repro.py` run on a GPU.
+- **Not in the kit:** the P-0004 and P-0005 repros. The human scoped the kit to the adapter and the six checks. Changed the same day: P-0005's repro is now an optional cell (entry above).
 - Evidence: `docs/gpu-run/GPU-RUN.md`, `tests/test_gpu_kit.py`, `tests/test_root_causes.py`, `tests/test_adapter_unsloth.py`.
   - Local check of `run_checks.py` on CPU (`--allow-cpu`, 2 min 43 s): it reproduces the CPU M3 counts exactly, and all 15 fails link to P-0004.
   - Also checked: `uv sync --locked --dry-run` of the variant, and the kit's freeze script on the main environment (109 packages, no mismatches).
