@@ -3,11 +3,11 @@
 **Title:** [train_on_responses_only] `SFTConfig.pad_to_multiple_of` is silently dropped with padded batches (unsloth-zoo 2026.11.12 and main)
 
 **What happens**
-With padded batches (`packing=False, padding_free=False`, as the recommended Qwen3 notebook sets) and `SFTConfig(pad_to_multiple_of=64)`, calling `train_on_responses_only(trainer, ...)` replaces the trainer's collator with `DataCollatorForSeq2Seq(tokenizer = tokenizer, **_kept)`. `_kept` is filled only when `_processor_backed` is true (a pad-delegating collator holding a processor); any other collator replaced here, TRL's `DataCollatorForLanguageModeling` included, gets a bare `DataCollatorForSeq2Seq(tokenizer = tokenizer)`. So batches are then padded only to their longest row. Nothing is printed about the swap. It reaches training: on a Tesla T4, the repro's longer variant plus one `trainer.train()` step drew a batch 25 wide, not 64.
+With padded batches (`packing=False, padding_free=False`, as the recommended Qwen3 notebook sets) and `SFTConfig(pad_to_multiple_of=64)`, calling `train_on_responses_only(trainer, ...)` replaces the trainer's collator with `DataCollatorForSeq2Seq(tokenizer = tokenizer, **_kept)`. `_kept` is filled only when `_processor_backed` is true (a pad-delegating collator holding a processor); any other collator replaced here, TRL's `DataCollatorForLanguageModeling` included, gets a bare `DataCollatorForSeq2Seq(tokenizer = tokenizer)`. So batches are then padded only to their longest row. Nothing is printed about the swap. It reaches training. The longer GPU variant (the same calls as the repro below, with more output, run on a Tesla T4) drew a batch 25 wide when it ran one `trainer.train()` step, not 64.
 
-Scope: only padded batches. With `padding_free` left unset and `max_steps=60` (as the Qwen3-4B-Thinking notebook sets), Unsloth chose `padding_free=True` on the T4; the collator was not replaced, and the batch was 64 wide. On the CPU route, Unsloth's defaults pick padded batches, so there it also applies with `padding_free` unset.
+Scope: only padded batches. In the longer GPU variant with `padding_free` left unset and `max_steps=60` (as the Qwen3-4B-Thinking notebook sets), Unsloth chose `padding_free=True`; the collator was not replaced, and the batch was 64 wide. On the CPU route, Unsloth's defaults pick padded batches, so there it also applies with `padding_free` unset (the longer variant on CPU: 64, then 26).
 
-Labels are not affected, and on CPU the loss is the same up to float rounding. On the same two rows, the swapped collator's batch and the same collator class keeping `pad_to_multiple_of=64` have identical tokens and labels on every real position, and the same 18 supervised tokens. The loss was identical in 6 of 8 runs, and one float32 ulp (9.5e-7) apart in 2. Only the tensor width changes, which matters to anyone setting `pad_to_multiple_of` for fixed shapes (tensor-core alignment, compiled static shapes). Not measured on GPU.
+Labels are not affected, and on CPU the loss is the same up to float rounding. In a CPU check on the short repro's two rows, the swapped collator's batch (26 wide) and the same collator class keeping `pad_to_multiple_of=64` (64 wide) have identical tokens and labels on every real position, and the same 18 supervised tokens. The loss was identical in 6 of 8 runs, and one float32 ulp (9.5e-7) apart in 2. Only the tensor width changes, which matters to anyone setting `pad_to_multiple_of` for fixed shapes (tensor-core alignment, compiled static shapes). Not measured on GPU.
 
 The block: https://github.com/unslothai/unsloth-zoo/blob/cad81ef2dc557b1060896d3b294ef6b9a7f9c1ea/unsloth_zoo/dataset_utils.py#L2547-L2583. The comment at https://github.com/unslothai/unsloth-zoo/blob/cad81ef2dc557b1060896d3b294ef6b9a7f9c1ea/unsloth_zoo/dataset_utils.py#L2560-L2565 describes the same effect ("dropped its settings and silently turned the run into a dynamically padded one") for another collator class.
 
@@ -46,13 +46,13 @@ sys.exit(0 if width(trainer) % 64 == 0 else 1)
 ```
 
 **Expected vs actual**
-Expected: the batch padded to a multiple of 64, as it is before `train_on_responses_only` (64). Actual:
+Expected: the batch padded to a multiple of 64, as it is before `train_on_responses_only` (64, the first line below). Actual, from the CPU short repro above:
 ```
 before train_on_responses_only: DataCollatorForLanguageModeling, batch width 64
 after: DataCollatorForSeq2Seq(pad_to_multiple_of=None)
 expected batch width: a multiple of 64; actual: 26
 ```
-Exit code 1. Same output 3 of 3 times on 2026.11.10, on 2026.11.12, and on unsloth-zoo main at `cad81ef2`. (On a Tesla T4, a longer variant with the same calls gave 64, then 25.)
+Exit code 1. Same output (64, then 26) 3 of 3 times on CPU, on 2026.11.10, on 2026.11.12, and on unsloth-zoo main at `cad81ef2`. The longer GPU variant on a Tesla T4 gave 64, then 25.
 
 **Reference used**
 `SFTConfig.pad_to_multiple_of`, as TRL's own collator applies it before `train_on_responses_only`.
