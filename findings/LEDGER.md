@@ -9,7 +9,8 @@ Every finding, its status, and the running count of harness errors caught. Each 
 | [P-0001](P-0001/record.md) | axolotl 0.21.1 | With Qwen3's own template in thinking mode, the think-block opener (`<think>` and blank lines) is untrained; reasoning text is trained | difference: KD-0002, KD-0003 (thinking mode only); possible docs gap | No. Documented and tested behavior |
 | [P-0002](P-0002/record.md) | axolotl 0.21.1 | An empty assistant turn's end token is never labeled, silently | candidate; repro shrunk, issue drafted, not posted | Yes, as a candidate, once confirmed upstream |
 | [P-0003](P-0003/record.md) | trl 1.18.2 | Non-thinking cells judged rows that were never encoded in non-thinking mode | **harness error (ours)** | Never |
-| [P-0004](P-0004/record.md) | unsloth 2026.11.10 (CPU backend) | On CPU, Unsloth's Qwen3 recipe trains on rows with a second `<|im_end|>`: stock TRL preparation appends it; Unsloth's GPU-route preparation doesn't | candidate (CPU backend only); skeptic agrees | Yes, as a CPU-backend candidate; not as the GPU recipe's behavior |
+| [P-0004](P-0004/record.md) | unsloth 2026.11.10 (CPU backend) | On CPU, Unsloth's Qwen3 recipe trains on rows with a second `<|im_end|>`: stock TRL preparation appends it (TRL #3318 behavior); Unsloth's GPU-route preparation doesn't | candidate (CPU backend only); on the card as CPU-only, low impact; not shrunk; revisit after the GPU run | Yes, as CPU-backend behavior; not as the GPU recipe's |
+| [P-0005](P-0005/record.md) | unsloth 2026.11.10 | `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of` (class: config value silently ignored) | candidate; confirm on the GPU run before any draft | Yes, as a candidate, once confirmed |
 
 ## Harness errors caught: 9
 

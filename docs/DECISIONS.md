@@ -14,6 +14,28 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-24: After M3 Unsloth: P-0004 on the card as CPU-only, a GPU run next, P-0005 opened, predictions-first enforced
+- Decisions (human):
+  1. **P-0004:** shown on the report card as Unsloth CPU-backend behavior, labeled CPU-only, low impact (`card_label` in `findings/root_causes.json`, rendered next to the id).
+     - Not shrunk.
+     - Not a new report to TRL either: the underlying append is TRL's text-dataset behavior from TRL #3318.
+     - Revisit after the GPU run.
+  2. **Unsloth's labels:** no workaround in the adapter (rule 7). Next session is a GPU run. Unsloth's GPU route becomes its primary result; the CPU results stay as a labeled secondary "CPU backend" table. Until then, the Unsloth summary is headed "Backend: CPU".
+  3. **P-0005**, triaged as its own finding, class "config value silently ignored": `train_on_responses_only` drops `SFTConfig.pad_to_multiple_of` when it swaps the collator, with no message.
+     - It shows as inconclusive padding parts, not fails, so no verdict is pinned to it.
+     - Skeptic: real candidate, silent (checked at DEBUG during a real training step), not fixed on unsloth-zoo main.
+     - It only happens with padded batches. That is the CPU route's default and what the recommended Qwen3 notebook sets (`padding_free = False`); on GPU, Unsloth often chooses packing or padding-free instead.
+     - To be confirmed on the GPU run before any draft. The repro now sets padded batches explicitly, so it can't give a false negative there.
+  4. **Predictions first, made structural.** The guard hook (`.claude/hooks/guard.py`, rule 3) refuses any shell command that creates or runs code in `envs/<framework>-<version>` until a committed `docs/evidence/*/predictions.md` names that framework and version in its first line.
+     - Uncommitted predictions, or predictions for another version, don't count.
+     - `trl-1.18.2` predates the rule and is grandfathered by name; the list is pinned by a test to that one entry.
+     - The `/new-adapter` skill now starts with step 0: pin the version, write predictions from the docs alone (reading docs, notebooks and GitHub source is fine; installing, importing or running anything is not), commit them on their own, and only then create the environment.
+     - Anything learned later goes in a dated note below the predictions, never into them.
+- Why (4): in M3 Unsloth, a data-path probe ran before the predictions were written, so some predictions weren't blind. A written rule didn't prevent it; a guard does.
+- Known cost of (4): the guard reads command text. A shell command that only writes text naming an environment with no committed predictions is refused too; write such files with the Edit/Write tools.
+- Evidence: `.claude/hooks/guard.py`, `tests/test_guard.py`, `.claude/skills/new-adapter/SKILL.md`, `findings/P-0004/record.md`, `findings/P-0005/record.md`, `findings/LEDGER.md`.
+- Reversible? yes
+
 ## 2026-11-24: M3 Unsloth adapter, the run on Qwen3, and one candidate (P-0004, CPU backend only)
 - **Adapter** (`src/parity/adapters/unsloth.py`): Unsloth's recommended Qwen3 notebook, step by step, plus `train_on_responses_only` with the explicit ChatML parts (the recipe choice is logged below).
   - It loads a local tiny `from_config` Qwen3 plus the real Qwen3-0.6B tokenizer files through `FastLanguageModel.from_pretrained`, as the human asked; Unsloth accepted it.

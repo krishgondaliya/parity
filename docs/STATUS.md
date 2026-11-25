@@ -25,15 +25,18 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
     - 48 of 48 primary cells as predicted (predictions after a disclosed probe).
     - Primary: 8 pass (end of turn), 8 fail (template parity, P-0004), 28 inconclusive, 4 n/a.
     - 15 fail verdicts from 1 root cause. Its labels aren't judged yet: every row carries one extra `<|im_end|>`, so nothing else aligns.
+- **Predictions first is enforced:** the guard hook refuses to create or run anything in a framework environment until committed predictions name it (`trl-1.18.2` grandfathered). `/new-adapter` starts with step 0, predictions from the docs alone.
 - **Harness errors caught: 9** (`findings/LEDGER.md`), including P-0003. A harness error is never counted against a framework.
 - 427 tests pass in the core environment, and the suite passes inside TRL's and Axolotl's.
 
 ## Next actions
 
-1. Human: run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form. Record the URL in the record.
-2. Human: decide how the report card shows P-0004 (CPU-backend behavior, labeled CPU-only), and whether to `/shrink-repro P-0004`.
-3. Triage the `pad_to_multiple_of` drop in `train_on_responses_only` as its own finding.
-4. Unsloth's labels are not judged until rows align. Options: run on a GPU, or wait for an Unsloth CPU fix. Don't work around it in the adapter (rule 7).
+1. **Next session: an Unsloth GPU run.** Unsloth's GPU route becomes its primary result; the CPU results stay as a labeled secondary "CPU backend" table. On the GPU:
+   - judge Unsloth's labels (blocked on CPU by P-0004's extra token);
+   - revisit P-0004;
+   - confirm P-0005 before any draft: with padded batches (`packing=False, padding_free=False`, as the repro now sets), and once with Unsloth's GPU defaults to see how far it reaches.
+2. Human: run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form. Record the URL in the record.
+3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures (432 runs), once Unsloth's GPU route is in.
 
 ## Open questions
 
@@ -49,5 +52,6 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 - **P-0001** (Axolotl 0.21.1, Qwen3): only the think opener (`<think>` + blank lines) is untrained; reasoning text is trained. Known difference KD-0002/KD-0003, thinking mode only; possible docs gap.
 - **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Not template-specific: reproduced on Qwen3, ChatML (SmolLM2), Llama 3.2, Mistral v0.3 and Gemma 3. Candidate, low severity (tool-call turns not affected). Reproduces on main; issue drafted, template-agnostic, with permalinks at `de8549a`. **Not posted.**
-- **P-0004** (Unsloth 2026.11.10, CPU backend only): stock TRL preparation appends a second `<|im_end|>` to chat-formatted rows; Unsloth's GPU-route preparation doesn't. Candidate, low severity; the skeptic agrees. Not Unsloth's GPU recipe behavior.
+- **P-0004** (Unsloth 2026.11.10, CPU backend only): stock TRL preparation appends a second `<|im_end|>` to chat-formatted rows (TRL #3318 behavior); Unsloth's GPU-route preparation doesn't. On the card as CPU-only, low impact. Not shrunk; revisit after the GPU run.
+- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of` (and the padding settings of user collators that pad through the tokenizer) whenever batches are padded. Class: config value silently ignored. Skeptic: real candidate; narrower on GPU, where Unsloth often chooses packing or padding-free. Confirm on the GPU run before any draft.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours. Fixed: frameworks now get their documented mode setting. Never counted against TRL.

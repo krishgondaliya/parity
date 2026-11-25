@@ -42,7 +42,7 @@
 - The "blocked by t1.template_parity" inconclusives on `t1.special_tokens` and `t1.multiturn_prefix`.
 - The summary's "tool-call arguments … mismatch (t1.multiturn_prefix on tool_call)". The tool_call row minus the appended token equals the verbatim render; the verdict shows `tokens_from_end` 32 for the framework against 31 for the template.
 
-## Also seen (not a fail; not triaged)
+## Also seen (not a fail): now P-0005
 - `t1.special_tokens`'s padding part is inconclusive on every fixture: asked to pad to 545, the batch came back at 538, the longest row.
   - `train_on_responses_only` replaces TRL's collator with a fresh `DataCollatorForSeq2Seq` and doesn't carry `SFTConfig.pad_to_multiple_of` over.
   - The adapter's live declaration already reports `pad_to_multiple_of=None`.
@@ -50,7 +50,7 @@
   - The skeptic confirmed it: with `pad_to=64`, `objective="all"` keeps TRL's collator and pads to 128; `assistant_only` pads to 68.
   - The cause is zoo `train_on_responses_only` (`dataset_utils.py` ~L2450-2482): it keeps settings only for collators that pad through a processor.
   - The function is shared by both backends, so by code reading this isn't CPU-specific. Unchanged in 2026.11.11; no duplicate found.
-  - Deserves its own finding; left for a later triage.
+  - Triaged as its own finding: `findings/P-0005/record.md` (the human's decision, 2026-11-24).
 
 ## Skeptic verdict (2026-11-24)
 - **Verdict: real candidate, CPU backend only.** Not our error, not on both backends, not a duplicate, not fixed upstream.
