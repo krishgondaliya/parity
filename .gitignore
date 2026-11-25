@@ -20,3 +20,6 @@ parity-vault-hidden/
 
 # Unsloth writes its compiled trainer code into the working directory
 unsloth_compiled_cache/
+
+# GPU run kits built by docs/gpu-run/build_kit.py (made from HEAD; never committed)
+dist/
