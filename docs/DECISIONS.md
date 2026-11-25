@@ -14,6 +14,28 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: P-0005 reproduced on GPU, shrunk and drafted; `t1.special_tokens`' padding part split into two rules
+- **The P-0005-only trip** (`docs/evidence/2026-11-25-p0005-gpu/`, kit commit `25c3dc8`, Tesla T4): verified by its ingest script (manifests, `git archive` rebuilt here, the lockfile, Unsloth on `cuda`); all four runs completed.
+  - **Rule 4 cleared:** our adapter's `pad_to` reaches `trainer.args` (545) and TRL's collator, which pads to 545; with `train_on_responses_only`, 537.
+  - **The recipe's padded path:** 64 to 25, also inside a real `trainer.train()` step.
+  - **Unsloth's defaults:** Unsloth chooses `padding_free=True`, and the setting is kept. So the scope is the explicit padded path.
+- **Labels not affected; loss the same up to float rounding**, verified on CPU (`findings/P-0005/impact.py`, 8 runs): identical tokens and labels on real positions, same supervised count, loss identical in 6 runs and one float32 ulp apart in 2. Not measured on GPU.
+- **Shrunk repro** (`findings/P-0005/repro.py`, 30 lines, no Parity code): fails 3/3 in a fresh pinned venv, on 2026.11.12, and on unsloth-zoo main `cad81ef2`. The triage repro is kept as `triage_repro.py` for the kit.
+- **Issue drafted, not posted** (`findings/P-0005/issue.md`), for unsloth-zoo, where `train_on_responses_only` lives; reviewed by the issue-reviewer.
+- **Corrected:** the record's "workaround (user-supplied `DataCollatorForSeq2Seq`)" was never verified in a real run, and a direct check crashed. The issue suggests none.
+- **The 15 special-tokens cells** of the GPU run are explained by P-0005 in its record and in the summary. Pins link fails only, so none was added.
+- **Check change, before M5 (human):** `t1.special_tokens`' padding part is now two rules, each guarded by its own planted fault.
+  - **2a, `padding_width` (rule `pad_to_honored`):** every row exactly `pad_to`. A dropped width is now a **fail**, not an inconclusive part; /triage rules out the adapter's mapping first (rule 4).
+    - Planted fault `pad_to_ignored`: real-world, P-0005's mechanism, cited by unsloth-zoo permalink. It trims the batch to its longest row.
+  - **2b, `pad_handling`:** judged at whatever width the collator produced, in both rows of the batch: pads at one end, rows unchanged, pads unsupervised with the declared pad token. Stop-token loss is judged only in the fixture's own row; the partner's content is judged in its own cells.
+    - Planted fault `pad_is_closing_token_masked` (unchanged).
+  - **Why:** a dropped width made the whole padding part inconclusive, which hid how pads are handled (all 15 Unsloth GPU cells). Now a dropped width is reported, and pad handling is still judged.
+  - **Consequences:**
+    - 22 planted faults (3 real-world), up from 21 (2);
+    - a re-run changes these cells' evidence (`parts` keys, problems carry `row`), so earlier special-tokens pins (P-0002's on Axolotl) need re-pinning after /triage on any re-run;
+    - saved verdicts are unchanged.
+- Reversible? yes
+
 ## 2026-11-25: Unsloth's non-thinking mode is not configurable (P-0006 closed); P-0004 stays card-only
 - **Decisions (human):**
   1. **P-0006: `not_configurable`, by the existing rule** (2026-11-24: a framework that documents no way to set a serving mode gets `not_configurable` cells). Unsloth documents no way to train for the hard switch (`enable_thinking=False`); its documented non-thinking training is the `/no_think` soft switch. So its non-thinking cells can't be judged against our hard-switch reference.

@@ -305,12 +305,12 @@ def test_a_run_counts_as_complete_only_with_its_own_result_line():
 
 def test_p0005_runs_the_fixed_repro_twice_and_the_adapters_pad_to_check():
     assert [(script, args) for script, args, _, _ in kit.P0005_RUNS.values()] == [
-        ("findings/P-0005/repro.py", []),
-        ("findings/P-0005/repro.py", ["--padding-free-unset"]),
-        ("findings/P-0005/repro.py", ["--train-step"]),
+        ("findings/P-0005/triage_repro.py", []),
+        ("findings/P-0005/triage_repro.py", ["--padding-free-unset"]),
+        ("findings/P-0005/triage_repro.py", ["--train-step"]),
         ("findings/P-0005/adapter_check.py", []),
     ]
-    repro = (ROOT / "findings/P-0005/repro.py").read_text(encoding="utf-8")
+    repro = (ROOT / "findings/P-0005/triage_repro.py").read_text(encoding="utf-8")
     assert "--padding-free-unset" in repro and "--train-step" in repro and "trainer.train()" in repro
     assert repro.index("get_peft_model(") < repro.index("SFTTrainer(")  # H-10: LoRA before the trainer, as the notebook
     assert (ROOT / "findings/P-0005/adapter_check.py").is_file()

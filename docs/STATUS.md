@@ -3,7 +3,7 @@
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
 - **Current phase:** Phase 0, kill test. M0, M1 and M2 are done. M3 is in progress: TRL, Axolotl and Unsloth have run all six checks on the calibration model, in both serving modes. Unsloth's primary result is now its GPU route; one P-0005 question remains for a short GPU trip. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-25 (Unsloth GPU run ingested and triaged; P-0006 and P-0004 decided)
+- **Last updated:** 2026-11-25 (P-0005 reproduced on GPU, shrunk, issue drafted; special tokens' padding split)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -41,15 +41,17 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
   - skeptic-reviewed: P-0006 reframed as a difference of non-thinking convention (Unsloth documents the `/no_think` soft switch), and a second harness error found and fixed (H-11, the adapter collated in Unsloth's post-`__init__` inference state);
   - the stale secondary-table header in every summary was corrected.
 - The human's decisions: Unsloth's non-thinking mode is `not_configurable` (P-0006 closed; the saved cells were re-derived, as-run results kept), and P-0004 stays card-only until after the kill test. A soft-switch reference is a Phase 2 idea.
+- P-0005-only GPU trip ingested (`docs/evidence/2026-11-25-p0005-gpu/`):
+  - rule 4 cleared, the drop reaches a real training step, and Unsloth's padding-free default keeps the setting;
+  - labels not affected, loss the same up to float rounding (CPU);
+  - the repro is shrunk to 30 lines, and fails on 2026.11.12 and on unsloth-zoo main;
+  - the issue is drafted and reviewed, **not posted**.
+- `t1.special_tokens`' padding part is now two rules, each with its own plant: requested width honored (new real-world plant `pad_to_ignored`), and pad handling at the produced width. 22 planted faults (3 real-world).
 - Tests: core 486, Unsloth environment 507 (1 expected failure). TRL (495) and Axolotl (494) passed after the backend change; they're untouched since.
 
 ## Next actions
 
-1. **Short GPU trip for P-0005** (the human; a few minutes):
-   - `uv run python docs/gpu-run/build_kit.py`, then the notebook with `RUN = "p0005"` in cell 2 (`docs/gpu-run/GPU-RUN.md`).
-   - It runs the fixed repro (padded, with `padding_free` left to Unsloth, and with one real training step), then `findings/P-0005/adapter_check.py`.
-   - If the adapter check shows objective `all` padding to `pad_to` on GPU, the 15 special-tokens cells go to P-0005, and its GPU confirmation is done.
-   - The `train step:` line is the batch training actually draws (width and padding side).
+1. **Human:** post `findings/P-0005/issue.md` to unslothai/unsloth-zoo with the repo's "Bug / Issue" template, after reading the notes at the top of the draft. Put the URL in P-0005's record.
 2. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
 3. Then the kill test proper: 3 frameworks x 3 target models x 6 checks x 8 fixtures = 432 primary runs.
 
@@ -70,5 +72,5 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 - **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity. Issue drafted, **not posted**.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours; fixed. Never counted against TRL.
 - **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render. Card only; revisit after the kill test.
-- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches. Class: config value silently ignored. Candidate. The GPU run is consistent with it (537, not 545), but the adapter's mapping isn't ruled out on GPU yet. Next: the P-0005 trip; no draft before.
+- **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk; issue drafted for unsloth-zoo, **not posted**.
 - **P-0006** (Unsloth 2026.11.10, non-thinking mode): `train_on_responses_only` trains the last turn's empty think block, which our hard-switch reference treats as a pre-fill. **Closed: not_configurable.** Unsloth documents non-thinking training via the `/no_think` soft switch; hard-switch training is not configurable.

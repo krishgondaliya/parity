@@ -416,20 +416,20 @@ P0005_FOLDER = "P-0005"
 # name -> (script, arguments, what it shows, the line that proves it ran to the end)
 P0005_RUNS = {
     "padded": (
-        "findings/P-0005/repro.py", [],
+        "findings/P-0005/triage_repro.py", [],
         "The repro with packing=False, padding_free=False, as the recommended Qwen3 notebook sets. Its rule: exit 1 if "
         "pad_to_multiple_of was dropped, 0 if kept.",
         "after  train_on_responses_only:",
     ),
     "padding_free_unset": (
-        "findings/P-0005/repro.py", ["--padding-free-unset"],
+        "findings/P-0005/triage_repro.py", ["--padding-free-unset"],
         "The repro with packing and padding_free left to Unsloth's defaults, max_steps=60 (the Qwen3-4B-Thinking-2507 "
         "notebook). The 'batching:' line shows what Unsloth chose; under packing or padding-free the batch is one "
         "flattened row, so read the printed lines, not the exit code.",
         "after  train_on_responses_only:",
     ),
     "padded_train_step": (
-        "findings/P-0005/repro.py", ["--train-step"],
+        "findings/P-0005/triage_repro.py", ["--train-step"],
         "The padded repro plus one real trainer.train() step, with the collator wrapped to record the batch training "
         "actually draws (width and padding side). Unsloth's train() calls model.for_training() first, so this is the "
         "training state; the 'padding:' line before it is the state SFTTrainer.__init__ leaves.",

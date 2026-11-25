@@ -120,7 +120,7 @@ The zip is treated as untrusted data and unpacked into a new, empty folder. Then
 - `docs/gpu-run/build_kit.py`: builds the kit from HEAD (part A).
 - `docs/gpu-run/parity_gpu_run.ipynb`: the notebook.
 - `docs/gpu-run/colab_kit.py`: what cell 5 runs, using only Python's standard library. Steps: platform, choose, uv, sync, freeze, smoke, checks. Cell 6 runs it again with `--extra p0005`.
-- `findings/P-0005/repro.py` (padded, `--padding-free-unset`, `--train-step`) and `findings/P-0005/adapter_check.py`: what P-0005 runs, from cell 6 or with `RUN = "p0005"` (`colab_kit.py --only p0005`).
+- `findings/P-0005/triage_repro.py` (padded, `--padding-free-unset`, `--train-step`) and `findings/P-0005/adapter_check.py`: what P-0005 runs, from cell 6 or with `RUN = "p0005"` (`colab_kit.py --only p0005`).
 - `docs/gpu-run/run_checks.py`: the checks inside Unsloth's environment (`--allow-cpu` exists only to test the kit without a GPU).
 - `envs/unsloth-2026.11.10/uv.lock`: the main lockfile (torch 2.14.1 for CUDA 13.0).
 - `envs/unsloth-2026.11.10/cu126/uv.lock`: the CUDA 12.6 variant, for drivers older than CUDA 13. It differs from the main lock only in torch, torchvision and their CUDA libraries (a test holds it to that).

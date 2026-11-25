@@ -1,6 +1,6 @@
 # P-0005: Unsloth's `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of`
 
-- Status: candidate. Class: **config value silently ignored**. To be confirmed on the GPU run before any draft (the human's decision, 2026-11-24). The GPU run (2026-11-25) is consistent with it, but the adapter's mapping isn't yet ruled out there; see "GPU run".
+- Status: **candidate, reproduced on GPU** (a Tesla T4, 2026-11-25; rule 4 cleared), repro shrunk, issue drafted, **not posted**. Class: **config value silently ignored**. "Candidate" until a maintainer confirms (rule 8).
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (the behavior is in the collator swap, not model-specific)
 - Framework: unsloth@2026.11.10 (unsloth-zoo 2026.11.10), with trl 1.15.0, on the CPU backend   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -23,7 +23,7 @@
   - It matters to users who set `pad_to_multiple_of` for tensor-core alignment or fixed-shape compilation: they get dynamic padding without knowing.
   - It reaches further than TRL's setting (skeptic). User-supplied collators that pad through the tokenizer lose their settings too: `DataCollatorForLanguageModeling(pad_to_multiple_of=64)` and `DataCollatorForTokenClassification(padding="max_length", max_length=128)` both become dynamically padded.
   - Unsloth itself sets `pad_to_multiple_of` to the flex-attention block size when `UNSLOTH_ENABLE_FLEX_ATTENTION=1` (rl.py L3730-3738). A padded run would lose that too. Not verified.
-  - Workaround (checked at collator level only): pass your own `DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=...)`. It is kept unchanged.
+  - Workaround: **not verified** (correction, 2026-11-25). The first triage said a user-supplied `DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=...)` is kept. Re-checked in the fresh pinned environment, calling the collator on the dataset's rows the way the repro does, it crashes: the rows still carry the raw `text` column. A real training step may drop that column first; not checked. The issue suggests no workaround.
 - **When it happens:** whenever batches are padded, i.e. packing and padding-free are both off. That is the CPU route's default, and what the recommended Qwen3 notebook sets (`padding_free = False`). On the GPU route, Unsloth's defaults may choose packing or padding-free on their own, and then the collator is never replaced and the setting survives. See "Backend".
 
 ## Triage
@@ -76,7 +76,7 @@
   - the calibration counts.
 - **One correction not applied:** the skeptic called the adapter's `padding_free=False` a deviation from the notebook. It is the recommended notebook's own setting (see Triage, Adapter). The difference from the Thinking-2507 notebook is recorded instead.
 
-## GPU run (2026-11-25): consistent with P-0005; not attributed yet (rule 4)
+## GPU run (2026-11-25, the first trip): consistent with P-0005; rule 4 still open then (settled by the second trip, below)
 - **What the GPU run showed** (Tesla T4, Unsloth's CUDA route, `docs/evidence/2026-11-25-m3-unsloth-gpu/`):
   - `t1.special_tokens` is inconclusive in all 15 cells where its reference runs (8 thinking, 7 non-thinking):
     - part 1 (the special tokens themselves) passes;
@@ -115,9 +115,42 @@
 - **The minimal measurement:** `adapter_check.py` on GPU, plus one real training step with a recording collator. Both are in the P-0005-only mode.
 - **Its other finding:** H-11, above.
 
+## Confirmed on GPU (2026-11-25, the P-0005-only trip; `docs/evidence/2026-11-25-p0005-gpu/`)
+- **The run:** Colab Tesla T4 (driver 580.82.07, CUDA 13.0), Unsloth on `cuda`, `envs/unsloth-2026.11.10/uv.lock`, kit commit `25c3dc8`.
+  - Verified by its ingest script: 12 files against their manifests, `git archive` of the commit rebuilt here with the recorded sha256, every step passed, every installed version as locked.
+  - All four runs completed.
+- **Rule 4 cleared, our adapter's mapping:** `adapter_check.py`, Parity's own adapter at the check's `pad_to` (545):
+  - objective `all` (no `train_on_responses_only`) pads to 545;
+  - `assistant_only` pads to 537, with the collator `DataCollatorForSeq2Seq(pad_to_multiple_of=None)`;
+  - `trainer.args.pad_to_multiple_of=545` in both;
+  - so the value reaches the trainer, and the swap drops it. Exit 0.
+- **The recipe's padded path:** `packing=False, padding_free=False`, as the recommended Qwen3 notebook sets.
+  - The collator goes from `DataCollatorForLanguageModeling(pad_to_multiple_of=64)`, batch width 64, to `DataCollatorForSeq2Seq(pad_to_multiple_of=None)`, width 25.
+  - **In real training:** one `trainer.train()` step draws a batch 25 wide, padded on the right. The drop reaches training. (After construction and before `train()`, the tokenizer pads on the left: Unsloth's inference state, H-11.)
+- **Unsloth's defaults** (`padding_free` unset, `max_steps=60`): Unsloth chose `padding_free=True`. The collator was not replaced, and the batch kept the setting (width 64, exit 0).
+  - So the scope is the explicit padded path the recommended notebook uses.
+- **The 15 inconclusive `t1.special_tokens` cells of the GPU run** (`docs/evidence/2026-11-25-m3-unsloth-gpu/`) are explained by P-0005 (537, not 545; rule 4 cleared above).
+  - Root-cause pins link fail verdicts only, so no pin is added; this is the link.
+  - Since 2026-11-25 the check judges a dropped width as its own fail (rule 2a, `pad_to_honored`) and pad handling separately (rule 2b). The next full GPU run's width fails get pinned here after /triage.
+
+## Labels not affected; loss the same up to float rounding (verified on CPU, 2026-11-25)
+- `findings/P-0005/impact.py`, run 8 times in the fresh pinned environment: 3 by me, 5 by the issue reviewer. It compares, on the same two rows with the model in training mode, the swapped collator's batch (width 26) with the same collator class keeping `pad_to_multiple_of=64` (width 64).
+- Results:
+  - the real tokens are identical, and so are the labels on them;
+  - every pad position is unsupervised;
+  - 18 supervised tokens in both;
+  - the loss is the same up to float rounding: identical in 6 of 8 runs, one float32 ulp (9.5e-7) apart in 2. (Correction from the issue reviewer: "bit for bit" was wrong, since my 3 runs happened to match.)
+- Only the tensor width changes. Not measured on GPU, where attention kernels at different widths may differ in floating point.
+
 ## Repro
-- `findings/P-0005/repro.py` (triage repro, not shrunk; CPU; tokenizer and config files only; padded batches set explicitly): exits 1 (the setting is dropped), 3/3 on unsloth 2026.11.10, before and after the `packing=False, padding_free=False` change.
-- On a GPU: not tested. Required before any draft.
+- **Shrunk:** `findings/P-0005/repro.py`, 30 lines, no Parity code. It runs the recommended notebook's path (`FastLanguageModel.from_pretrained`, `get_peft_model`, `SFTTrainer`, `train_on_responses_only`) on a tiny random model with Qwen3-0.6B's tokenizer and config.
+  - It prints the collator and batch width before and after, and exits 1 if the width isn't a multiple of 64.
+  - Pinned environment: `findings/P-0005/requirements.txt` (the lock's exact versions, without Parity) and `findings/P-0005/uv.lock`.
+- **Fresh environment** (`uv venv --python 3.12` + `uv pip install -r requirements.txt`, Parity not importable): fails 3/3 (64 to 26, exit 1). unsloth and unsloth-zoo 2026.11.10, trl 1.15.0, transformers 5.17.0, torch 2.14.1.
+- **Newest release** (unsloth and unsloth-zoo 2026.11.12, fresh venv): fails 3/3, same output.
+- **unsloth-zoo main** at `cad81ef2dc55` (installed from git, checked via `direct_url.json`; fresh venv): fails 3/3. The collator-swap block is byte-identical to 2026.11.10, now at L2547-L2583.
+- On GPU: the shrunk script wasn't run there. The GPU evidence is the triage repro's, the same mechanism and calls.
+- **Triage repro**, kept as `findings/P-0005/triage_repro.py` (the kit runs it): padded, `--padding-free-unset`, `--train-step`.
 - 2026-11-25: added `--padding-free-unset` (opt-in; without it the repro behaves as before, checked on CPU: width 64, then 26, exit 1).
   - It leaves packing and padding_free to Unsloth's defaults, with `max_steps=60` as the Thinking-2507 notebook sets.
   - It prints a `batching:` line showing what Unsloth chose. Under packing or padding-free the exit code is not the verdict; read the lines.
@@ -126,5 +159,14 @@
   - The kit counts a run as complete only if it printed its "after" line, since a crash also exits 1.
 
 ## Upstream
-- None. No draft until the GPU run confirms it (the human's decision).
-- For a future draft (skeptic): the title should say "silently drops" or "ignores", not "bug", and should name the padded-batch condition.
+- **Drafted, not posted:** `findings/P-0005/issue.md`, for https://github.com/unslothai/unsloth-zoo/issues. The code is `unsloth_zoo/dataset_utils.py`; `unsloth.chat_templates` re-exports it.
+  - Uses unsloth-zoo's "Bug / Issue" template, with its six questions answered. Its default "[Bug]" title is replaced (rule 8).
+  - States the scope, says labels are not affected and the loss is the same up to float rounding (verified on CPU), and ends with a one-line offer to send a fix with a test.
+- Duplicates searched again, read-only, in both repos, issues and PRs: "train_on_responses_only pad_to_multiple_of", "pad_to_multiple_of", "train_on_responses_only collator", "DataCollatorForSeq2Seq train_on_responses_only", "train_on_responses_only padding" and "pad_to_multiple_of ignored". No duplicate. #2703 stays related.
+- **Issue reviewer (2026-11-25): not ready as first drafted; every fix applied.**
+  - Three claims were wrong:
+    - "the same loss bit for bit": it differs by 1 ulp in 2 of its 5 runs;
+    - "settings are kept only for collators that pad through the tokenizer": `_kept` is filled only for a pad-delegating collator holding a processor with no `.pad` (`_pads_through_a_processor`);
+    - the inlined script was presented as run on GPU, but only the triage variant ran there.
+  - Also applied: the title names 2026.11.12 and main; the scope names `max_steps=60` and the CPU route; notebook and comment permalinks; the template's six questions verbatim; Python 3.12.13; "Nothing is printed about the swap".
+  - Confirmed by the reviewer: the repro exits 1 in the pinned venv, on 2026.11.12 and on main; the permalinks; the target repo (unsloth-zoo, which handles `train_on_responses_only` issues, e.g. #2363); no duplicate.
