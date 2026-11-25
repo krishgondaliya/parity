@@ -91,9 +91,26 @@
 | `reasoning_content` with `content: ""`, history turn | no (Qwen3 drops history reasoning, so the turn renders empty) |
 | `reasoning_content` with `content: ""`, last turn | yes (the reasoning field anchors the span) |
 
-- **Severity: stays low.** Tool-use data is not affected. Turns whose only content is a tool call keep their span and end token. What is affected: assistant turns that render empty. Those are a deliberately empty reply, or, with Qwen3, a history turn whose only content was reasoning. Each loses one token of loss (its end token), and an empty last turn loses all of its loss, silently.
+- **Severity (2026-11-24): stays low.** Tool-use data is not affected. Turns whose only content is a tool call keep their span and end token. What is affected: assistant turns that render empty. Those are a deliberately empty reply, or, with Qwen3, a history turn whose only content was reasoning. Each loses one token of loss (its end token), and an empty last turn loses all of its loss, silently.
 - A one-turn conversation with an empty reply has no trainable tokens at all, so Axolotl drops the row with a warning (`utils/trainer.py` L263-313). That case is loud, not silent.
 - Mechanism, re-checked at v0.21.1 (main is the same, lines +4): `_find_turn_from_text` returns `(-1, -1)` for an empty turn (`chat_template.py` L966-967), so `find_turn` returns `(-1, -1)` (L1146-1147). Content labeling is skipped (L738), and the EOS search runs from `start_idx=-1` (L800). It finds an earlier `<|im_end|>` that fails `abs(token_idx - turn_end_idx) <= 3` (L803), so the turn's own end token is never labeled.
+
+## Severity under the bar: low, on reach (2026-11-25)
+- **The bar** (`docs/DECISIONS.md`, amended 2026-11-25 before M5, the human's decision): severity is effect × reach. Medium means a change to labels, loss or stop behavior on inputs that ordinary training data contains: normal multi-turn chat, tool calls, reasoning traces, typical lengths. The same effect only on rare inputs is low.
+- **Effect:** a label change. The end-of-turn token of an assistant turn that renders empty gets no loss, which bears on stop behavior; an empty last turn loses all of its loss.
+- **Reach: rare inputs only.** The trigger is an assistant turn that renders empty. That is a deliberately empty reply, or, with Qwen3, a history turn whose only content was reasoning (Qwen3 drops history reasoning). Ordinary data doesn't contain either: a reasoning model's turn ends in an answer or a tool call. Length plays no part.
+- **Checked on the ordinary shapes the bar names** (`findings/P-0002/reach_check.py`, Axolotl 0.21.1, Qwen3's template, `train_on_eos: turn`; each row equals `apply_chat_template`). Each assistant turn's `<|im_end|>`, labeled or not:
+
+  | Shape | Assistant `<|im_end|>` labeled |
+  | --- | --- |
+  | Reasoning + answer, multi-turn (an ordinary reasoning trace) | all |
+  | Reasoning + tool call, content `""`, agentic turn (after the last user message) | all |
+  | Reasoning + tool call, content `""`, history turn (before the last user message) | all |
+  | Reasoning + tool call, content `None`, history turn | all |
+  | Control: reasoning only, content `""`, history turn (P-0002) | not the empty turn's (position 149) |
+
+  Together with the variants table above (tool calls with `""` or `None` content, history or last turn: all trained), tool use and reasoning traces keep their end tokens. The control shows the probe sees P-0002 when it's there.
+- **So P-0002 stays low, on reach, not on effect.** It would become medium only if ordinary data turned out to produce empty-rendering assistant turns, for example a dataset convention or template that renders ordinary turns empty.
 
 ## Upstream
 - Draft: `findings/P-0002/issue.md`, laid out for Axolotl's issue form (blank issues are disabled there). Not posted; the human runs the repro, then posts.

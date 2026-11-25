@@ -31,19 +31,21 @@ Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and i
 - Unsloth calibrates on GPU (the kit with RUN = "full"), and its non-thinking cells are `not_configurable`, so this question doesn't touch it. Its special-tokens cells should now fail `pad_to_honored` (P-0005); they need /triage and P-0005 pins (backend gpu) when the zip comes back.
 - Reversible? yes
 
-## 2026-11-25: A severity bar for continuing Parity, set before any target results exist (M4)
+## 2026-11-25: A severity bar for continuing Parity, set before any target results exist (M4; amended the same day, before M5)
 - **Decision (human):** Gate A passes as written. But continuing Parity with full energy after the kill test needs at least one **medium-severity** finding.
-- **Medium:** a finding that changes what the model learns: its labels, its loss, or its stop behavior.
-- **Low:** ignored settings, performance-only effects, and CPU-only behavior.
+- **Severity = effect × reach** (amended 2026-11-25 by the human, before M5: no target results exist yet, so the bar is still pre-registered):
+  - **Medium:** changes labels, loss or stop behavior **on inputs that ordinary training data contains**: normal multi-turn chat, tool calls, reasoning traces, typical lengths.
+  - **Low:** the same effect only on rare inputs (for example, empty assistant turns).
+  - **Low whatever the input:** ignored settings, performance-only effects, and CPU-only behavior.
+- **Original wording** (commit `c5a6041`, also before any target results): medium was "a finding that changes what the model learns: its labels, its loss, or its stop behavior", with no reach clause.
+  - That left a flag open: P-0002's kind of effect (a label change) matched medium as written, while its record rated it low on how rare its input is. The reach clause settles it.
 - **Current findings under this bar** (the human's classification):
-  - **P-0002, low.** Axolotl: an empty assistant turn's end-of-turn token is never labeled.
+  - **P-0002, low, on reach.** Axolotl: the end-of-turn token of an assistant turn that renders empty is never labeled. The effect is a label change, but only on rare inputs: a deliberately empty reply, or a Qwen3 history turn whose only content was reasoning.
+    - Checked 2026-11-25 on the ordinary shapes the bar names (`findings/P-0002/reach_check.py`): reasoning + answer turns, and reasoning + tool-call turns with empty content, as history or agentic turns, all keep their end token trained. A reasoning-only history turn, the control, doesn't.
+    - Reasoning in `findings/P-0002/record.md` ("Severity under the bar").
   - **P-0005, low.** Unsloth: `train_on_responses_only` drops `pad_to_multiple_of`. An ignored setting; labels not affected, loss the same up to float rounding.
   - P-0004 (Unsloth, CPU backend only) is low by the bar's own "CPU-only" clause. P-0006 is closed (`not_configurable`). P-0001 and P-0003 are a known difference and a harness error.
-- **Flagged for the human to confirm:** P-0002's effect is a label change. The empty turn's `<|im_end|>` gets no loss, which bears on stop behavior, and an empty last turn loses all its loss.
-  - Its record rates it low because the input is narrow: deliberately empty replies, or Qwen3 history turns whose only content was reasoning.
-  - Read literally, the bar's medium definition is about the kind of effect, and P-0002's kind is a label change.
-  - Recorded as low, as decided. If the bar means "changes what the model learns on ordinary data", that clause should be added to the definition.
-- **Why now:** set before any target results exist, so the bar can't be fitted to what the targets turn up.
+- **Why now:** set, and amended, before any target results exist, so the bar can't be fitted to what the targets turn up.
 - Reversible? only before target results exist
 
 ## 2026-11-25: P-0005 reproduced on GPU, shrunk and drafted; `t1.special_tokens`' padding part split into two rules
