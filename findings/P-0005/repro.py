@@ -6,7 +6,12 @@ Unsloth may otherwise choose packing or padding-free, and then the collator is n
 --padding-free-unset (added 2026-11-25, for the GPU kit): leave packing and padding_free to Unsloth's defaults, with
 max_steps=60 as the Qwen3-4B-Thinking-2507 notebook sets (the notebook the train_on_responses_only call comes from), to
 measure how far P-0005 reaches in practice. The extra "batching:" line shows what Unsloth chose. If it chose packing or
-padding-free, the batch is one flattened row and the exit code is not the finding's verdict: read the printed lines."""
+padding-free, the batch is one flattened row and the exit code is not the finding's verdict: read the printed lines.
+
+LoRA is attached with get_peft_model before the trainer, exactly as the recommended Qwen3 notebook does (fixed
+2026-11-25, harness error H-10: without it, the GPU route's real 4-bit model can't be trained and SFTTrainer refuses
+to build; on CPU, Unsloth loads 16-bit weights, so the gap never showed). The extra "padding:" line shows which side
+the shorter row was padded on, and the tokenizer's padding_side after the swap."""
 import os, shutil, sys, tempfile
 os.environ.setdefault("UNSLOTH_DISABLE_STATISTICS", "1")
 UNSET = "--padding-free-unset" in sys.argv
@@ -30,6 +35,10 @@ for f in os.listdir(src):
     if f != "config.json": shutil.copy(os.path.join(src, f), folder)
 
 model, tokenizer = FastLanguageModel.from_pretrained(model_name=folder, max_seq_length=2048, load_in_4bit=True)
+model = FastLanguageModel.get_peft_model(  # the recommended Qwen3 notebook's call (unslothai/notebooks@ebe88117)
+    model, r=32, target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    lora_alpha=32, lora_dropout=0, bias="none", use_gradient_checkpointing="unsloth", random_state=3407,
+    use_rslora=False, loftq_config=None)
 chats = [[{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}],
          [{"role": "user", "content": "Name the primary colors."}, {"role": "assistant", "content": "Red, yellow and blue."}]]
 texts = [tokenizer.apply_chat_template(c, tokenize=False) for c in chats]
@@ -41,10 +50,15 @@ rows = [trainer.train_dataset[i] for i in range(min(2, len(trainer.train_dataset
 before = (type(trainer.data_collator).__name__, getattr(trainer.data_collator, "pad_to_multiple_of", None), trainer.data_collator(rows)["input_ids"].shape[1])
 trainer = train_on_responses_only(trainer, instruction_part="<|im_start|>user\n", response_part="<|im_start|>assistant\n")
 rows = [trainer.train_dataset[i] for i in range(min(2, len(trainer.train_dataset)))]
-after = (type(trainer.data_collator).__name__, getattr(trainer.data_collator, "pad_to_multiple_of", None), trainer.data_collator(rows)["input_ids"].shape[1])
+batch = trainer.data_collator(rows)
+after = (type(trainer.data_collator).__name__, getattr(trainer.data_collator, "pad_to_multiple_of", None), batch["input_ids"].shape[1])
+mask = batch["attention_mask"].tolist() if "attention_mask" in batch else []
+side = ("none" if not mask or all(all(m) for m in mask) else "left" if any(m[0] == 0 for m in mask) else "right")
 print("SFTConfig(pad_to_multiple_of=64)")
 print("batching: packing=%s, padding_free=%s (%s)" % (trainer.args.packing, trainer.args.padding_free,
       "left to Unsloth's defaults, max_steps=60" if UNSET else "set explicitly"))
 print("before train_on_responses_only: collator %s(pad_to_multiple_of=%s), batch width %d" % before)
 print("after  train_on_responses_only: collator %s(pad_to_multiple_of=%s), batch width %d" % after)
+print("padding: the shorter row is padded on the %s; collator tokenizer padding_side=%r" % (
+      side, getattr(getattr(trainer.data_collator, "tokenizer", None), "padding_side", None)))
 sys.exit(1 if after[1] != 64 or after[2] % 64 else 0)

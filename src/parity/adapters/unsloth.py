@@ -315,7 +315,8 @@ def _declaration(trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting:
             f"max_length={args.max_length} (TRL {trl.__version__})",
             f"batching: trainer.args.packing={args.packing}, padding_free={args.padding_free}",
             f"pad_token_id: {type(collator).__name__}.tokenizer.pad_token_id={pad}, "
-            f"pad_to_multiple_of={getattr(collator, 'pad_to_multiple_of', None)}, "
+            f"pad_to_multiple_of={getattr(collator, 'pad_to_multiple_of', None)} "
+            f"(trainer.args.pad_to_multiple_of={getattr(args, 'pad_to_multiple_of', None)}), "
             f"label_pad_token_id={getattr(collator, 'label_pad_token_id', None)}, "
             f"padding_side={getattr(collator_tokenizer, 'padding_side', None)!r}",
             "tool_arguments: no option; the recipe formats with tokenizer.apply_chat_template itself, so a string "

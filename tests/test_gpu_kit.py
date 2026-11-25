@@ -208,79 +208,83 @@ def entries(zip_path: Path) -> dict[str, bytes]:
         return {n: zf.read(n) for n in zf.namelist()}
 
 
-def fake_repro(tmp_path: Path, body: str) -> Path:
-    script = tmp_path / "fake_repro.py"
+def fake_runs(tmp_path: Path, body: str) -> dict:
+    """P0005_RUNS with every script replaced by one fake script (same names, arguments and result lines)."""
+    script = tmp_path / "fake_p0005.py"
     script.write_text(body, encoding="utf-8")
-    return script
+    return {name: (str(script), args, meaning, result) for name, (_, args, meaning, result) in kit.P0005_RUNS.items()}
 
 
-PRINTS_A_DROP = (
+PRINTS_EVERY_RESULT = (
     "import sys\n"
     "print('SFTConfig(pad_to_multiple_of=64)')\n"
     "print('batching: packing=False, padding_free=False (set explicitly)')\n"
     "print('before train_on_responses_only: collator DataCollatorForLanguageModeling(pad_to_multiple_of=64), batch width 64')\n"
     "print('after  train_on_responses_only: collator DataCollatorForSeq2Seq(pad_to_multiple_of=None), batch width 26')\n"
+    "print('padding: the shorter row is padded on the right; collator tokenizer padding_side=\\'right\\'')\n"
+    "print('mapping: reaches the trainer; objective all pads to 545, assistant_only to 537, asked 545')\n"
     "sys.exit(1)\n"
 )
+RUN_FILES = sorted(f"{name}.log" for name in kit.P0005_RUNS) + ["MANIFEST.json", "run.json"]
 
 
-def test_the_repro_adds_its_own_folder_and_leaves_every_main_entry_byte_identical(tmp_path):
+def test_p0005_adds_its_own_folder_and_leaves_every_main_entry_byte_identical(tmp_path):
     out, zip_path = finished_main_run(tmp_path)
     before = entries(zip_path)
-    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=fake_repro(tmp_path, PRINTS_A_DROP))
+    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=fake_runs(tmp_path, PRINTS_EVERY_RESULT))
     after = entries(zip_path)
     top = zip_path.stem
     assert code == 0
     assert {n: after[n] for n in before} == before  # the main results, untouched
-    added = sorted(n.removeprefix(f"{top}/P-0005/") for n in after if n not in before)
-    assert added == ["MANIFEST.json", "padded.log", "padding_free_unset.log", "run.json"]
+    assert sorted(n.removeprefix(f"{top}/P-0005/") for n in after if n not in before) == sorted(RUN_FILES)
     record = json.loads(after[f"{top}/P-0005/run.json"])
-    assert record["environment"] == kit.CU126_ENV
-    padded = record["variants"]["padded"]
-    assert (padded["completed"], padded["exit_code"]) == (True, 1) and len(padded["lines"]) == 4
+    assert record["environment"] == kit.CU126_ENV and set(record["runs"]) == set(kit.P0005_RUNS)
+    padded = record["runs"]["padded"]
+    assert (padded["completed"], padded["exit_code"]) == (True, 1) and len(padded["lines"]) == 6
     assert "P-0005" not in json.loads(after[f"{top}/MANIFEST.json"])["files"]  # its own manifest, not the main one
 
 
-def test_running_the_repro_again_replaces_its_folder_instead_of_adding_a_second(tmp_path):
+def test_running_p0005_again_replaces_its_folder_instead_of_adding_a_second(tmp_path):
     out, zip_path = finished_main_run(tmp_path)
-    repro = fake_repro(tmp_path, PRINTS_A_DROP)
-    kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=repro)
+    runs = fake_runs(tmp_path, PRINTS_EVERY_RESULT)
+    kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=runs)
     first = sorted(entries(zip_path))
-    kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=repro)
+    kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=runs)
     assert sorted(entries(zip_path)) == first
 
 
-def test_a_crashing_repro_is_recorded_and_the_main_results_still_zip(tmp_path):
+def test_a_crashing_run_is_recorded_and_the_main_results_still_zip(tmp_path):
     out, zip_path = finished_main_run(tmp_path)
     before = entries(zip_path)
-    crash = fake_repro(tmp_path, "raise RuntimeError('CUDA error: no kernel image')\n")  # exits 1, like a drop
-    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=crash)
+    crash = "raise ValueError('You cannot perform fine-tuning on purely quantized models')\n"  # exits 1, like a drop
+    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=fake_runs(tmp_path, crash))
     after = entries(zip_path)
     record = json.loads(after[f"{zip_path.stem}/P-0005/run.json"])
     assert code == 1 and {n: after[n] for n in before} == before
-    assert record["variants"]["padded"]["completed"] is False  # exit 1 alone is never read as "dropped"
-    assert "no kernel image" in after[f"{zip_path.stem}/P-0005/padded.log"].decode()
+    assert all(r["completed"] is False and r["exit_code"] == 1 for r in record["runs"].values())  # never read as a drop
+    assert "purely quantized" in after[f"{zip_path.stem}/P-0005/padded.log"].decode()
 
 
-def test_without_a_confirmed_gpu_route_the_repro_refuses_and_records_why(tmp_path):
+def test_without_a_confirmed_gpu_route_p0005_refuses_and_records_why(tmp_path):
     out, zip_path = finished_main_run(tmp_path, smoke_ok=False)
     before = entries(zip_path)
-    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=fake_repro(tmp_path, PRINTS_A_DROP))
+    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=fake_runs(tmp_path, PRINTS_EVERY_RESULT))
     after = entries(zip_path)
     record = json.loads(after[f"{zip_path.stem}/P-0005/run.json"])
     assert code == 1 and {n: after[n] for n in before} == before
-    assert "smoke" in record["error"] and record["variants"] == {}
+    assert "smoke" in record["error"] and record["runs"] == {}
 
 
 def test_if_the_zip_rewrite_fails_the_original_zip_is_left_exactly_as_it_was(tmp_path, monkeypatch):
     out, zip_path = finished_main_run(tmp_path)
     original = zip_path.read_bytes()
+    runs = fake_runs(tmp_path, PRINTS_EVERY_RESULT)
 
     def broken_write(self, *args, **kwargs):
         raise OSError("disk full")
 
     monkeypatch.setattr(zipfile.ZipFile, "write", broken_write)
-    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), repro=fake_repro(tmp_path, PRINTS_A_DROP))
+    code = kit.run_p0005(ROOT, out, zip_path, python=Path(sys.executable), runs=runs)
     assert code == 1 and zip_path.read_bytes() == original
     assert not zip_path.with_name(zip_path.name + ".tmp").exists()
 
@@ -290,21 +294,56 @@ def test_no_results_zip_means_nothing_runs(tmp_path):
     assert not (tmp_path / "out").exists()
 
 
-def test_the_repro_outcome_needs_its_result_line():
-    assert kit.p0005_outcome(1, "Traceback ...\nRuntimeError: boom")["completed"] is False
-    done = kit.p0005_outcome(0, "noise\nafter  train_on_responses_only: collator X(pad_to_multiple_of=64), batch width 64")
-    assert done["completed"] is True and done["lines"] == [done["lines"][0]]
+def test_a_run_counts_as_complete_only_with_its_own_result_line():
+    after = "after  train_on_responses_only: collator X(pad_to_multiple_of=64), batch width 64"
+    assert kit.p0005_outcome(1, "Traceback ...\nRuntimeError: boom", after[:31])["completed"] is False
+    done = kit.p0005_outcome(0, f"noise\n{after}", "after  train_on_responses_only:")
+    assert done["completed"] is True and done["lines"] == [after]
+    assert kit.p0005_outcome(0, after, "mapping:")["completed"] is False  # the adapter check needs its own line
 
 
-def test_the_optional_cell_sits_between_the_run_and_the_download_and_needs_the_main_zip():
+def test_p0005_runs_the_fixed_repro_twice_and_the_adapters_pad_to_check():
+    assert [(script, args) for script, args, _, _ in kit.P0005_RUNS.values()] == [
+        ("findings/P-0005/repro.py", []),
+        ("findings/P-0005/repro.py", ["--padding-free-unset"]),
+        ("findings/P-0005/adapter_check.py", []),
+    ]
+    repro = (ROOT / "findings/P-0005/repro.py").read_text(encoding="utf-8")
+    assert "--padding-free-unset" in repro
+    assert repro.index("get_peft_model(") < repro.index("SFTTrainer(")  # H-10: LoRA before the trainer, as the notebook
+    assert (ROOT / "findings/P-0005/adapter_check.py").is_file()
+
+
+def test_the_p0005_only_mode_runs_every_step_but_the_checks(tmp_path):
+    assert kit.steps_for("full") == kit.STEPS
+    assert kit.steps_for("p0005-only") == ("platform", "choose", "uv", "sync", "freeze", "smoke")
+    run = kit.Kit(ROOT, tmp_path / "out", [CALIBRATION.spec], "a" * 40, "b" * 64, mode="p0005-only")
+    run.steps = [kit.Step(name, True, 1.0) for name in kit.steps_for("p0005-only")]
+    with zipfile.ZipFile(run.finish()) as zf:
+        top = zf.namelist()[0].split("/")[0]
+        status = json.loads(zf.read(f"{top}/status.json"))
+        environment = json.loads(zf.read(f"{top}/environment.json"))
+    assert (status["mode"], status["ok"], environment["mode"]) == ("p0005-only", True, "p0005-only")
+    with pytest.raises(ValueError, match="mode"):
+        kit.Kit(ROOT, tmp_path / "x", [CALIBRATION.spec], "a" * 40, "b" * 64, mode="quick")
+
+
+def test_a_full_run_missing_its_checks_step_is_not_ok(tmp_path):
+    run = kit.Kit(ROOT, tmp_path / "out", [CALIBRATION.spec], "a" * 40, "b" * 64)
+    run.steps = [kit.Step(name, True, 1.0) for name in kit.steps_for("p0005-only")]
+    with zipfile.ZipFile(run.finish()) as zf:
+        top = zf.namelist()[0].split("/")[0]
+        assert json.loads(zf.read(f"{top}/status.json"))["ok"] is False
+
+
+def test_the_notebook_switches_between_full_and_p0005_only():
     nb = json.loads((KIT_DIR / "parity_gpu_run.ipynb").read_text(encoding="utf-8"))
     code = ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+    namespace: dict = {}
+    exec(code[0], namespace)
+    assert namespace["RUN"] == "full"
     run, optional, download = code[3], code[4], code[5]
-    assert "colab_kit.py" in run and "--extra" not in run
-    assert optional.startswith("# Cell 6 (optional)") and '"--extra", "p0005"' in optional and "RESULT_ZIP" in optional
+    assert 'command += ["--only", "p0005"]' in run and "--extra" not in run
+    assert optional.startswith("# Cell 6 (optional)") and '"--extra", "p0005"' in optional
+    assert optional.index('if RUN == "p0005":') < optional.index("subprocess.Popen")  # skipped in p0005-only mode
     assert download.startswith("# Cell 7: download") and "files.download(RESULT_ZIP)" in download
-
-
-def test_the_kit_points_at_the_committed_repro():
-    assert (ROOT / kit.P0005_REPRO).is_file()
-    assert "--padding-free-unset" in (ROOT / kit.P0005_REPRO).read_text(encoding="utf-8")

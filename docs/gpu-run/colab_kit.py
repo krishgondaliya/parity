@@ -19,11 +19,14 @@ Steps, each logged to <out>/logs/<step>.log; any failure stops the run but still
 Then environment.json (what ran, and every deviation from Unsloth's documented install), MANIFEST.json (sha256 of
 every file) and one zip.
 
-Optional, afterwards (`--extra p0005`, notebook cell 6): the P-0005 repro (findings/P-0005/repro.py) in the same
-environment, padded and with padding_free left to Unsloth. It writes only into its own folder, P-0005/, with its own
-MANIFEST.json, and never touches the main results: the zip is rebuilt with the main entries copied byte for byte plus
-that folder, and swapped in only once it is complete and reads back clean. If the repro fails, its error is recorded
-in P-0005/run.json; if anything else fails, the main zip is left exactly as it was.
+P-0005 (P0005_RUNS: the repro padded and with padding_free left to Unsloth, then the adapter's pad_to check) runs in
+the same environment, two ways:
+- `--extra p0005` (notebook cell 6, optional) after a full run;
+- `--only p0005` (RUN = "p0005" in the notebook): every step but the checks, then P-0005. Minutes, not about 20.
+It writes only into its own folder, P-0005/, with its own MANIFEST.json, and never touches the main results: the zip
+is rebuilt with the existing entries copied byte for byte plus that folder, and swapped in only once it is complete
+and reads back clean. A failed run is recorded in P-0005/run.json; if anything else fails, the zip is left exactly as
+it was.
 
 No tokens or logins. Subprocesses get a scrubbed environment: no variable whose name looks like a secret, no
 PYTHONPATH, and Hugging Face's implicit token lookup turned off. Models must be ungated.
@@ -52,6 +55,11 @@ MAIN_ENV = f"envs/{FRAMEWORK}-{VERSION}"
 CU126_ENV = f"{MAIN_ENV}/cu126"
 UV_VERSION = "0.11.3"  # the uv that wrote both lockfiles
 STEPS = ("platform", "choose", "uv", "sync", "freeze", "smoke", "checks")  # in order; each is Kit.<name>_step
+MODES = ("full", "p0005-only")  # p0005-only: every step but the checks, then the P-0005 runs (minutes, not ~20)
+
+
+def steps_for(mode: str) -> tuple[str, ...]:
+    return STEPS if mode == "full" else tuple(s for s in STEPS if s != "checks")
 CALIBRATION = "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca"
 MODEL_SPEC = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+@[0-9a-f]{40}$")
 SECRET_NAME = re.compile(r"TOKEN|SECRET|PASSW|CREDENTIAL|API_?KEY|PRIVATE_?KEY|ACCESS_?KEY", re.IGNORECASE)
@@ -98,8 +106,10 @@ class Step:
 
 
 class Kit:
-    def __init__(self, root: Path, out: Path, models: list[str], commit: str, archive_sha256: str):
-        self.root, self.out, self.models = root, out, models
+    def __init__(self, root: Path, out: Path, models: list[str], commit: str, archive_sha256: str, mode: str = "full"):
+        if mode not in MODES:
+            raise ValueError(f"mode must be one of {MODES}, got {mode!r}")
+        self.root, self.out, self.models, self.mode = root, out, models, mode
         self.commit, self.archive_sha256 = commit, archive_sha256
         self.logs = out / "logs"
         self.steps: list[Step] = []
@@ -243,6 +253,7 @@ class Kit:
             "lock_mismatches": self.facts.get("lock_mismatches"),
             "archive": {"commit": self.commit, "sha256": self.archive_sha256},
             "models": self.models,
+            "mode": self.mode,
         }
 
     def finish(self) -> Path:
@@ -252,7 +263,8 @@ class Kit:
         archive = self.out.parent / f"parity-gpu-results-{self.commit[:12]}-{stamp}.zip"
         (self.out / "environment.json").write_text(json.dumps(self.environment(), indent=1) + "\n", encoding="utf-8")
         status = {
-            "ok": bool(self.steps) and all(s.ok for s in self.steps),
+            "mode": self.mode,
+            "ok": bool(self.steps) and all(s.ok for s in self.steps) and len(self.steps) == len(steps_for(self.mode)),
             "steps": [s.__dict__ for s in self.steps],
             "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
@@ -397,31 +409,42 @@ print("PARITY_JSON=" + json.dumps({"installed": dict(sorted(installed.items())),
 """
 
 
-# The optional P-0005 repro: its own folder in the results zip, never part of the main run
+# P-0005 on the GPU route: its own folder in the results zip, never part of the main run's results
 
-P0005_REPRO = "findings/P-0005/repro.py"
 P0005_FOLDER = "P-0005"
-P0005_RESULT_LINE = "after  train_on_responses_only:"
-P0005_VARIANTS = {
+# name -> (script, arguments, what it shows, the line that proves it ran to the end)
+P0005_RUNS = {
     "padded": (
-        [],
-        "packing=False, padding_free=False, as the recommended Qwen3 notebook sets. The repro's rule: exit 1 if "
+        "findings/P-0005/repro.py", [],
+        "The repro with packing=False, padding_free=False, as the recommended Qwen3 notebook sets. Its rule: exit 1 if "
         "pad_to_multiple_of was dropped, 0 if kept.",
+        "after  train_on_responses_only:",
     ),
     "padding_free_unset": (
-        ["--padding-free-unset"],
-        "packing and padding_free left to Unsloth's defaults, max_steps=60 (the Qwen3-4B-Thinking-2507 notebook). "
-        "The 'batching:' line shows what Unsloth chose; under packing or padding-free the batch is one flattened row, "
-        "so read the printed lines, not the exit code.",
+        "findings/P-0005/repro.py", ["--padding-free-unset"],
+        "The repro with packing and padding_free left to Unsloth's defaults, max_steps=60 (the Qwen3-4B-Thinking-2507 "
+        "notebook). The 'batching:' line shows what Unsloth chose; under packing or padding-free the batch is one "
+        "flattened row, so read the printed lines, not the exit code.",
+        "after  train_on_responses_only:",
     ),
-}
+    "adapter_check": (
+        "findings/P-0005/adapter_check.py", [],
+        "Rule 4: Parity's own adapter at the pad_to t1.special_tokens asks, with objective all (no "
+        "train_on_responses_only) and assistant_only. Exit 0 if the mapping reaches the trainer (objective all pads "
+        "to pad_to), 1 if it doesn't (the adapter is the suspect).",
+        "mapping:",
+    ),
+}  # fmt: skip
+P0005_LINES = (
+    "SFTConfig(", "batching:", "before train_on_responses_only:", "after  train_on_responses_only:", "padding:",
+    "backend ", "objective ", "mapping:",
+)  # fmt: skip
 
 
-def p0005_outcome(code: int, output: str) -> dict:
-    """What one repro run showed. It completed only if it printed its result line: a crash also exits 1."""
-    prefixes = ("SFTConfig(", "batching:", "before train_on_responses_only:", P0005_RESULT_LINE)
-    lines = [line for line in output.splitlines() if line.startswith(prefixes)]
-    return {"completed": any(line.startswith(P0005_RESULT_LINE) for line in lines), "exit_code": code, "lines": lines}
+def p0005_outcome(code: int, output: str, result_line: str) -> dict:
+    """What one run showed. It completed only if it printed its result line: a crash also exits 1."""
+    lines = [line for line in output.splitlines() if line.startswith(P0005_LINES)]
+    return {"completed": any(line.startswith(result_line) for line in lines), "exit_code": code, "lines": lines}
 
 
 def main_run_environment(out: Path) -> str:
@@ -462,9 +485,9 @@ def add_folder_to_zip(zip_path: Path, folder: Path, name: str) -> None:
         tmp.unlink(missing_ok=True)
 
 
-def run_p0005(root: Path, out: Path, zip_path: Path, python: Path | None = None, repro: Path | None = None) -> int:
-    """Run both repro variants in the main run's environment, record them in <out>/P-0005/, and add that folder to
-    the results zip. `python` and `repro` exist for tests. Returns 0 only if both variants completed."""
+def run_p0005(root: Path, out: Path, zip_path: Path, python: Path | None = None, runs: dict | None = None) -> int:
+    """Run P0005_RUNS in the main run's environment, record them in <out>/P-0005/, and add that folder to the results
+    zip. `python` and `runs` exist for tests. Returns 0 only if every run completed."""
     if not zip_path.is_file():
         print(f"REFUSED: no results zip at {zip_path}; run cell 5 first.")
         return 2
@@ -472,36 +495,35 @@ def run_p0005(root: Path, out: Path, zip_path: Path, python: Path | None = None,
     shutil.rmtree(folder, ignore_errors=True)
     folder.mkdir(parents=True)
     record: dict = {
-        "repro": P0005_REPRO,
         "finding": "findings/P-0005/record.md",
-        "note": "Optional extra, separate from the verdicts; it never changes the main run's results or status.",
-        "variants": {},
+        "note": "Separate from the verdicts; it never changes the main run's results or status.",
+        "runs": {},
     }
     try:
         env_dir = main_run_environment(out)
         record["environment"] = env_dir
         python = python or root / env_dir / ".venv" / "bin" / "python"
         env, _ = scrubbed_environment(os.environ, cache_root=out.parent)
-        for variant, (extra_args, meaning) in P0005_VARIANTS.items():
-            print(f"\n===== P-0005 repro: {variant} =====", flush=True)
+        for name, (script, extra_args, meaning, result_line) in (runs or P0005_RUNS).items():
+            print(f"\n===== P-0005: {name} =====", flush=True)
             started = time.time()
-            command = [str(python), str(repro or root / P0005_REPRO), *extra_args]
-            code, text = stream(command, root, env, folder / f"{variant}.log")
-            record["variants"][variant] = {
-                "meaning": meaning, **p0005_outcome(code, text), "seconds": round(time.time() - started, 1),
+            code, text = stream([str(python), str(root / script), *extra_args], root, env, folder / f"{name}.log")
+            record["runs"][name] = {
+                "script": str(script), "arguments": extra_args, "meaning": meaning,
+                **p0005_outcome(code, text, result_line), "seconds": round(time.time() - started, 1),
             }  # fmt: skip
     except Exception as exc:  # noqa: BLE001 - recorded in P-0005/run.json; the main results are never touched
         record["error"] = f"{type(exc).__name__}: {exc}"
-        print(f"P-0005 repro: {record['error']}", flush=True)
+        print(f"P-0005: {record['error']}", flush=True)
     (folder / "run.json").write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8")
     (folder / "MANIFEST.json").write_text(json.dumps({"files": manifest_of(folder)}, indent=1) + "\n", encoding="utf-8")
     try:
         add_folder_to_zip(zip_path, folder, P0005_FOLDER)
     except Exception as exc:  # noqa: BLE001 - the main zip stays exactly as it was
-        print(f"P-0005: couldn't add the repro's folder to the zip ({type(exc).__name__}: {exc}). "
-              f"The main results zip is unchanged: {zip_path}")  # fmt: skip
+        print(f"P-0005: couldn't add its folder to the zip ({type(exc).__name__}: {exc}). "
+              f"The results zip is unchanged: {zip_path}")  # fmt: skip
         return 1
-    completed = not record.get("error") and all(v["completed"] for v in record["variants"].values())
+    completed = not record.get("error") and all(r["completed"] for r in record["runs"].values())
     print(f"\nP-0005 {'done' if completed else 'did not complete (see P-0005/run.json)'}; added to {zip_path}")
     print(f"RESULT_ZIP={zip_path}")
     return 0 if completed else 1
@@ -513,8 +535,9 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=Path("/content/parity-gpu-out"))
     parser.add_argument("--commit", help="the commit the archive was made from (its zip comment)")
     parser.add_argument("--archive-sha256", help="sha256 of the uploaded archive")
-    parser.add_argument("--extra", choices=["p0005"], help="optional, after the main run: the P-0005 repro")
-    parser.add_argument("--zip", type=Path, help="with --extra: the main run's results zip, to add the folder to")
+    parser.add_argument("--only", choices=["p0005"], help="skip the checks: install, smoke, then P-0005 (minutes)")
+    parser.add_argument("--extra", choices=["p0005"], help="optional, after a full run: P-0005 into its zip")
+    parser.add_argument("--zip", type=Path, help="with --extra: the results zip to add the P-0005 folder to")
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[2]
@@ -533,14 +556,21 @@ def main() -> int:
         return 2
     if args.out.exists():
         shutil.rmtree(args.out)
-    kit = Kit(root, args.out, models, args.commit, args.archive_sha256)
-    for name in STEPS:
+    mode = "p0005-only" if args.only == "p0005" else "full"
+    steps = steps_for(mode)
+    kit = Kit(root, args.out, models, args.commit, args.archive_sha256, mode=mode)
+    for name in steps:
         if not kit.step(name, getattr(kit, f"{name}_step")):
             break  # a failed step stops the run; the zip below still records how far it got
     archive = kit.finish()
-    ok = all(s.ok for s in kit.steps) and len(kit.steps) == len(STEPS)
+    ok = all(s.ok for s in kit.steps) and len(kit.steps) == len(steps)
     print(f"\n{'DONE' if ok else 'STOPPED EARLY'}: {archive}")
     print(f"RESULT_ZIP={archive}")
+    if mode == "p0005-only":
+        if not ok:
+            print("P-0005 not run: the install or the smoke step didn't pass (see the zip's logs).")
+            return 1
+        return run_p0005(root, args.out, archive)
     return 0 if ok else 1
 
 

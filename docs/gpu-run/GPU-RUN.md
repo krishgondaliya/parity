@@ -2,7 +2,7 @@
 
 This runs Parity's six Tier 1 checks on Unsloth's real GPU route, in both serving modes, and gives you one zip to bring back. An optional cell also runs the P-0005 repro on the same GPU. Unsloth's own notebooks target Colab's free T4 GPU, so that's where this runs.
 
-- **Time:** about 30 to 45 minutes, most of it waiting. The run itself (cell 5) takes about 20 to 40 minutes.
+- **Time:** about 30 to 45 minutes for a full run, most of it waiting; the checks themselves took 19 minutes on a T4. A P-0005-only run (`RUN = "p0005"`, below) skips the checks and takes a few minutes.
 - **Needs:** a Google account, to use Colab. The kit itself uses no tokens and no logins: the models are ungated, nothing from `.env` goes in the kit, and the kit turns off Hugging Face's token lookup.
 - **Cost:** free. Colab's free GPUs aren't always available; if you get none, try again later.
 
@@ -44,10 +44,12 @@ In Colab, the notebook installs Unsloth's environment from Parity's lockfile int
 
 Each code cell has a ▶ (play) button at its top left. Click it and wait until the cell finishes (the spinner stops and a green check appears) before starting the next one.
 
-12. **Cell 2 (MODELS):** ▶. Nothing prints. Leave the list as it is: it's the calibration model.
+12. **Cell 2 (MODELS and RUN):** ▶. Nothing prints. Leave `MODELS` as it is: it's the calibration model. `RUN` says what to run:
+    - `RUN = "full"` (the default): the six checks, about 20 minutes, with cell 6 optional;
+    - `RUN = "p0005"`: only P-0005, a few minutes: install, the GPU check, then the P-0005 runs. No checks run and no verdicts are made. Use this when you're asked for a P-0005-only trip: change the word between the quotes, then run the cell.
 13. **Cell 3 (GPU check):** ▶. A table prints with **Tesla T4** in it. If it says "No GPU", go back to step 9.
 14. **Cell 4 (upload):** ▶. A **Choose Files** button appears under the cell. Click it and pick `parity-src-<commit>.zip` from the kit folder. Wait for "100% done". The cell then prints `Code from commit ...`: check that it matches the commit in `KIT.txt`.
-15. **Cell 5 (the run):** ▶. This takes about 20 to 40 minutes. **Keep the browser tab open and the computer awake.** It prints each step as it goes:
+15. **Cell 5 (the run):** ▶. With `RUN = "full"` this takes about 20 to 40 minutes; with `RUN = "p0005"`, a few minutes, and the `checks` step below is replaced by the P-0005 runs. **Keep the browser tab open and the computer awake.** It prints each step as it goes:
     - `platform`: which GPU and driver;
     - `choose`: which lockfile the driver allows;
     - `uv` and `sync`: installing, the longest step (several GB of downloads);
@@ -56,7 +58,12 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
     - `checks`: the six checks, both modes.
 
     It ends with either `DONE:` or `STOPPED EARLY:`, followed by the results zip's name. **Both are fine to bring back.** A stopped run's zip holds the logs that say why.
-16. **Cell 6 (optional, P-0005 repro):** ▶, or skip straight to cell 7. It takes a few minutes and runs the P-0005 repro twice in the same environment: once with padded batches, once with batching left to Unsloth. Its output goes into the same results zip, in its own `P-0005` folder, apart from the verdicts.
+16. **Cell 6 (optional, P-0005):** ▶, or skip straight to cell 7. With `RUN = "p0005"`, skip it: cell 5 already did this. It takes a few minutes and runs three things in the same environment:
+    - the P-0005 repro with padded batches;
+    - the repro with batching left to Unsloth;
+    - Parity's adapter at the padding size the check asks for, with and without the assistant-only step.
+
+    Its output goes into the same results zip, in its own `P-0005` folder, apart from the verdicts.
     - It ends with `P-0005 done` or `P-0005 did not complete`. **Both are fine.**
     - It never changes the main results. If it fails, the zip from cell 5 stays exactly as it was. If it works, the zip gets the extra folder.
 17. **Cell 7 (download):** ▶. Your browser downloads `parity-gpu-results-<commit>-<time>.zip`. If the browser asks to allow downloads, allow it.
@@ -112,7 +119,7 @@ The zip is treated as untrusted data and unpacked into a new, empty folder. Then
 - `docs/gpu-run/build_kit.py`: builds the kit from HEAD (part A).
 - `docs/gpu-run/parity_gpu_run.ipynb`: the notebook.
 - `docs/gpu-run/colab_kit.py`: what cell 5 runs, using only Python's standard library. Steps: platform, choose, uv, sync, freeze, smoke, checks. Cell 6 runs it again with `--extra p0005`.
-- `findings/P-0005/repro.py`: the repro cell 6 runs, padded and with `--padding-free-unset`.
+- `findings/P-0005/repro.py` (padded, and with `--padding-free-unset`) and `findings/P-0005/adapter_check.py`: what P-0005 runs, from cell 6 or with `RUN = "p0005"` (`colab_kit.py --only p0005`).
 - `docs/gpu-run/run_checks.py`: the checks inside Unsloth's environment (`--allow-cpu` exists only to test the kit without a GPU).
 - `envs/unsloth-2026.11.10/uv.lock`: the main lockfile (torch 2.14.1 for CUDA 13.0).
 - `envs/unsloth-2026.11.10/cu126/uv.lock`: the CUDA 12.6 variant, for drivers older than CUDA 13. It differs from the main lock only in torch, torchvision and their CUDA libraries (a test holds it to that).
