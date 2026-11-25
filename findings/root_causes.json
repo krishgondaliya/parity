@@ -255,6 +255,102 @@
           "evidence_sha256": "c0fea38824322e7f31a8b928b47c4b231b5fc90db3a0c286fa724227e6de71cf"
         }
       ]
+    },
+    {
+      "id": "P-0006",
+      "record": "findings/P-0006/record.md",
+      "status": "exploratory (non-thinking table only; not a candidate)",
+      "framework": "unsloth@2026.11.10",
+      "backend": "gpu",
+      "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+      "summary": "Non-thinking mode: train_on_responses_only trains the last turn's empty think block (<think>\\n\\n</think>\\n\\n), which the reference puts on the prompt side as the generation prompt's pre-fill. Same labels pass in thinking mode.",
+      "card_label": "non-thinking table only; exploratory",
+      "pins": [
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "e04b825c7bf8f1da3699d10a51841b19fa03cf36d030ab6b720171944da0d4e0"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "long_answer",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "d198fa401ce74daab504758cbc60698503afab02f2aa5c279fe2397a8c86c6ef"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "multi_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "9f9b938ccabce9000bf9527805c8d270562ff8cc001fc035b04f20fea546fed4"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "non_ascii",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "a51492a1c25cf1b6ac4a34c09a16c821bd413a93cce22868215b9265304a92c4"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "single_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "fcaacebbbbd2d2c81fd8160ac63c96667faeadc01860be6748fcbe9fd75c9bc0"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "system_prompt",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "7cf5cbca796bca99135eef1dec0e8d6a505a60302f494fc3903d1c883a2e91f3"
+        },
+        {
+          "check": "t1.assistant_mask",
+          "fixture": "tool_call",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "8eff54f1ab7c89c10f1d4f2f14938b479b1975e1671f01cf6837e325078c9f92"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "empty_assistant",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "3886081200690908cd8b1c560a07928051a30ed7223c0f39f4c22879cfdf5878"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "long_answer",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "c8557b9c71eac4da0e314755cc3e8be56e40c7c7aead586d0117820810e263fb"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "multi_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "b29be8b5e8af7b534ab9a1b6dd9beb32f622a00e1f958bd6362830b9735b0d4a"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "non_ascii",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "066030d2b108d02d25074cd04ec3e5594f3dd7c45372888ad791e18e4cebe139"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "single_turn",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "78bd92cb381d0564335857f14088be2266e2bec0c579396b01af830428101f25"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "system_prompt",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "9091cfbb8a815574460d11bfce3ac2dbe31ffacbf6e6ccb44178d6914794abe9"
+        },
+        {
+          "check": "t1.truncation",
+          "fixture": "tool_call",
+          "serving_mode": "non_thinking",
+          "evidence_sha256": "81be85c1f9ac3013ab4b8ae88f847a531ad350196903cda59b793eb3890e5da5"
+        }
+      ]
     }
   ]
 }

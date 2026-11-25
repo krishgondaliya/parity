@@ -1,4 +1,4 @@
-> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's CPU-backend results. Once a GPU run exists, Unsloth's GPU route is its primary result and this becomes the labeled secondary "CPU backend" table (the human's decision, 2026-11-24).
+> **Backend: CPU** (Unsloth's CPU fallback; `envs/unsloth-2026.11.10/environment.json`). These are Unsloth's CPU-backend results, its **secondary** result. Unsloth's primary result is its GPU route (`docs/evidence/2026-11-25-m3-unsloth-gpu/summary.md`), where these appear as the labeled "CPU backend" table (the human's decision, 2026-11-24).
 
 # Tier 1 summary
 
@@ -50,7 +50,7 @@ Not prefix-preserving: at 5 boundary(ies) across 4 fixture(s), rendering a conve
 
 ### Secondary results: non_thinking mode
 
-Secondary: the same encoded rows as the primary results, judged against a second reference rendered in non_thinking mode. No extra framework runs.
+Secondary: each framework encoded again with its documented setting for non_thinking mode (or not_configurable when it documents none), judged against a reference rendered in non_thinking mode.
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |

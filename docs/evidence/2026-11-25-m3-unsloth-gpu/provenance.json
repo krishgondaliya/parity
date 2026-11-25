@@ -1,0 +1,37 @@
+{
+ "zip": "parity-gpu-results-15ed6df97528-20261125T074031Z.zip",
+ "zip_sha256": "38b75111f24e8bb3e42586e56651eda783d846686a793ec127c07f370147dfd3",
+ "files_verified": 110,
+ "commit": "15ed6df9752817e476529a037006df526daeba31",
+ "archive_sha256": "7c854b7d36b9a377240dc820564a8e1b752fca7cad4a6aef7d6c2332efae68b4",
+ "archive_rebuilt_here": true,
+ "lockfile": "envs/unsloth-2026.11.10/uv.lock",
+ "lockfile_sha256": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+ "gpu": "Tesla T4",
+ "driver": "580.82.07",
+ "torch": "2.14.1+cu130",
+ "unsloth_device_type": "cuda",
+ "verdicts_verified": 96,
+ "p0005_optional_run": {
+  "repro": "findings/P-0005/repro.py",
+  "finding": "findings/P-0005/record.md",
+  "note": "Optional extra, separate from the verdicts; it never changes the main run's results or status.",
+  "variants": {
+   "padded": {
+    "meaning": "packing=False, padding_free=False, as the recommended Qwen3 notebook sets. The repro's rule: exit 1 if pad_to_multiple_of was dropped, 0 if kept.",
+    "completed": false,
+    "exit_code": 1,
+    "lines": [],
+    "seconds": 27.2
+   },
+   "padding_free_unset": {
+    "meaning": "packing and padding_free left to Unsloth's defaults, max_steps=60 (the Qwen3-4B-Thinking-2507 notebook). The 'batching:' line shows what Unsloth chose; under packing or padding-free the batch is one flattened row, so read the printed lines, not the exit code.",
+    "completed": false,
+    "exit_code": 1,
+    "lines": [],
+    "seconds": 26.6
+   }
+  },
+  "environment": "envs/unsloth-2026.11.10"
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+ "framework": "unsloth@2026.11.10",
+ "backend": "gpu",
+ "env_lock": "envs/unsloth-2026.11.10/uv.lock",
+ "env_fingerprint": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+ "verdicts": 96,
+ "counts": {
+  "thinking": {
+   "inconclusive": 8,
+   "not_applicable": 4,
+   "pass": 36
+  },
+  "non_thinking": {
+   "fail:bug": 14,
+   "inconclusive": 13,
+   "not_applicable": 4,
+   "pass": 17
+  }
+ },
+ "seconds": 1131.7
+}

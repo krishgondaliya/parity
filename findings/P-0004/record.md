@@ -85,5 +85,13 @@
 - Not shrunk (the human's decision). The triage repro stays as the evidence.
 - On a GPU: not tested (no GPU).
 
+## GPU run (2026-11-25): CPU-only confirmed
+- Unsloth's GPU route (Tesla T4, `envs/unsloth-2026.11.10/uv.lock`, the integrity checks are in `docs/evidence/2026-11-25-m3-unsloth-gpu/provenance.json`), the same adapter and recipe:
+  - `t1.template_parity` passes on all 15 cells that run (8 thinking, 7 non-thinking): every row equals the declared template's render, with no second `<|im_end|>`;
+  - the tool-call property is consistent there, where on CPU the extra token made it a mismatch.
+- So the GPU route's dataset preparation leaves chat-formatted text alone, as its code and unsloth-zoo PR #2558 say. The GPU patch did apply: a failed patch would have fallen back to stock TRL and appended the token.
+- The 15 CPU fails stay linked here: P-0004's root cause carries `"backend": "cpu"`, so no GPU verdict can link to it.
+- Open for the human: the record's proposed handling (2) said a short upstream note "possibly worth" sending once confirmed on a GPU. It is now confirmed: Unsloth's CPU backend skips its own SFT dataset preparation, so CPU and GPU runs train on different rows. Nothing is drafted.
+
 ## Upstream
-- None. Not an Unsloth report yet (revisit after the GPU run), and not a TRL report: TRL #3318 already covers the append, and TRL treats it as intended for text rows.
+- None. Not an Unsloth report yet (the GPU contrast is now confirmed; the human decides), and not a TRL report: TRL #3318 already covers the append, and TRL treats it as intended for text rows.

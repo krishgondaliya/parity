@@ -1,6 +1,6 @@
 # P-0005: Unsloth's `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of`
 
-- Status: candidate. Class: **config value silently ignored**. To be confirmed on the GPU run before any draft (the human's decision, 2026-11-24).
+- Status: candidate. Class: **config value silently ignored**. To be confirmed on the GPU run before any draft (the human's decision, 2026-11-24). The GPU run (2026-11-25) is consistent with it, but the adapter's mapping isn't yet ruled out there; see "GPU run".
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (the behavior is in the collator swap, not model-specific)
 - Framework: unsloth@2026.11.10 (unsloth-zoo 2026.11.10), with trl 1.15.0, on the CPU backend   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -75,6 +75,45 @@
   - the silence check, the related PRs and the not-fixed-on-main line;
   - the calibration counts.
 - **One correction not applied:** the skeptic called the adapter's `padding_free=False` a deviation from the notebook. It is the recommended notebook's own setting (see Triage, Adapter). The difference from the Thinking-2507 notebook is recorded instead.
+
+## GPU run (2026-11-25): consistent with P-0005; not attributed yet (rule 4)
+- **What the GPU run showed** (Tesla T4, Unsloth's CUDA route, `docs/evidence/2026-11-25-m3-unsloth-gpu/`):
+  - `t1.special_tokens` is inconclusive in all 15 cells where its reference runs (8 thinking, 7 non-thinking):
+    - part 1 (the special tokens themselves) passes;
+    - part 2 (padding) saw a batch 537 wide when asked for `pad_to`=545: "the padded row has 537 tokens, not pad_to=545; check the adapter's mapping of pad_to";
+    - so the `pad_is_closing_token_masked` plant had no padded batch to show in, and the self-test reads "missed".
+  - The predictions (docs alone) said pass, and named these cells in advance as the ones where this record's code reading disagrees. These are the run's only 15 misses (81 of 96).
+  - The adapter's live declaration for that config, on GPU: `DataCollatorForSeq2Seq(pad_to_multiple_of=None, label_pad_token_id=-100)`, the collator `train_on_responses_only` installs. That's the same as on CPU.
+- **Rule 4, our adapter's `pad_to` mapping first.** What rules it out, and what doesn't yet:
+  - Code: the adapter passes `TrainCfg.pad_to` straight to `SFTConfig(pad_to_multiple_of=...)`, with no backend branch. The GPU declaration's config shows `pad_to=545` reached the adapter. That is Parity's `TrainCfg`, not `SFTConfig` (the skeptic's correction).
+  - Code, Unsloth's GPU route (skeptic, read-only):
+    - its `SFTConfig` replacements leave the field alone (`unsloth/models/rl.py` L3549-3575; L3730-3738 replaces only None/'auto', and only with flex attention on);
+    - TRL builds `DataCollatorForLanguageModeling(pad_to_multiple_of=args.pad_to_multiple_of)` (`trl/trainer/sft_trainer.py` L975-979);
+    - Unsloth's collator rebuild does nothing when no collator is passed (`rl.py` L3354-3384);
+    - the zoo's swap keeps nothing from TRL's collator (`dataset_utils.py` L2450-2482).
+  - Behavior on CPU, same adapter code: objective `all` pads to the requested width, and `assistant_only` doesn't. The skeptic saw 545 vs 538 in this record's first triage; `findings/P-0005/adapter_check.py` shows 546 vs 538 on CPU, with `trainer.args.pad_to_multiple_of` holding the value in both cases.
+  - **Not shown on GPU:** that `trainer.args.pad_to_multiple_of` and the collator before the swap held 545 there. The GPU route replaces `SFTConfig` and `SFTTrainer` with Unsloth's patched versions, and the verdicts recorded only the final collator.
+  - So the drop happens after our adapter on CPU, and is consistent with that on GPU, but not shown there. These 15 cells are not attributed to P-0005 until `adapter_check.py` runs on GPU. The adapter's declaration now also records `trainer.args.pad_to_multiple_of`, so future verdicts carry that fact.
+- **The optional repro didn't run** (harness error H-10, `findings/LEDGER.md`). Both GPU runs crashed at `SFTTrainer` with "You cannot perform fine-tuning on purely quantized models": the repro attached no LoRA. Fixed: `get_peft_model` before the trainer, as the recommended notebook does. On CPU the results are unchanged (width 64 to 26, exit 1, for both variants).
+- **The `padding_side='left'` the GPU declaration showed was ours** (harness error H-11, found by the skeptic; `findings/LEDGER.md`):
+  - Unsloth's patched `SFTTrainer.__init__` ends with `model.for_inference()` (`rl.py` L754-757), which sets the tokenizer's padding side to left (`llama.py` L6026-6030).
+  - `train()` is wrapped (`rl.py` `prepare_for_training_mode`) to call `model.for_training(...)` first, which sets it back to right.
+  - The adapter collated in between, in a state training never uses. It now makes the same `for_training` call first (`_enter_training_mode`).
+  - On CPU the re-run is identical: 96 of 96 verdicts unchanged.
+  - No verdict was affected: the check accepts padding at either end, and the padding part never got that far.
+- **Next GPU trip:** the kit's `RUN = "p0005"`, a few minutes. It runs:
+  - the fixed repro, padded;
+  - the repro with `padding_free` left to Unsloth;
+  - the repro with one real `trainer.train()` step (`--train-step`): the batch training actually draws, its width and padding side;
+  - `adapter_check.py`. Expected if P-0005 holds: objective `all` 545 and `assistant_only` 537, with `trainer.args.pad_to_multiple_of=545` in both.
+  - Then the 15 cells can be attributed.
+
+## Skeptic verdict on the GPU run (2026-11-25)
+- **Verdict: partly holds.** P-0005 is the likely cause, but it isn't shown on GPU. Confidence medium-high, from code reading; nothing on GPU has measured it.
+- **What the evidence does show:** the final collator, and a width equal to the longest row (537).
+- **What it doesn't:** that fits a dropped setting, and it equally fits a value that never reached `SFTConfig`.
+- **The minimal measurement:** `adapter_check.py` on GPU, plus one real training step with a recording collator. Both are in the P-0005-only mode.
+- **Its other finding:** H-11, above.
 
 ## Repro
 - `findings/P-0005/repro.py` (triage repro, not shrunk; CPU; tokenizer and config files only; padded batches set explicitly): exits 1 (the setting is dropped), 3/3 on unsloth 2026.11.10, before and after the `packing=False, padding_free=False` change.
