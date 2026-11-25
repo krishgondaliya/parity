@@ -48,7 +48,7 @@ Not prefix-preserving: at 5 boundary(ies) across 4 fixture(s), rendering a conve
 
 ### Secondary results: non_thinking mode
 
-Secondary: the same encoded rows as the primary results, judged against a second reference rendered in non_thinking mode. No extra framework runs.
+Secondary: each framework encoded again with its documented setting for non_thinking mode (or not_configurable when it documents none), judged against a reference rendered in non_thinking mode.
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |

@@ -12,8 +12,9 @@ Each model gets one section, in this order:
    as "prefix preserved".
 
 Results come in one table per serving mode (parity.serving). The primary mode
-comes first; any other mode is a clearly labeled secondary result: the same
-encoded rows, judged against a second reference rendered in that mode.
+comes first; any other mode is a clearly labeled secondary result: each
+framework encoded again with its documented setting for that mode (or
+not_configurable), judged against a reference rendered in that mode.
 
 Backends: a framework that records one (Unsloth) is named with it, e.g.
 "unsloth@2026.11.10 (gpu)". When a framework has GPU results, its CPU results
@@ -99,8 +100,8 @@ def render_summary(
                 lines += [
                     f"### Secondary results: {mode} mode",
                     "",
-                    "Secondary: the same encoded rows as the primary results, judged against a second reference "
-                    f"rendered in {mode} mode. No extra framework runs.",
+                    f"Secondary: each framework encoded again with its documented setting for {mode} mode (or "
+                    f"not_configurable when it documents none), judged against a reference rendered in {mode} mode.",
                     "",
                 ]
             mode_cells = [c for c in model_cells if c.serving_mode == mode]
