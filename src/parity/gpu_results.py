@@ -7,6 +7,8 @@ climb out with "..", use backslashes, or are links are refused. Then `verify_zip
   for the uploaded code, so the code that ran is exactly that commit;
 - the run's mode, that every step passed, that Unsloth took its CUDA route (the smoke step), that the lockfile's
   sha256 is the committed one at that commit, and that every installed version was as locked.
+A per-model zip (written the moment one model finished, so a lost session keeps it) passes the same checks; its
+status.json says which model (`partial`), and `facts["partial"]` reports it so the caller can tell.
 Callers add their own checks on what the run produced (verdicts, P-0005 runs).
 """
 
@@ -84,6 +86,7 @@ def verify_zip(zip_path: Path, root: Path, repo: Path, mode: str) -> dict:
         raise Refused(f"expected a {mode!r} run, got {run_mode!r}")
     if not status["ok"]:
         raise Refused("the run didn't finish (status.json ok is false)")
+    facts["partial"] = status.get("partial")  # a per-model zip (one model, written as it finished), or None
     smoke = environment["platform"].get("torch", {})
     if environment["backend"] != "gpu" or smoke.get("unsloth_device_type") != "cuda":
         raise Refused("the smoke step didn't confirm Unsloth's CUDA route")

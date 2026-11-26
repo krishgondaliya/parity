@@ -24,7 +24,7 @@ In Colab, the notebook installs Unsloth's environment from Parity's lockfile int
 
 1. Open your WSL terminal and go to the repo: `cd ~/parity`
 2. Make sure everything is committed: `git status` should say "nothing to commit". The kit is built from the last commit only, so uncommitted changes would be left out. The build refuses if tracked files have changes.
-3. Build it: `uv run python docs/gpu-run/build_kit.py`
+3. Build it: `uv run python docs/gpu-run/build_kit.py`. For target models, add `--models org/name@<sha>,...` (I'll give you the exact command); it refuses a target whose predictions aren't committed, and writes the list into the kit's notebook.
 4. It prints a line starting `folder (Windows):`, like `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist\gpu-kit\<commit>`. Copy that path.
 5. Open **File Explorer** in Windows, paste the path into the address bar at the top, and press Enter. You should see the three files above. Keep this window open.
 
@@ -44,12 +44,12 @@ In Colab, the notebook installs Unsloth's environment from Parity's lockfile int
 
 Each code cell has a ▶ (play) button at its top left. Click it and wait until the cell finishes (the spinner stops and a green check appears) before starting the next one.
 
-12. **Cell 2 (MODELS and RUN):** ▶. Nothing prints. Leave `MODELS` as it is: it's the calibration model. `RUN` says what to run:
+12. **Cell 2 (MODELS and RUN):** ▶. Nothing prints. Leave `MODELS` as it is: the kit wrote the models to run (the calibration model unless I said otherwise). `RUN` says what to run:
     - `RUN = "full"` (the default): the six checks, about 20 minutes, with cell 6 optional;
     - `RUN = "p0005"`: only P-0005, a few minutes: install, the GPU check, then the P-0005 runs. No checks run and no verdicts are made. Use this when you're asked for a P-0005-only trip: change the word between the quotes, then run the cell.
 13. **Cell 3 (GPU check):** ▶. A table prints with **Tesla T4** in it. If it says "No GPU", go back to step 9.
 14. **Cell 4 (upload):** ▶. A **Choose Files** button appears under the cell. Click it and pick `parity-src-<commit>.zip` from the kit folder. Wait for "100% done". The cell then prints `Code from commit ...`: check that it matches the commit in `KIT.txt`.
-15. **Cell 5 (the run):** ▶. With `RUN = "full"` this takes about 20 to 40 minutes; with `RUN = "p0005"`, a few minutes, and the `checks` step below is replaced by the P-0005 runs. **Keep the browser tab open and the computer awake.** It prints each step as it goes:
+15. **Cell 5 (the run):** ▶. With `RUN = "full"` this takes about 20 to 40 minutes; with `RUN = "p0005"`, a few minutes, and the `checks` step below is replaced by the P-0005 runs. **Keep the browser tab open and the computer awake.** As soon as each model finishes, your browser downloads that model's results (`parity-gpu-model-<commit>-<model>-<time>.zip`); allow the downloads if it asks. If the session is lost later, those zips are already safe: bring them back with whatever else you have. It prints each step as it goes:
     - `platform`: which GPU and driver;
     - `choose`: which lockfile the driver allows;
     - `uv` and `sync`: installing, the longest step (several GB of downloads);
@@ -72,7 +72,7 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
 
 ### E. Bring the zip back
 
-18. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zip into it. **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
+18. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zips into it (the results zip, and the per-model zips). **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
 19. Tell Claude Code: "The GPU results zip is at `dist/gpu-results/<file name>.zip`".
 20. Back in Colab: menu **Runtime > Disconnect and delete runtime**, so the free GPU isn't held.
 
@@ -99,7 +99,7 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
 
 ## For later runs (M5 targets)
 
-- The same kit runs other models: edit the `MODELS` list in cell 2 before running it. Each entry is `org/name@<40-character commit>`.
+- The same kit runs other models: build it with `--models`, or edit the `MODELS` list in cell 2. Each entry is `org/name@<40-character commit>`, and every target needs its committed Unsloth predictions in the code zip, or `run_checks.py` refuses it.
 - Two conditions first, for each target:
   - its `predictions.md` is committed;
   - the Unsloth adapter supports that model's chat format. Today its assistant-only step uses Qwen's ChatML parts, so other model families need adapter work first.

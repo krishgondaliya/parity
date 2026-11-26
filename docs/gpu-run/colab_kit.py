@@ -15,9 +15,12 @@ Steps, each logged to <out>/logs/<step>.log; any failure stops the run but still
 5. freeze    Every installed version, compared with the lockfile.
 6. smoke     In that environment: torch sees the GPU and runs on it, and Unsloth takes its GPU route
              (UNSLOTH_DISABLE_CPU_FALLBACK=1, so it raises instead of falling back to CPU).
-7. checks    docs/gpu-run/run_checks.py: the six Tier 1 checks, both serving modes, for each model.
+7. checks    docs/gpu-run/run_checks.py: the six Tier 1 checks, both serving modes, one model at a time. As soon as a
+             model finishes, its results go into a zip of their own (MODEL_ZIP=<path>; the notebook downloads it at
+             once), with environment.json, status.json and MANIFEST.json, so a lost Colab session keeps the models
+             that finished (the human's decision, 2026-11-25).
 Then environment.json (what ran, and every deviation from Unsloth's documented install), MANIFEST.json (sha256 of
-every file) and one zip.
+every file) and one zip of everything.
 
 P-0005 (P0005_RUNS: the repro padded, with padding_free left to Unsloth, and with one real training step, then the
 adapter's pad_to check) runs in
@@ -92,9 +95,9 @@ FIXED_DEVIATIONS = [
     "holds the 2026-11-23 spike's resolution of unsloth==2026.11.10 (as in the CPU run; "
     "envs/unsloth-2026.11.10/environment.json).",
     "Python 3.12, not the documented 3.13: Parity's core requires 3.12, and the lock resolves Unsloth on 3.12.",
-    "The model is a tiny from_config Qwen3-shaped model (1 layer, random weights) saved next to the release's real "
-    "tokenizer, template and config files, loaded through FastLanguageModel.from_pretrained with the notebook's "
-    "load_in_4bit=True. No weights are downloaded (rule 6).",
+    "The model is a tiny from_config model of the release's architecture (parity.tiny: random weights, recorded per "
+    "verdict in declaration.model_build) saved next to the release's real tokenizer, template and config files, "
+    "loaded through FastLanguageModel.from_pretrained with load_in_4bit=True. No weights are downloaded (rule 6).",
 ]
 
 
@@ -198,14 +201,41 @@ class Kit:
         return f"torch {facts['torch']} (CUDA {facts['torch_cuda']}) on {facts['device']}; Unsloth {facts['unsloth_device_type']}"
 
     def checks_step(self) -> str:
-        command = [
-            str(self.venv_python()), "docs/gpu-run/run_checks.py", "--models", ",".join(self.models),
-            "--out", str(self.out / "results"), "--env-lock", self.facts["env_lock"],
-        ]  # fmt: skip
-        code, _ = self.run("checks", command)
-        if code != 0:
-            raise KitError(f"run_checks.py exited {code} (logs/checks.log and results/*/run.json)")
-        return f"{len(self.models)} model(s)"
+        failed = []
+        for spec in self.models:
+            command = [
+                str(self.venv_python()), "docs/gpu-run/run_checks.py", "--models", spec,
+                "--out", str(self.out / "results"), "--env-lock", self.facts["env_lock"],
+            ]  # fmt: skip
+            code, _ = self.run("checks", command)
+            if code != 0:
+                failed.append(spec)
+            path = self.model_zip(spec, ok=code == 0)
+            print(f"MODEL_ZIP={path}", flush=True)
+        if failed:
+            raise KitError(f"run_checks.py failed for {failed} (logs/checks.log and results/*/run.json)")
+        return f"{len(self.models)} model(s), each zipped as it finished"
+
+    def model_zip(self, spec: str, ok: bool) -> Path:
+        """One model's results, zipped the moment it finishes: its results folder and the logs so far, with
+        environment.json, a status.json marked partial, and a MANIFEST.json of exactly those files."""
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        folder = model_folder(spec)
+        stage = self.out.parent / f"parity-gpu-model-{self.commit[:12]}-{folder}-{stamp}"
+        shutil.rmtree(stage, ignore_errors=True)
+        (stage / "results").mkdir(parents=True)
+        if (self.out / "results" / folder).is_dir():
+            shutil.copytree(self.out / "results" / folder, stage / "results" / folder)
+        if self.logs.is_dir():
+            shutil.copytree(self.logs, stage / "logs")
+        status = {
+            "mode": self.mode,
+            "ok": bool(self.steps) and all(s.ok for s in self.steps),  # every step before this one passed
+            "partial": {"model": spec, "model_ok": ok, "models": self.models},
+            "steps": [s.__dict__ for s in self.steps],
+            "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        return self._write_and_zip(stage, status)
 
     def freeze_step(self) -> str:
         code, text = self.run("freeze", [str(self.venv_python()), "-c", FREEZE, self.facts["env_lock"]])
@@ -260,27 +290,32 @@ class Kit:
     def finish(self) -> Path:
         """Write environment.json, status.json and MANIFEST.json, then zip the whole output folder."""
         self.out.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        archive = self.out.parent / f"parity-gpu-results-{self.commit[:12]}-{stamp}.zip"
-        (self.out / "environment.json").write_text(json.dumps(self.environment(), indent=1) + "\n", encoding="utf-8")
         status = {
             "mode": self.mode,
             "ok": bool(self.steps) and all(s.ok for s in self.steps) and len(self.steps) == len(steps_for(self.mode)),
             "steps": [s.__dict__ for s in self.steps],
             "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
-        (self.out / "status.json").write_text(json.dumps(status, indent=1) + "\n", encoding="utf-8")
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        return self._write_and_zip(self.out, status, f"parity-gpu-results-{self.commit[:12]}-{stamp}")
+
+    def _write_and_zip(self, folder: Path, status: dict, name: str | None = None) -> Path:
+        """environment.json, status.json and MANIFEST.json into `folder`, then `folder` zipped next to it, under one
+        top folder named like the zip."""
+        archive = folder.parent / f"{name or folder.name}.zip"
+        (folder / "environment.json").write_text(json.dumps(self.environment(), indent=1) + "\n", encoding="utf-8")
+        (folder / "status.json").write_text(json.dumps(status, indent=1) + "\n", encoding="utf-8")
         manifest = {
             "schema": "parity.gpu_kit/v0",
             "commit": self.commit,
             "archive_sha256": self.archive_sha256,
-            "files": manifest_of(self.out),
+            "files": manifest_of(folder),
         }
-        (self.out / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
+        (folder / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
         with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
-            for path in sorted(self.out.rglob("*")):
+            for path in sorted(folder.rglob("*")):
                 if path.is_file():
-                    zf.write(path, Path(archive.stem) / path.relative_to(self.out))
+                    zf.write(path, Path(archive.stem) / path.relative_to(folder))
         return archive
 
 
@@ -309,6 +344,11 @@ def stream(command: list[str], cwd: Path, env: dict[str, str], log_path: Path) -
         code = proc.wait()
         log.write(f"[exit {code}]\n")
     return code, "".join(lines)
+
+
+def model_folder(spec: str) -> str:
+    """The results folder of one model, as run_checks.py names it: org__name."""
+    return spec.split("@", 1)[0].replace("/", "__")
 
 
 def driver_cuda_version(nvidia_smi: str) -> tuple[int, int]:

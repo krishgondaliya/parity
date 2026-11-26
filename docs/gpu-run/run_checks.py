@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from parity.adapters.unsloth import BACKEND, DEVICE_TYPE, UnslothAdapter  # Unsloth first, as its notebooks do
+from parity.adapters.unsloth import BACKEND, DEVICE_TYPE, VERSION, UnslothAdapter  # Unsloth first, as its notebooks do
 
 import json  # noqa: E402
 import time  # noqa: E402
@@ -30,6 +30,7 @@ from pathlib import Path  # noqa: E402
 from parity.adapters.base import TrainCfg  # noqa: E402
 from parity.checks.common import official_template  # noqa: E402
 from parity.checks.tier1 import tier1_checks  # noqa: E402
+from parity.engine.predictions import archived_predictions, needs_predictions  # noqa: E402
 from parity.engine.runner import evaluate_suite  # noqa: E402
 from parity.engine.verdict import write_verdict  # noqa: E402
 from parity.fixtures import load_all  # noqa: E402
@@ -41,8 +42,14 @@ def model_folder(spec: str) -> str:
     return Release.parse(spec).repo_id.replace("/", "__")
 
 
+ARCHIVE_ROOT = Path(__file__).resolve().parents[2]  # the unpacked git archive of HEAD (or the repo itself)
+
+
 def run_model(spec: str, out: Path, env_lock: str) -> dict:
     started = time.time()
+    predictions = None
+    if needs_predictions(spec):  # predictions first, per pair: refuses before anything of Unsloth's runs on it
+        predictions = archived_predictions(ARCHIVE_ROOT, "Unsloth", VERSION, spec).path
     release = load_release(Release.parse(spec))
     adapter = UnslothAdapter(release, env_lock=env_lock)
     fixtures = load_all()
@@ -70,6 +77,7 @@ def run_model(spec: str, out: Path, env_lock: str) -> dict:
         "env_lock": adapter.env_lock,
         "env_fingerprint": adapter.env_fingerprint,
         "verdicts": len(verdicts),
+        "predictions": predictions,
         "counts": counts,
         "seconds": round(time.time() - started, 1),
     }

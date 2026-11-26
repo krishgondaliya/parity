@@ -349,3 +349,61 @@ def test_the_notebook_switches_between_full_and_p0005_only():
     assert optional.startswith("# Cell 6 (optional)") and '"--extra", "p0005"' in optional
     assert optional.index('if RUN == "p0005":') < optional.index("subprocess.Popen")  # skipped in p0005-only mode
     assert download.startswith("# Cell 7: download") and "files.download(RESULT_ZIP)" in download
+
+
+# Each model's results are zipped the moment that model finishes (the human's decision, 2026-11-25)
+
+DEEPSEEK = "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518"
+
+
+def test_each_model_is_zipped_as_soon_as_it_finishes(tmp_path, capsys):
+    out = tmp_path / "parity-gpu-out"
+    run = kit.Kit(ROOT, out, [CALIBRATION.spec, DEEPSEEK], "e" * 40, "f" * 64)
+    run.facts.update(env_dir=kit.CU126_ENV, env_lock=f"{kit.CU126_ENV}/uv.lock")
+    for name in kit.STEPS[:-1]:
+        run.steps.append(kit.Step(name, ok=True, seconds=1.0))
+    seen = []
+
+    def fake_run(step, command, cwd=None):
+        spec = command[command.index("--models") + 1]
+        seen.append(spec)
+        folder = out / "results" / kit.model_folder(spec)
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "run.json").write_text(json.dumps({"model": spec}), encoding="utf-8")
+        return (0 if spec == CALIBRATION.spec else 1), ""
+
+    run.run = fake_run
+    with pytest.raises(kit.KitError, match="deepseek"):
+        run.checks_step()
+    assert seen == [CALIBRATION.spec, DEEPSEEK]  # one model per run_checks.py call, in order
+    zips = [Path(line.split("=", 1)[1]) for line in capsys.readouterr().out.splitlines() if line.startswith("MODEL_ZIP=")]
+    assert len(zips) == 2
+    for path, spec, ok in zip(zips, [CALIBRATION.spec, DEEPSEEK], [True, False]):
+        with zipfile.ZipFile(path) as zf:
+            top = path.stem
+            names = {n.removeprefix(f"{top}/") for n in zf.namelist()}
+            manifest = json.loads(zf.read(f"{top}/MANIFEST.json"))
+            status = json.loads(zf.read(f"{top}/status.json"))
+        folders = {n.split("/")[1] for n in names if n.startswith("results/")}
+        assert folders == {kit.model_folder(spec)}  # only this model's results
+        assert set(manifest["files"]) == names - {"MANIFEST.json"} and manifest["commit"] == "e" * 40
+        assert status["partial"] == {"model": spec, "model_ok": ok, "models": [CALIBRATION.spec, DEEPSEEK]}
+        assert status["ok"] is True  # every step before the checks passed
+
+
+def test_build_kit_writes_the_models_into_the_kits_notebook_and_nothing_else():
+    build = load("build_kit")
+    committed = (KIT_DIR / "parity_gpu_run.ipynb").read_text(encoding="utf-8")
+    written = json.loads(build.notebook_with_models(committed, [CALIBRATION.spec, DEEPSEEK]))
+    original = json.loads(committed)
+    namespace: dict = {}
+    exec("".join(written["cells"][1]["source"]), namespace)
+    assert namespace["MODELS"] == [CALIBRATION.spec, DEEPSEEK] and namespace["RUN"] == "full"
+    assert [c for i, c in enumerate(written["cells"]) if i != 1] == [c for i, c in enumerate(original["cells"]) if i != 1]
+    assert build.notebook_with_models(committed, [CALIBRATION.spec]) == committed
+
+
+def test_the_notebook_downloads_each_models_zip_as_it_arrives():
+    nb = json.loads((KIT_DIR / "parity_gpu_run.ipynb").read_text(encoding="utf-8"))
+    cell5 = "".join(nb["cells"][4]["source"])
+    assert 'line.startswith("MODEL_ZIP=")' in cell5 and "files.download(" in cell5
