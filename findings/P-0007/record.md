@@ -8,7 +8,7 @@
 - Check: t1.template_parity   Fixture: reasoning   Kind: bug (the fixture's other checks are inconclusive behind it)
 - Verdict file: docs/evidence/2026-11-26-m5-axolotl-deepseek/verdicts/thinking/t1.template_parity__reasoning.json (M5, the `deepseek_v4` stand-in; D1)
 - Predicted before the run: no (`docs/evidence/2026-11-26-m5-axolotl-deepseek/predictions.md` predicted template parity pass on `reasoning`).
-- **Not this finding:** the 9 assistant-mask and truncation fails on single_turn, multi_turn, system_prompt, long_answer and non_ascii (the last turn's `</think>` untrained). Those fixtures carry no reasoning, the field drop doesn't touch them, and with the fields mapped explicitly `</think>` is still untrained there. They are KD-0002's first-field rule on DeepSeek's template, left untriaged for the human's decision (below).
+- **Not this finding:** the 9 assistant-mask and truncation fails on single_turn, multi_turn, system_prompt, long_answer and non_ascii (the last turn's `</think>` untrained). Those fixtures carry no reasoning, the field drop doesn't touch them, and with the fields mapped explicitly `</think>` is still untrained there. They are KD-0002's first-field rule on DeepSeek's template: known differences KD-0004 and KD-0005 since 2026-11-26 (the human's decision; same code path and test as KD-0002, traced in `docs/evidence/2026-11-26-kd-deepseek-think-close/`).
 
 ## Evidence
 - **Reasoning dropped** (M5 `t1.template_parity` on `reasoning`, first divergence at token 63): the template renders the last turn as `<｜Assistant｜><think>97 is not divisible by 2, 3, 5 or 7, …</think>Yes, 97 is prime.<｜end▁of▁sentence｜>`; Axolotl's row has `<｜Assistant｜><think></think>Yes, 97 is prime.<｜end▁of▁sentence｜>` (72 tokens, against 105).
@@ -42,7 +42,7 @@
 - On those turns Axolotl labels from the first field it has, the content, to the end. Its own test covers turns with reasoning (`tests/prompt_strategies/test_chat_templates_thinking.py` L143-L177: `greet</think>hello<|im_end|>…` trained), where the span starts at the reasoning and `</think>` is trained.
 - With no reasoning, the template-emitted `</think>` before the content is outside the span. That's the same as Qwen3's empty think block (`triage_think_close.json`: Qwen3's `</think>` is unlabeled on single_turn and multi_turn too), which KD-0002 and KD-0003 cover for Qwen3's template.
 - In DeepSeek's thinking mode the model generates that `</think>` (encoding.py, above), so it's untrained model output either way. The guidance for this triage assumed Qwen3 trains `</think>`. That holds only on turns with reasoning.
-- **Open for the human:** treat the first-field rule on DeepSeek's template as a known difference (a new KD entry; KD-0002/KD-0003 are pinned to Qwen3's template hash), or as a candidate on both templates. Until then those 9 cells are untriaged. This record doesn't extend the KD entries.
+- **Decided 2026-11-26 (human):** a known difference if and only if the same code path and documented test as KD-0002. Both hold, so these are KD-0004 and KD-0005, scoped to DeepSeek V4.1's template, thinking mode and conversations without reasoning (`docs/DECISIONS.md`).
 
 ## Triage (from /triage)
 - **Calibration green on the known-good model:** yes (M4; re-calibrated 96/96 after the adapter change, `docs/evidence/2026-11-26-m4-recalibration/`).

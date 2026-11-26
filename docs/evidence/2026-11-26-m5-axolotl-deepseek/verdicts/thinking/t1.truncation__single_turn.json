@@ -5,9 +5,9 @@
   "framework": "axolotl@0.21.1",
   "fixture": "single_turn",
   "result": "fail",
-  "kind": "bug",
+  "kind": "difference",
   "self_test": "caught",
-  "known_difference": null,
+  "known_difference": "KD-0005",
   "reason": null,
   "evidence": {
     "counts": {
@@ -26,7 +26,16 @@
     "must_not_train_supervised": [],
     "label_mismatch": [],
     "supervised_tokens": 7,
-    "rule": "drop: the kept row's loss doesn't follow the reference zones"
+    "rule": "drop: the kept row's loss doesn't follow the reference zones",
+    "known_difference": {
+      "id": "KD-0005",
+      "signature": "think_close_untrained_without_reasoning",
+      "docs": [
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L728-L756",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd#L443-L445"
+      ]
+    }
   },
   "conventions": {
     "truncation_mode": "drop",
@@ -156,7 +165,7 @@
   "template_properties": [],
   "flags": [],
   "serving_mode": "thinking",
-  "root_cause": null,
+  "root_cause": "KD-0004",
   "env_lock": "envs/axolotl-0.21.1/uv.lock",
   "env_fingerprint": "bf1a1261b0914f900db89c235177c833d195b5fd21985bf8a463c1342b665f9b",
   "repro": null,

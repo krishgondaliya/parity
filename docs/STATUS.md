@@ -75,7 +75,7 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 | --- | --- | --- | --- |
 | TRL 1.18.2 × DeepSeek V4.1 | 96 of 96 | 44 `not_supported` (TRL's pinned refusal: no generation markers), 4 n/a | `docs/evidence/2026-11-26-m5-trl-deepseek/` |
 | TRL 1.18.2 (vlm) × Inkling-2-Mini | 96 of 96 | 38 pass, 1 fail (P-0008, `tool_call`), 5 inconclusive, 4 n/a | `docs/evidence/2026-11-26-m5-trl-inkling/` |
-| Axolotl 0.21.1 × DeepSeek V4.1 | 90 of 96 | 17 pass, 10 fail (1 P-0007; 9 untriaged: `</think>` on turns without reasoning, the human's call), 17 inconclusive, 4 n/a; the 6 misses are all `reasoning` | `docs/evidence/2026-11-26-m5-axolotl-deepseek/` |
+| Axolotl 0.21.1 × DeepSeek V4.1 | 81 of 96 (90 at the first run) | 17 pass, 1 fail (P-0007), 9 known differences (KD-0004: `</think>` untrained without reasoning, the human's decision after the run), 17 inconclusive, 4 n/a. Misses: the 6 `reasoning` cells, and the 9 cells predicted `fail` that are now differences (their behavior is unchanged) | `docs/evidence/2026-11-26-m5-axolotl-deepseek/` |
 | Unsloth 2026.11.10 × DeepSeek V4.1 (GPU) | not run yet | predictions committed | `docs/evidence/2026-11-26-m5-unsloth-deepseek/predictions.md` |
 
 - **Built for M5:** the runner refuses a pair without committed predictions (`parity.engine.predictions`, `docs/evidence/2026-11-26-m5-runs/run.py`); the GPU kit applies the same guard to its archive and zips each model's results as it finishes.
@@ -85,7 +85,6 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 
 1. **Human: the Colab run** with the kit above. Bring back the per-model zips and the results zip.
 2. **After it:** ingest the GPU results; for Unsloth × DeepSeek V4.1, compare its labels with Unsloth's documented auto-detection (`train_on_responses_only` with no parts) on the same rows (the human's item 3).
-3. **Human: the `</think>` question** (P-0007's record, "The `</think>` fails on fixtures without reasoning"): on turns without reasoning, Qwen3's `</think>` is untrained too (KD-0002's first-field rule; the skeptic confirmed the field drop doesn't cause DeepSeek's). A new KD entry for DeepSeek's template, or a candidate on both? Until then 9 Axolotl × DeepSeek cells are untriaged.
 4. **Human: P-0008's official-renderer check.** Thinking Machines' tml-renderers decides P-0008's reference (empty content as `""`, null and an empty text part, with tool calls). Running it needs your OK: the skeptic's attempt was blocked by the permission system, and I didn't run it in its place.
 5. **M6 for P-0007 and P-0008:** standalone repros (D1: tokenizer and template, a model the framework supports), then drafts, after the human's calls.
 6. **After M5 (not yet):** whether `AutoProcessor`'s silent fallback to the tokenizer changes what TRL trains on for Inkling under a plain `pip install trl` (the human's item 4); predictions first.

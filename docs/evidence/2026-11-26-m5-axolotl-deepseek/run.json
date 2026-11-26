@@ -14,5 +14,5 @@
  "env_fingerprint": "bf1a1261b0914f900db89c235177c833d195b5fd21985bf8a463c1342b665f9b",
  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
  "predictions": "docs/evidence/2026-11-26-m5-axolotl-deepseek/predictions.md",
- "seconds": 291.2
+ "seconds": 271.2
 }

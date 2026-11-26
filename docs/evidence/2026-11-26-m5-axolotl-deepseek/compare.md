@@ -1,18 +1,18 @@
 # Axolotl 0.21.1 on deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518: predicted vs actual
 
-90 of 96 cells as predicted: thinking (primary) 42 of 48, non-thinking (secondary) 48 of 48.
+81 of 96 cells as predicted: thinking (primary) 33 of 48, non-thinking (secondary) 48 of 48.
 
 Predictions: [`predictions.md`](predictions.md), committed before this run. Verdicts: `verdicts/`.
 
 | Mode | Check | Fixture | Predicted | Actual | Match | Reason, where it differs |
 | --- | --- | --- | --- | --- | --- | --- |
 | thinking | t1.assistant_mask | empty_assistant | inconclusive | inconclusive | yes |  |
-| thinking | t1.assistant_mask | long_answer | fail | fail | yes |  |
-| thinking | t1.assistant_mask | multi_turn | fail | fail | yes |  |
-| thinking | t1.assistant_mask | non_ascii | fail | fail | yes |  |
+| thinking | t1.assistant_mask | long_answer | fail | difference | **no** |  |
+| thinking | t1.assistant_mask | multi_turn | fail | difference | **no** |  |
+| thinking | t1.assistant_mask | non_ascii | fail | difference | **no** |  |
 | thinking | t1.assistant_mask | reasoning | fail | inconclusive | **no** | the framework's tokens differ from its own declared template's render, so this check can't line them up with the reference; see t1.template_ |
-| thinking | t1.assistant_mask | single_turn | fail | fail | yes |  |
-| thinking | t1.assistant_mask | system_prompt | fail | fail | yes |  |
+| thinking | t1.assistant_mask | single_turn | fail | difference | **no** |  |
+| thinking | t1.assistant_mask | system_prompt | fail | difference | **no** |  |
 | thinking | t1.assistant_mask | tool_call | inconclusive | inconclusive | yes |  |
 | thinking | t1.end_of_turn | empty_assistant | inconclusive | inconclusive | yes |  |
 | thinking | t1.end_of_turn | long_answer | pass | pass | yes |  |
@@ -48,11 +48,11 @@ Predictions: [`predictions.md`](predictions.md), committed before this run. Verd
 | thinking | t1.template_parity | tool_call | inconclusive | inconclusive | yes |  |
 | thinking | t1.truncation | empty_assistant | inconclusive | inconclusive | yes |  |
 | thinking | t1.truncation | long_answer | pass | pass | yes |  |
-| thinking | t1.truncation | multi_turn | fail | fail | yes |  |
-| thinking | t1.truncation | non_ascii | fail | fail | yes |  |
+| thinking | t1.truncation | multi_turn | fail | difference | **no** |  |
+| thinking | t1.truncation | non_ascii | fail | difference | **no** |  |
 | thinking | t1.truncation | reasoning | fail | inconclusive | **no** | the framework's tokens differ from its own declared template's render, so this check can't line them up with the reference; see t1.template_ |
-| thinking | t1.truncation | single_turn | fail | fail | yes |  |
-| thinking | t1.truncation | system_prompt | fail | fail | yes |  |
+| thinking | t1.truncation | single_turn | fail | difference | **no** |  |
+| thinking | t1.truncation | system_prompt | fail | difference | **no** |  |
 | thinking | t1.truncation | tool_call | inconclusive | inconclusive | yes |  |
 | non_thinking | t1.assistant_mask | empty_assistant | inconclusive | inconclusive | yes |  |
 | non_thinking | t1.assistant_mask | long_answer | pass | pass | yes |  |

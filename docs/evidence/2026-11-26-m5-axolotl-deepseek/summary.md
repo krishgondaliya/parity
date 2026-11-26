@@ -27,12 +27,12 @@ Not prefix-preserving: at 4 boundary(ies) across 3 fixture(s), rendering a conve
 
 | Framework | Check | Result | Ran on | Notes |
 | --- | --- | --- | --- | --- |
-| axolotl@0.21.1 | t1.assistant_mask | fail | 8 of 8 | 5 untriaged fail(s) |
+| axolotl@0.21.1 | t1.assistant_mask | inconclusive | 8 of 8 | known differences: KD-0004; root cause: KD-0004 |
 | axolotl@0.21.1 | t1.end_of_turn | inconclusive | 8 of 8 |  |
 | axolotl@0.21.1 | t1.multiturn_prefix | inconclusive | 4 of 8 | prefix not preserved; the breaks are the template's (see [deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f0229#prefix-breaks@95b7033a693b/thinking](#deepseek-ai-deepseek-v4-1-flash-1017-08c8657f0229-prefix-breaks-95b7033a693b-thinking)); blocked by t1.template_parity on 1 fixture(s); not applicable on 4 fixture(s) |
 | axolotl@0.21.1 | t1.special_tokens | inconclusive | 8 of 8 |  |
 | axolotl@0.21.1 | t1.template_parity | fail | 8 of 8 | root cause: P-0007 |
-| axolotl@0.21.1 | t1.truncation | fail | 8 of 8 | 4 untriaged fail(s) |
+| axolotl@0.21.1 | t1.truncation | inconclusive | 8 of 8 | known differences: KD-0005; root cause: KD-0004 |
 
 ### Secondary results: non_thinking mode
 
@@ -55,17 +55,9 @@ Secondary: each framework encoded again with its documented setting for non_thin
 
 ### Fails by root cause
 
-10 fail verdict(s) (10 of kind bug, 0 known differences; 10 thinking (primary), 0 non_thinking) come from 10 framework root cause(s): 1 linked, 9 untriaged (each untriaged fail counts as its own).
+10 fail verdict(s) (1 of kind bug, 9 known differences; 10 thinking (primary), 0 non_thinking) come from 2 framework root cause(s): 2 linked, 0 untriaged (each untriaged fail counts as its own).
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
+| KD-0004 | 9 | axolotl@0.21.1 t1.assistant_mask/long_answer; axolotl@0.21.1 t1.assistant_mask/multi_turn; axolotl@0.21.1 t1.assistant_mask/non_ascii; axolotl@0.21.1 t1.assistant_mask/single_turn; axolotl@0.21.1 t1.assistant_mask/system_prompt; axolotl@0.21.1 t1.truncation/multi_turn; axolotl@0.21.1 t1.truncation/non_ascii; axolotl@0.21.1 t1.truncation/single_turn; axolotl@0.21.1 t1.truncation/system_prompt |
 | P-0007 | 1 | axolotl@0.21.1 t1.template_parity/reasoning |
-| untriaged | 1 | axolotl@0.21.1 t1.assistant_mask/long_answer (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.assistant_mask/multi_turn (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.assistant_mask/non_ascii (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.assistant_mask/single_turn (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.assistant_mask/system_prompt (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.truncation/multi_turn (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.truncation/non_ascii (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.truncation/single_turn (thinking) |
-| untriaged | 1 | axolotl@0.21.1 t1.truncation/system_prompt (thinking) |
