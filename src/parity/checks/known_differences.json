@@ -71,6 +71,53 @@
       ],
       "docs_note": "Axolotl's user docs don't say this. The closest is conversation.qmd L445: generation_tags 'also trains template structure inside them', which implies the default doesn't, without naming think tags. Logged as a possible docs gap, not a finding.",
       "decision": "docs/DECISIONS.md: P-0001 is a known difference (KD-0002, KD-0003), thinking mode only"
+    },
+    {
+      "id": "KD-0004",
+      "framework": "axolotl",
+      "versions": [
+        "0.21.1"
+      ],
+      "check": "t1.assistant_mask",
+      "model_family": "DeepSeek V4.1",
+      "model_template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+      "framework_template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+      "serving_modes": [
+        "thinking"
+      ],
+      "signature": "think_close_untrained_without_reasoning",
+      "summary": "KD-0002's Axolotl labeling rule (type: chat_template, roles_to_train: [assistant], train_on_eos: turn: each assistant turn labeled from its first field, reasoning_content else content, to its end token; template structure before the first field gets no loss) on DeepSeek V4.1's own template, in thinking mode, on conversations without reasoning. The generation prompt ends with the pre-filled <think>, so the structure the model generates before the content is </think> alone, and it is untrained. Same code path as KD-0002 (traced: docs/evidence/2026-11-26-kd-deepseek-think-close/). Not P-0001 or P-0007: a conversation with reasoning is out of scope (there Axolotl drops the reasoning, P-0007).",
+      "docs": [
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L728-L756",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd#L443-L445"
+      ],
+      "docs_note": "Axolotl's user docs don't say this. The closest is conversation.qmd L445: generation_tags 'also trains template structure inside them', which implies the default doesn't, without naming think tags. Logged as a possible docs gap, not a finding. The same holds for DeepSeek V4.1: Axolotl's test documents the first-field rule on turns with reasoning only, for both models; the case without reasoning follows from the same code path.",
+      "decision": "docs/DECISIONS.md: 2026-11-26, the 9 Axolotl x DeepSeek V4.1 </think> cells are a known difference (KD-0004, KD-0005)"
+    },
+    {
+      "id": "KD-0005",
+      "finding": "KD-0004",
+      "framework": "axolotl",
+      "versions": [
+        "0.21.1"
+      ],
+      "check": "t1.truncation",
+      "model_family": "DeepSeek V4.1",
+      "model_template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+      "framework_template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+      "serving_modes": [
+        "thinking"
+      ],
+      "signature": "think_close_untrained_without_reasoning",
+      "summary": "KD-0002's Axolotl labeling rule (type: chat_template, roles_to_train: [assistant], train_on_eos: turn: each assistant turn labeled from its first field, reasoning_content else content, to its end token; template structure before the first field gets no loss) on DeepSeek V4.1's own template, in thinking mode, on conversations without reasoning. The generation prompt ends with the pre-filled <think>, so the structure the model generates before the content is </think> alone, and it is untrained. Same code path as KD-0002 (traced: docs/evidence/2026-11-26-kd-deepseek-think-close/). Not P-0001 or P-0007: a conversation with reasoning is out of scope (there Axolotl drops the reasoning, P-0007).",
+      "docs": [
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/tests/prompt_strategies/test_chat_templates_thinking.py#L143-L177",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L728-L756",
+        "https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd#L443-L445"
+      ],
+      "docs_note": "Axolotl's user docs don't say this. The closest is conversation.qmd L445: generation_tags 'also trains template structure inside them', which implies the default doesn't, without naming think tags. Logged as a possible docs gap, not a finding. The same holds for DeepSeek V4.1: Axolotl's test documents the first-field rule on turns with reasoning only, for both models; the case without reasoning follows from the same code path.",
+      "decision": "docs/DECISIONS.md: 2026-11-26, the 9 Axolotl x DeepSeek V4.1 </think> cells are a known difference (KD-0004, KD-0005)"
     }
   ]
 }

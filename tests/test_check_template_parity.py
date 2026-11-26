@@ -96,7 +96,7 @@ def test_registry_matcher_needs_the_exact_token_sequence(qwen3, trl_qwen3_templa
 
 def test_registry_entries_are_exact_and_match_the_pinned_templates(qwen3):
     registry = {e.id: e for e in load_registry()}
-    assert sorted(registry) == ["KD-0001", "KD-0002", "KD-0003"]
+    assert sorted(registry) == ["KD-0001", "KD-0002", "KD-0003", "KD-0004", "KD-0005"]
     kd = registry["KD-0001"]
     assert kd.versions == ("1.18.2",) and kd.serving_modes == ("thinking", "non_thinking")
     assert kd.model_template_sha256 == template_sha256(official_template(qwen3))

@@ -1,0 +1,446 @@
+{
+ "Qwen/Qwen3-0.6B / single_turn": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   223664
+  ],
+  "turns": [
+   {
+    "pid": 223664,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     17,
+     23
+    ],
+    "untrained_generated_structure": "<think>\n\n</think>\n\n",
+    "first_labeled_token": "Red"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "Qwen/Qwen3-0.6B / multi_turn": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   223784
+  ],
+  "turns": [
+   {
+    "pid": 223784,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     15,
+     17
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "Paris"
+   },
+   {
+    "pid": 223784,
+    "turn_idx": 3,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     31,
+     34
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "Tok"
+   },
+   {
+    "pid": 223784,
+    "turn_idx": 5,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     57,
+     65
+    ],
+    "untrained_generated_structure": "<think>\n\n</think>\n\n",
+    "first_labeled_token": "Tok"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>",
+   "<|im_end|>",
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "Qwen/Qwen3-0.6B / system_prompt": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   223901
+  ],
+  "turns": [
+   {
+    "pid": 223901,
+    "turn_idx": 2,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     34,
+     56
+    ],
+    "untrained_generated_structure": "<think>\n\n</think>\n\n",
+    "first_labeled_token": "Sun"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "Qwen/Qwen3-0.6B / long_answer": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   224013
+  ],
+  "turns": [
+   {
+    "pid": 224013,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     27,
+     535
+    ],
+    "untrained_generated_structure": "<think>\n\n</think>\n\n",
+    "first_labeled_token": "Here"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "Qwen/Qwen3-0.6B / non_ascii": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   224131
+  ],
+  "turns": [
+   {
+    "pid": 224131,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     40,
+     95
+    ],
+    "untrained_generated_structure": "<think>\n\n</think>\n\n",
+    "first_labeled_token": "J"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "Qwen/Qwen3-0.6B / reasoning": {
+  "template_kwargs": {
+   "enable_thinking": true
+  },
+  "worker_pids": [
+   224249
+  ],
+  "turns": [
+   {
+    "pid": 224249,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": true,
+    "locator": true,
+    "span": [
+     16,
+     35
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "No"
+   },
+   {
+    "pid": 224249,
+    "turn_idx": 3,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": true,
+    "locator": true,
+    "span": [
+     53,
+     102
+    ],
+    "untrained_generated_structure": "<think>\n",
+    "first_labeled_token": "9"
+   }
+  ],
+  "labels_outside_spans": [
+   "<|im_end|>",
+   "<|im_end|>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / single_turn": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224381
+  ],
+  "turns": [
+   {
+    "pid": 224381,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     36,
+     42
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "Red"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / multi_turn": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224492
+  ],
+  "turns": [
+   {
+    "pid": 224492,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     37,
+     39
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "Paris"
+   },
+   {
+    "pid": 224492,
+    "turn_idx": 3,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     47,
+     49
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "Tokyo"
+   },
+   {
+    "pid": 224492,
+    "turn_idx": 5,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     63,
+     70
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "Tokyo"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>",
+   "<｜end▁of▁sentence｜>",
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / system_prompt": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224611
+  ],
+  "turns": [
+   {
+    "pid": 224611,
+    "turn_idx": 2,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     48,
+     70
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "Sun"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / long_answer": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224723
+  ],
+  "turns": [
+   {
+    "pid": 224723,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     45,
+     525
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "Here"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / non_ascii": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224834
+  ],
+  "turns": [
+   {
+    "pid": 224834,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     61,
+     121
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "J"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ },
+ "deepseek-ai/DeepSeek-V4.1-Flash-1017 / reasoning": {
+  "template_kwargs": {
+   "thinking": true
+  },
+  "worker_pids": [
+   224945
+  ],
+  "turns": [
+   {
+    "pid": 224945,
+    "turn_idx": 1,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     37,
+     54
+    ],
+    "untrained_generated_structure": "",
+    "first_labeled_token": "No"
+   },
+   {
+    "pid": 224945,
+    "turn_idx": 3,
+    "role": "assistant",
+    "content_only": false,
+    "reasoning_only": false,
+    "has_reasoning": false,
+    "locator": true,
+    "span": [
+     64,
+     71
+    ],
+    "untrained_generated_structure": "</think>",
+    "first_labeled_token": "Yes"
+   }
+  ],
+  "labels_outside_spans": [
+   "<｜end▁of▁sentence｜>",
+   "<｜end▁of▁sentence｜>"
+  ],
+  "span_tokens_unlabeled": 0
+ }
+}

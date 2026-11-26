@@ -52,7 +52,9 @@ class KnownDifference:
     docs: tuple[str, ...]
     decision: str
     docs_note: str = ""  # what the framework's user docs say (or don't) about this behavior
-    finding: str = ""  # the finding this entry came from (e.g. "P-0001"); its verdicts' root cause. Else the entry id.
+    # The finding this entry came from (e.g. "P-0001"), or the entry it shares one root cause with (KD-0005 names
+    # KD-0004: one Axolotl rule, one entry per check). Its verdicts' root cause. Else the entry id.
+    finding: str = ""
 
 
 # Signatures: each computes the exact token ids a framework produces under the documented behavior.
@@ -113,11 +115,44 @@ def think_opener_untrained(release: LoadedRelease, conv: Conversation, ref: Temp
     return tuple(zones)
 
 
+THINK_CLOSE = "</think>"
+REASONING_FIELDS = ("reasoning_content", "thinking")  # what DeepSeek V4.1's template reads as a turn's reasoning
+
+
+def think_close_untrained_without_reasoning(
+    release: LoadedRelease, conv: Conversation, ref: TemplateReference
+) -> tuple[Zone, ...]:
+    """KD-0004 / KD-0005: KD-0002's Axolotl labeling rule, with DeepSeek V4.1's own template, in thinking mode, on
+    conversations without reasoning.
+
+    Axolotl labels each turn from its first field to its end token; template structure before the first field gets
+    no loss (KD-0002). With no reasoning, the first field is the content. DeepSeek's thinking-mode generation prompt
+    ends with the pre-filled "<think>", so the structure the model generates before the content is the closing
+    "</think>" alone (the model's own encoding.py agrees). On a conversation in which no assistant turn has
+    reasoning, exactly that token at the start of each assistant span moves from must-train to must-not-train; every
+    other zone is unchanged. A conversation with reasoning is left unchanged: there Axolotl drops the reasoning before
+    rendering (P-0007), a different root cause.
+    """
+    if any(m.get(f) for m in conv.messages if m.get("role") == "assistant" for f in REASONING_FIELDS):
+        return ref.zones
+    close_ids = list(release.tokenizer(THINK_CLOSE, add_special_tokens=False)["input_ids"])
+    zones = list(ref.zones)
+    for span in ref.spans:
+        end = span.token_start + len(close_ids)
+        if list(ref.input_ids[span.token_start : end]) != close_ids:
+            continue
+        if any(z is not Zone.MUST_TRAIN for z in zones[span.token_start : end]):
+            raise TemplateReferenceError(f"KD signature: message {span.message_index}'s {THINK_CLOSE} isn't must-train")
+        zones[span.token_start : end] = [Zone.MUST_NOT_TRAIN] * len(close_ids)
+    return tuple(zones)
+
+
 SIGNATURES: dict[str, Callable[[LoadedRelease, Conversation, str], list[int]]] = {
     "insert_think_block_where_official_has_none": insert_think_block_where_official_has_none,
 }
 ZONE_SIGNATURES: dict[str, Callable[[LoadedRelease, Conversation, TemplateReference], tuple[Zone, ...]]] = {
     "think_opener_untrained": think_opener_untrained,
+    "think_close_untrained_without_reasoning": think_close_untrained_without_reasoning,
 }
 TOKEN_CHECKS = frozenset({"t1.template_parity"})
 ZONE_CHECKS = frozenset({"t1.assistant_mask", "t1.truncation"})
