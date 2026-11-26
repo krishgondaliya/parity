@@ -1,0 +1,27 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.multiturn_prefix",
+  "model": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+  "framework": "trl@1.18.2",
+  "fixture": "single_turn",
+  "result": "not_applicable",
+  "kind": null,
+  "self_test": null,
+  "known_difference": null,
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+  "evidence": {},
+  "conventions": {},
+  "reference": {},
+  "plants": [],
+  "declaration": {
+    "error": "ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode"
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "non_thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/vlm/uv.lock",
+  "env_fingerprint": "5bc0c44a6de14f9d3ef0bca18b0bc05a9edb44fbac20dbc87d469568a3e2ab2f",
+  "repro": null,
+  "backend": null
+}

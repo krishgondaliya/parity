@@ -1,0 +1,27 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.template_parity",
+  "model": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+  "framework": "trl@1.18.2",
+  "fixture": "multi_turn",
+  "result": "not_applicable",
+  "kind": null,
+  "self_test": null,
+  "known_difference": null,
+  "reason": "non_thinking mode: the model documents no such mode (The model card: 'Setting reasoning effort to its minimum does not fully disable reasoning.' So the model documents no non-thinking mode. The template takes a numeric reasoning_effort in [0, 0.99] (default 0.9, L4-L16), emitted as a system line.) Decided from the model alone, before any framework output (D3)",
+  "evidence": {},
+  "conventions": {},
+  "reference": {},
+  "plants": [],
+  "declaration": {
+    "error": "ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode"
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "non_thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/vlm/uv.lock",
+  "env_fingerprint": "5bc0c44a6de14f9d3ef0bca18b0bc05a9edb44fbac20dbc87d469568a3e2ab2f",
+  "repro": null,
+  "backend": null
+}

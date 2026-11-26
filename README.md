@@ -267,6 +267,7 @@ Step-by-step instructions and troubleshooting: [the GPU run guide](docs/gpu-run/
 | Unsloth 2026.11.10 on Qwen3-0.6B (primary, thinking mode) | 48 of 48 | Not docs alone | [predictions](docs/evidence/2026-11-24-m3-unsloth/predictions.md), [compared](docs/evidence/2026-11-24-m3-unsloth/compare.md) |
 | Unsloth 2026.11.10 on Qwen3-0.6B, GPU backend (both serving modes) | 81 of 96 | Not blind | [predictions](docs/evidence/2026-11-25-m3-unsloth-gpu/predictions.md), [compared](docs/evidence/2026-11-25-m3-unsloth-gpu/compare.md) |
 | TRL 1.18.2 on deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518 (both serving modes) | 96 of 96 | Not blind | [predictions](docs/evidence/2026-11-26-m5-trl-deepseek/predictions.md), [compared](docs/evidence/2026-11-26-m5-trl-deepseek/compare.md) |
+| TRL 1.18.2 (vlm variant) on thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 (both serving modes) | 96 of 96 | Not blind | [predictions](docs/evidence/2026-11-26-m5-trl-inkling/predictions.md), [compared](docs/evidence/2026-11-26-m5-trl-inkling/compare.md) |
 
 A miss marks a place where the documentation doesn't tell a user what they get. TRL has no predictions file: it ran first, before predictions were written for any framework. Since then, a guard hook refuses to create or run any new framework environment until predictions for that version are committed.
 

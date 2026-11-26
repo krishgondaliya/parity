@@ -1,0 +1,46 @@
+[
+ {
+  "verdict": "thinking/t1.template_parity__tool_call",
+  "pin": {
+   "check": "t1.template_parity",
+   "fixture": "tool_call",
+   "serving_mode": "thinking",
+   "evidence_sha256": "9811afbe2feb7ad4031b77ec30dee765c194ad8c57ca84d7350ca030a0c0ade4"
+  },
+  "evidence": {
+   "first_divergence": 158,
+   "context_before": [
+    " right",
+    " now",
+    "?",
+    " Use",
+    " Fahrenheit",
+    ".",
+    "<|end_message|>",
+    "<|message_model|>"
+   ],
+   "expected": [
+    "get",
+    "_",
+    "weather",
+    "<|content_invoke_tool_json|>",
+    "{",
+    "\"",
+    "name",
+    "\""
+   ],
+   "got": [
+    "<|content_text|>",
+    "<|end_message|>",
+    "<|message_model|>",
+    "get",
+    "_",
+    "weather",
+    "<|content_invoke_tool_json|>",
+    "{"
+   ],
+   "expected_len": 248,
+   "got_len": 251
+  }
+ }
+]

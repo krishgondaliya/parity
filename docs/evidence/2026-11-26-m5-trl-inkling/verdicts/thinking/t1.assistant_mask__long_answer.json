@@ -1,0 +1,145 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.assistant_mask",
+  "model": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+  "framework": "trl@1.18.2",
+  "fixture": "long_answer",
+  "result": "pass",
+  "kind": null,
+  "self_test": "caught",
+  "known_difference": null,
+  "reason": null,
+  "evidence": {
+    "counts": {
+      "must_train_unsupervised": 0,
+      "must_not_train_supervised": 0,
+      "label_mismatch": 0
+    },
+    "must_train_unsupervised": [],
+    "must_not_train_supervised": [],
+    "label_mismatch": [],
+    "must_train_tokens": 554,
+    "supervised_tokens": 554
+  },
+  "conventions": {
+    "label_convention": "aligned",
+    "neutral": "none",
+    "neutral_trained": 0,
+    "neutral_untrained": 0
+  },
+  "reference": {
+    "template_source": "model",
+    "template_sha256": "53a9035f3255945704b5857657cfb00c1165090c0641c4f782a0cbf268cc16dc",
+    "official_template_sha256": "53a9035f3255945704b5857657cfb00c1165090c0641c4f782a0cbf268cc16dc",
+    "marker_check": "agrees",
+    "template_kwargs": {},
+    "transformers": "5.24.0",
+    "tokenizers": "0.23.3",
+    "trl": "1.18.2"
+  },
+  "plants": [
+    {
+      "plant": "unmask_prompt",
+      "description": "give loss to everything before the first supervised token",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "zero_mask",
+      "description": "no loss anywhere",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "shift_labels_left",
+      "description": "labels shifted left by one",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "late_start",
+      "description": "every supervised span starts one token late",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "wrong_label_values",
+      "description": "supervised labels point at a different token; which tokens get loss is unchanged",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    }
+  ],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null,
+      "serving_mode": "thinking"
+    },
+    "template_source": "model",
+    "template_sha256": "53a9035f3255945704b5857657cfb00c1165090c0641c4f782a0cbf268cc16dc",
+    "label_convention": "aligned",
+    "truncation_mode": "right",
+    "batching": "padded",
+    "pad_token_id": 199999,
+    "tool_arguments": "passed_through",
+    "serving_mode_setting": "framework defaults (the model's default mode)",
+    "model_build": {
+      "release_model_type": "inkling2_loop",
+      "built_model_type": "inkling2_loop",
+      "class": "Inkling2LoopForConditionalGeneration",
+      "path": "vision",
+      "stand_in": null,
+      "deviation": null,
+      "config_sha256": "67fc658aa01cfdc3797ba4c1865a27074aefaab62c83d2ab51644a8c8f098184",
+      "path_source": "config.architectures: Inkling2LoopForConditionalGeneration, which accepts images, so SFTTrainer loads its processor (Inkling2Processor); https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/utils.py#L1362-L1375 (create_model_from_path) and https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L714-L718 (processing class)"
+    },
+    "sources": [
+      "chat_template: SFTTrainer.processing_class.chat_template (the model's own; TRL swapped nothing in); template_source: matched against trl/chat_templates/*.jinja",
+      "objective: SFTConfig.assistant_only_loss=True (https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only)",
+      "label_convention: SFTTrainer.compute_loss passes the dataset labels to the model unchanged and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: SFTConfig.truncation_mode='keep_start', max_length=None (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_config.py); TRL also drops examples left with no trainable token after truncation",
+      "batching: SFTTrainer.padding_free=False, SFTConfig.packing=False",
+      "pad_token_id: SFTTrainer.data_collator.pad_token_id=199999; pad_to_multiple_of=None",
+      "tool_arguments: no option; tokenize_fn passes the messages to apply_chat_template unchanged, so a string is rendered verbatim (https://github.com/huggingface/trl/blob/v1.18.2/trl/trainer/sft_trainer.py#L1360-L1381)"
+    ],
+    "verified": {
+      "chat_template": "consistent",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified",
+      "tool_arguments": "unverified"
+    }
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/vlm/uv.lock",
+  "env_fingerprint": "5bc0c44a6de14f9d3ef0bca18b0bc05a9edb44fbac20dbc87d469568a3e2ab2f",
+  "repro": null,
+  "backend": null
+}
