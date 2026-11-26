@@ -260,6 +260,7 @@ Step-by-step instructions and troubleshooting: [the GPU run guide](docs/gpu-run/
 - Unsloth 2026.11.10: [`envs/unsloth-2026.11.10/uv.lock`](envs/unsloth-2026.11.10/uv.lock), [`envs/unsloth-2026.11.10/cu126/uv.lock`](envs/unsloth-2026.11.10/cu126/uv.lock)
 - P-0002's standalone repro: [`findings/P-0002/uv.lock`](findings/P-0002/uv.lock)
 - P-0005's standalone repro: [`findings/P-0005/uv.lock`](findings/P-0005/uv.lock)
+- P-0007's standalone repro: [`findings/P-0007/uv.lock`](findings/P-0007/uv.lock)
 
 **Pre-registered predictions.** Before each of these runs, the expected result of every cell was written down from the framework's documentation and committed. Each file states what it was based on, and any slip.
 

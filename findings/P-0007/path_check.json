@@ -1,0 +1,12 @@
+{
+ "model": "LGAI-EXAONE/EXAONE-4.0-1.2B@3abf2810673c7c0778df64a73c2d52eab32d91c4",
+ "full_path_input_ids_equal": true,
+ "full_path_labels_equal": true,
+ "mapped": {
+  "role": "role",
+  "content": "content",
+  "reasoning_content": "reasoning_content",
+  "tool_calls": "tool_calls"
+ },
+ "mapped_row_equals_render": true
+}

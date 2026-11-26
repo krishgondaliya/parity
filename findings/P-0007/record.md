@@ -80,7 +80,11 @@
   5. No "bug" in the title (rule 8).
 
 ## Repro
-- Not written yet. The skeptic's scratch script (outside the repo) is a starting point; a committed repro is M6 work.
+- **`findings/P-0007/repro.py`** (2026-11-26), 30 lines, no Parity code, tokenizer and template only. EXAONE-4.0-1.2B's pinned tokenizer, Axolotl's bundled `exaone4` template, the dataset config validated by Axolotl's own `SFTDataset` and dumped as its config validation does (`exclude_none=True`), then `load` + `tokenize_prompt`. One conversation: a tool call with empty content, its result, and a final answer with reasoning (`skip_think: false`). It prints the validated mappings (`{role, content}`) and the analyzer's fields (`content`, `role`), and shows the tool call and the reasoning in the template's render but not in Axolotl's row. Exit 1.
+- **Runs:** 3 of 3 exit 1 on axolotl 0.21.1 (fresh venv from `requirements.txt`, transformers 5.20.1, torch 2.14.1) and 3 of 3 on main at `de8549a` (axolotl 0.21.2.dev0, transformers 5.22.0). There is no fixed version to test. Commands and expected output: `findings/P-0007/HOW-TO-RUN.md`; lockfile `findings/P-0007/uv.lock`.
+- **Checked** (`findings/P-0007/path_check.py`, `path_check.json`): the full path (`load_cfg` + `load_datasets`, EXAONE-4.0's config and tokenizer files as `base_model`) gives the same input ids and labels as the repro's direct strategy call, and with `reasoning_content` and `tool_calls` mapped explicitly the row equals the render.
+- **Why EXAONE-4.0 leads, not DeepSeek V4.1:** Axolotl 0.21.1 loads EXAONE-4.0 today (D1: a fail found on a stand-in leaves the repo only with a repro that doesn't need the release's architecture). DeepSeek V4.1, Gemma 4 and the scan are evidence for the issue text, not for the repro.
+- **Repro slip, caught before recording:** the first version dumped the config without `exclude_none=True`, so `field_messages` was None and the script crashed with `ValueError: Messages is null`. That also exits 1, so the exit code alone wasn't enough: the output was checked, and every run above printed the three lines.
 
 ## Upstream
 - Issue URL (posted by human): none
