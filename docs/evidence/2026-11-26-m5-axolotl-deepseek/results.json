@@ -1,0 +1,868 @@
+{
+ "thinking / t1.template_parity / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / single_turn": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.end_of_turn / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.special_tokens / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.truncation / single_turn": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.multiturn_prefix / single_turn": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "thinking / t1.template_parity / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / multi_turn": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.end_of_turn / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.special_tokens / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.truncation / multi_turn": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.multiturn_prefix / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.template_parity / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / system_prompt": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.end_of_turn / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.special_tokens / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.truncation / system_prompt": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.multiturn_prefix / system_prompt": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "thinking / t1.template_parity / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.assistant_mask / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.end_of_turn / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+ },
+ "thinking / t1.special_tokens / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.truncation / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.multiturn_prefix / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit"
+ },
+ "thinking / t1.template_parity / reasoning": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / reasoning": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "the framework's tokens differ from its own declared template's render, so this check can't line them up with the reference; see t1.template_parity; also planted fault(s) not caught: unmask_prompt, zero_mask, shift_labels_left, late_start, wrong_label_values, train_only_last_turn, span_starts_at_header"
+ },
+ "thinking / t1.end_of_turn / reasoning": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": "the framework's tokens differ from its declared template's render before the closing token of message(s) [3], so they can't be lined up; see t1.template_parity"
+ },
+ "thinking / t1.special_tokens / reasoning": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "the row's tokens differ from the declared template's render, so stop-token loss is unchecked (see t1.template_parity); also planted fault(s) not caught: closing_token_masked_per_row"
+ },
+ "thinking / t1.truncation / reasoning": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "the framework's tokens differ from its own declared template's render, so this check can't line them up with the reference; see t1.template_parity; also planted fault(s) not caught: off_by_one"
+ },
+ "thinking / t1.multiturn_prefix / reasoning": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [
+   "blocked_by_template_parity"
+  ],
+  "reason": "blocked by t1.template_parity: template parity already fails on this fixture (first divergence at token 63). One root cause, one finding; this check's own fail is kept in the evidence."
+ },
+ "thinking / t1.template_parity / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.assistant_mask / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.end_of_turn / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+ },
+ "thinking / t1.special_tokens / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.truncation / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "thinking / t1.multiturn_prefix / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit"
+ },
+ "thinking / t1.template_parity / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / long_answer": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.end_of_turn / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.special_tokens / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.truncation / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.multiturn_prefix / long_answer": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "thinking / t1.template_parity / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.assistant_mask / non_ascii": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.end_of_turn / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.special_tokens / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.truncation / non_ascii": {
+  "result": "fail",
+  "kind": "bug",
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "thinking / t1.multiturn_prefix / non_ascii": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "non_thinking / t1.template_parity / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.assistant_mask / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.end_of_turn / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.special_tokens / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.truncation / single_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.multiturn_prefix / single_turn": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "non_thinking / t1.template_parity / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.assistant_mask / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.end_of_turn / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.special_tokens / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.truncation / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.multiturn_prefix / multi_turn": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.template_parity / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.assistant_mask / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.end_of_turn / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.special_tokens / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.truncation / system_prompt": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.multiturn_prefix / system_prompt": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "non_thinking / t1.template_parity / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.assistant_mask / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.end_of_turn / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+ },
+ "non_thinking / t1.special_tokens / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.truncation / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.multiturn_prefix / tool_call": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit"
+ },
+ "non_thinking / t1.template_parity / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.assistant_mask / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.end_of_turn / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.special_tokens / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.truncation / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.multiturn_prefix / reasoning": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+ },
+ "non_thinking / t1.template_parity / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.assistant_mask / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.end_of_turn / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token"
+ },
+ "non_thinking / t1.special_tokens / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.truncation / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ "non_thinking / t1.multiturn_prefix / empty_assistant": {
+  "result": "inconclusive",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "missed",
+  "flags": [],
+  "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit"
+ },
+ "non_thinking / t1.template_parity / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.assistant_mask / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.end_of_turn / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.special_tokens / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.truncation / long_answer": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.multiturn_prefix / long_answer": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ },
+ "non_thinking / t1.template_parity / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.assistant_mask / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.end_of_turn / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.special_tokens / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.truncation / non_ascii": {
+  "result": "pass",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": "caught",
+  "flags": [],
+  "reason": null
+ },
+ "non_thinking / t1.multiturn_prefix / non_ascii": {
+  "result": "not_applicable",
+  "kind": null,
+  "known_difference": null,
+  "root_cause": null,
+  "self_test": null,
+  "flags": [],
+  "reason": "no prefix of this conversation ends in an assistant turn before the last message"
+ }
+}

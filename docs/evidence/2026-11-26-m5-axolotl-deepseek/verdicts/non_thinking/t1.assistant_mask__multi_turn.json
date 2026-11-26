@@ -1,0 +1,168 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.assistant_mask",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+  "framework": "axolotl@0.21.1",
+  "fixture": "multi_turn",
+  "result": "pass",
+  "kind": null,
+  "self_test": "caught",
+  "known_difference": null,
+  "reason": null,
+  "evidence": {
+    "counts": {
+      "must_train_unsupervised": 0,
+      "must_not_train_supervised": 0,
+      "label_mismatch": 0
+    },
+    "must_train_unsupervised": [],
+    "must_not_train_supervised": [],
+    "label_mismatch": [],
+    "must_train_tokens": 14,
+    "supervised_tokens": 14
+  },
+  "conventions": {
+    "label_convention": "aligned",
+    "neutral": "none",
+    "neutral_trained": 0,
+    "neutral_untrained": 0
+  },
+  "reference": {
+    "template_source": "model",
+    "template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+    "official_template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+    "marker_check": "no_markers",
+    "template_kwargs": {
+      "thinking": false
+    },
+    "transformers": "5.20.1",
+    "tokenizers": "0.23.3",
+    "trl": "1.14.1"
+  },
+  "plants": [
+    {
+      "plant": "unmask_prompt",
+      "description": "give loss to everything before the first supervised token",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "zero_mask",
+      "description": "no loss anywhere",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "shift_labels_left",
+      "description": "labels shifted left by one",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "late_start",
+      "description": "every supervised span starts one token late",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "wrong_label_values",
+      "description": "supervised labels point at a different token; which tokens get loss is unchanged",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "train_only_last_turn",
+      "description": "loss only on the last assistant turn",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    },
+    {
+      "plant": "span_starts_at_header",
+      "description": "each assistant span also trains its role header",
+      "origin": "synthetic",
+      "source": null,
+      "caught": true,
+      "result": "fail",
+      "kind": "bug",
+      "reason": null
+    }
+  ],
+  "declaration": {
+    "cfg": {
+      "objective": "assistant_only",
+      "max_len": null,
+      "packing": false,
+      "grad_accum": 1,
+      "pad_to": null,
+      "serving_mode": "non_thinking"
+    },
+    "template_source": "model",
+    "template_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+    "label_convention": "aligned",
+    "truncation_mode": "drop",
+    "batching": "padded",
+    "pad_token_id": 1,
+    "tool_arguments": "parsed_as_json",
+    "serving_mode_setting": "chat_template_kwargs={'thinking': False} in the config (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/config.py#L1497-L1502)",
+    "model_build": {
+      "release_model_type": "deepseek_v41",
+      "built_model_type": "deepseek_v4",
+      "class": "DeepseekV4ForCausalLM",
+      "path": "text",
+      "stand_in": "deepseek_v4",
+      "deviation": "stand-in: the model is DeepseekV4ForCausalLM (deepseek_v4), not the release's deepseek_v41, because this environment can't build it (The checkpoint you are trying to load has model type `deepseek_v41` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.)",
+      "config_sha256": "41de272d767accc76fd1cd0299c1582a59ea1e619179e48f4c791435f4c21868",
+      "path_source": "config.architectures: DeepseekV41ForCausalLM, a causal LM; its stand-in deepseek_v4 is not image-text-to-text; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/config/__init__.py#L358-L376; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/multimodal.qmd"
+    },
+    "sources": [
+      "chat_template: get_chat_template_from_config(cfg, datasets[0]) with chat_template=<ChatTemplate.tokenizer_default: 'tokenizer_default'> (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd)",
+      "objective: datasets[0].type='chat_template', roles_to_train=['assistant'], train_on_eos='turn', train_on_eot=None, train_on_inputs=False (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/dataset-formats/conversation.qmd; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/datasets.py)",
+      "label_convention: Axolotl's trainer passes the dataset labels to the model, and model.loss_function is ForCausalLMLoss, which shifts labels itself",
+      "truncation_mode: sequence_len=8192, excess_length_strategy=None; unset is treated as 'drop' (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/config.py; code: https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/data/utils.py#L347)",
+      "batching: sample_packing=None",
+      "pad_token_id: trainer.data_collator.tokenizer.pad_token_id=1; collator DataCollatorForSeq2Seq(pad_to_multiple_of=64, label_pad_token_id=-100), padding_side='right'",
+      "tool_arguments: no option; a string is parsed with json.loads before rendering, and a parse error raises (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/prompt_strategies/chat_template.py#L1402-L1415)",
+      "serving_mode_setting: cfg.chat_template_kwargs={'thinking': False} (https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/schemas/config.py#L1497-L1502)"
+    ],
+    "verified": {
+      "chat_template": "consistent",
+      "label_convention": "unverified",
+      "truncation_mode": "unverified",
+      "batching": "unverified",
+      "pad_token_id": "unverified",
+      "tool_arguments": "unverified"
+    }
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "non_thinking",
+  "root_cause": null,
+  "env_lock": "envs/axolotl-0.21.1/uv.lock",
+  "env_fingerprint": "bf1a1261b0914f900db89c235177c833d195b5fd21985bf8a463c1342b665f9b",
+  "repro": null,
+  "backend": null
+}

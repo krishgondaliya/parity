@@ -1,0 +1,18 @@
+{
+ "model_build": {
+  "release_model_type": "deepseek_v41",
+  "built_model_type": "deepseek_v4",
+  "class": "DeepseekV4ForCausalLM",
+  "path": "text",
+  "stand_in": "deepseek_v4",
+  "deviation": "stand-in: the model is DeepseekV4ForCausalLM (deepseek_v4), not the release's deepseek_v41, because this environment can't build it (The checkpoint you are trying to load has model type `deepseek_v41` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.)",
+  "config_sha256": "41de272d767accc76fd1cd0299c1582a59ea1e619179e48f4c791435f4c21868",
+  "path_source": "config.architectures: DeepseekV41ForCausalLM, a causal LM; its stand-in deepseek_v4 is not image-text-to-text; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/src/axolotl/utils/config/__init__.py#L358-L376; https://github.com/axolotl-ai-cloud/axolotl/blob/v0.21.1/docs/multimodal.qmd"
+ },
+ "framework": "axolotl@0.21.1",
+ "env_lock": "envs/axolotl-0.21.1/uv.lock",
+ "env_fingerprint": "bf1a1261b0914f900db89c235177c833d195b5fd21985bf8a463c1342b665f9b",
+ "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+ "predictions": "docs/evidence/2026-11-26-m5-axolotl-deepseek/predictions.md",
+ "seconds": 291.2
+}
