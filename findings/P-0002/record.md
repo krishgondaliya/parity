@@ -113,6 +113,23 @@
   Together with the variants table above (tool calls with `""` or `None` content, history or last turn: all trained), tool use and reasoning traces keep their end tokens. The control shows the probe sees P-0002 when it's there.
 - **So P-0002 stays low, on reach, not on effect.** It would become medium only if ordinary data turned out to produce empty-rendering assistant turns, for example a dataset convention or template that renders ordinary turns empty.
 
+## On the Phase 0 targets' tokenizers (2026-11-26, for Gate A; nothing posted)
+- `findings/P-0002/target_reach.py`: Axolotl 0.21.1's `chat_template` strategy, tokenizer only (no architecture, no weights), with the documented settings (`roles_to_train: [assistant]`, `train_on_eos: turn`, `eot_tokens` at its default, the tokenizer's EOS). Three shapes per target; in every row Axolotl's ids equal the template's own render.
+
+  | Target (pinned revision) | Turn end token (EOS) | Empty middle turn (the fixture) | Empty last turn (the repro) | Control, no empty turn |
+  | --- | --- | --- | --- | --- |
+  | DeepSeek V4.1 (`08c8657`) | `<｜end▁of▁sentence｜>` | **unlabeled** | **unlabeled** | labeled |
+  | Inkling-2-Mini (`7a67ae2`) | `<\|content_model_end_sampling\|>` | **unlabeled** | **unlabeled** | labeled |
+  | Hy4-flash (`eccd312`) | `<｜hy_end:opensource｜>` | **unlabeled** | **unlabeled** | labeled |
+
+- **So the mechanism reproduces on all three recent releases' tokenizers and templates.** P-0002 stays low on reach: the trigger is still an assistant turn that renders empty.
+- **What this does and doesn't show:**
+  - **DeepSeek V4.1:** this strategy is Axolotl's path for this release (a declared causal LM: the text path).
+  - **Inkling and Hy4:** both declare an image-text class, so Axolotl's path for them is the multimodal one (a processor and its own collator), which can't be built in this environment. This shows the mechanism on their tokenizers through the text strategy only. Their M5 cells aren't judged (the human's decision, 2026-11-26).
+  - In M5, DeepSeek's `empty_assistant` cells can't show it either: our reference refuses that fixture on DeepSeek (its first assistant turn has no text to locate). This targeted check is the only evidence on the targets.
+- **Side observation, not P-0002:** with Inkling's template, `<|end_message|>` (which closes every message, just before the stop token `<|content_model_end_sampling|>`) is unlabeled even in non-empty assistant turns, because Axolotl's default `eot_tokens` is the EOS alone. Not triaged: Axolotl × Inkling isn't judged, and its documented path is the multimodal one.
+- **Correction:** Hy4's template text doesn't contain `<｜hy_end:opensource｜>` literally (it's built from pieces), but every render does, closing each message. So Axolotl's textual EOS check would warn, but labeling works on token ids and is unaffected (the control row).
+
 ## Upstream
 - Issue URL (posted by human): https://github.com/axolotl-ai-cloud/axolotl/issues/4318 (posted 2026-11-26)
 - Maintainer response: 2026-11-26, https://github.com/axolotl-ai-cloud/axolotl/issues/4318#issuecomment-7184341120, "Thank you for the clear repro. That may have been an edge case, we haven't thought of intentionally empty assistant turn."

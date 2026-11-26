@@ -107,8 +107,7 @@ PATHS: dict[str, tuple[str, str]] = {
     ),
     # thinkingmachines/Inkling-2-Mini and tencent/Hy4-flash: pending the human's decision. Both declare an image-text
     # class, so Axolotl's path is the multimodal one, and their processors (Inkling2Processor, HYV4FlashProcessor) don't
-    # exist in this environment's transformers. Hy4's template also lacks its tokenizer's EOS, so Axolotl would warn to
-    # set eot_tokens (prompt_strategies/chat_template.py#L422-L432).
+    # exist in this environment's transformers.
 }
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 

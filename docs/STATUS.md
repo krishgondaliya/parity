@@ -27,7 +27,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
   - **TRL 1.18.2:** 7 KD-0001;
   - **Axolotl 0.21.1:** 13 P-0001 and 8 P-0002;
   - **Unsloth 2026.11.10 (GPU, Colab T4):** 8 P-0005, the `t1.special_tokens` width rule on all 8 fixtures. Non-thinking mode is not configurable for Unsloth.
-- **Harness errors caught: 11** (`findings/LEDGER.md`). They are never counted against a framework.
+- **Harness errors caught: 12** (`findings/LEDGER.md`). They are never counted against a framework.
 
 ## M5 coverage, the honest math (primary table, 432 cells = 9 pairs x 48)
 
@@ -67,7 +67,6 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 - Deferred to Phase 2 (the kill test is frozen at 8 fixtures): gpt-oss-20b and the `<|end|>` question; a truncation fixture.
 - TRL drops rows left with no trainable token after truncation: the rule is logged, and it will be implemented when a fixture hits it.
 - Unsloth's tiny-model folder is still named `model` (as calibrated). Naming it after the release could switch on Unsloth's name-keyed code; check on the GPU run before changing it.
-- Hy4's template lacks its tokenizer's EOS (`<｜hy_end:opensource｜>`), so Axolotl would warn to set `eot_tokens`; decide with the Hy4 recipe.
 - Follow-up: Unsloth's git main (what the Inkling notebook installs) as a framework version of its own, with its own calibration.
 - Human: review the Hy4 license. Before Phase 3: close the `docker` group and WSL interop routes; edit the vault-path lines in `vault/README.md`, SETUP.md and Phase 3 M3.
 

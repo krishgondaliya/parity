@@ -12,7 +12,7 @@
 <img alt="planted faults: 22 (3 real-world)" src="https://img.shields.io/badge/planted%20faults-22%20%283%20real--world%29-informational">
 <img alt="candidate findings: 3" src="https://img.shields.io/badge/candidate%20findings-3-orange">
 <img alt="issues posted upstream: 2" src="https://img.shields.io/badge/issues%20posted%20upstream-2-informational">
-<img alt="harness errors caught: 11" src="https://img.shields.io/badge/harness%20errors%20caught-11-lightgrey">
+<img alt="harness errors caught: 12" src="https://img.shields.io/badge/harness%20errors%20caught-12-lightgrey">
 </p>
 
 Parity checks what LLM fine-tuning frameworks actually feed into training. It runs the same conversations through each framework's own public code path, then compares the token ids and the loss mask, token by token, with an independent reference built from the model's own chat template. A difference is triaged with our own code as the first suspect, and a real one becomes a minimal reproduction script and an issue a maintainer can run.
@@ -110,7 +110,7 @@ Severity is effect × reach, set before any target results existed ([decision lo
 | [P-0003](findings/P-0003/record.md) | TRL 1.18.2 | Non-thinking cells judged rows that were never encoded in non-thinking mode | harness error (ours), H-9 | Never |
 | [P-0006](findings/P-0006/record.md) | Unsloth 2026.11.10 (GPU) | Non-thinking mode: `train_on_responses_only` trains the last turn's empty think block, which the reference puts on the prompt side as a pre-fill | closed: not configurable | No. Its cells are not judged |
 
-Our own mistakes are counted as well: **11 harness errors caught** so far, each an error in our reference, a check, the engine, an adapter or a test that produced, or could have produced, a wrong verdict ([ledger](findings/LEDGER.md#harness-errors-caught-11)). None of them counts against a framework.
+Our own mistakes are counted as well: **12 harness errors caught** so far, each an error in our reference, a check, the engine, an adapter or a test that produced, or could have produced, a wrong verdict ([ledger](findings/LEDGER.md#harness-errors-caught-12)). None of them counts against a framework.
 
 ### Upstream fixes
 
