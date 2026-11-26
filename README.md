@@ -261,6 +261,7 @@ Step-by-step instructions and troubleshooting: [the GPU run guide](docs/gpu-run/
 - P-0002's standalone repro: [`findings/P-0002/uv.lock`](findings/P-0002/uv.lock)
 - P-0005's standalone repro: [`findings/P-0005/uv.lock`](findings/P-0005/uv.lock)
 - P-0007's standalone repro: [`findings/P-0007/uv.lock`](findings/P-0007/uv.lock)
+- P-0008's standalone repro: [`findings/P-0008/uv.lock`](findings/P-0008/uv.lock)
 
 **Pre-registered predictions.** Before each of these runs, the expected result of every cell was written down from the framework's documentation and committed. Each file states what it was based on, and any slip.
 

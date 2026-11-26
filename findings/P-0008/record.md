@@ -68,7 +68,8 @@
 - **Report to:** the model repo first (its list branch should skip an empty text part the way its string branch does), and TRL only as a note on #8497 or a request for an Inkling 2 training template.
 
 ## Repro
-- Not written yet. It needs only the release's tokenizer and template: `apply_chat_template` with `content: ""` against `[{"type": "text", "text": ""}]` shows the template half, and `trl.data_utils.prepare_multimodal_messages` on top shows TRL's trigger. No Trainer, processor or model.
+- **`findings/P-0008/repro.py`** (2026-11-26), 30 lines, no Parity code, tokenizer and template files only, aimed at the model repo. Inkling-2-Mini's template on one tool-call conversation, the tool-call turn's content as `""`, null and one empty text part. It prints the official renderer's expectation (no empty text message for any form) and the counts (0, 0 and 1). An optional last line, when TRL is installed, shows `prepare_multimodal_messages` turning `""` into the list form. Exit 1.
+- **Runs:** 3 of 3 exit 1 in a fresh venv (transformers 5.24.0, trl 1.18.2, torch 2.15.0, resolved against Parity's TRL `vlm` lock), and exit 1 with TRL made unimportable. There's no fixed version to test: the template and tokenizer files are byte-identical at the model's main (`c9d0283`), and `prepare_multimodal_messages` is identical on TRL's main (`c2d5ff4`). Commands and expected output: `findings/P-0008/HOW-TO-RUN.md`; lockfile `findings/P-0008/uv.lock`.
 
 ## Upstream
 - Issue URL (posted by human): none
