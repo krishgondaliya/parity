@@ -1,19 +1,4 @@
-<!-- Generated file. Edit docs/readme/README.in.md, then run: uv run python -m parity.readme
-     tests/test_readme_claims.py fails when a number or status here drifts from the records it comes from. -->
-
-<p align="center">
-  <img src="docs/assets/parity-banner.svg" alt="Parity: differential testing for LLM fine-tuning frameworks" width="100%">
-</p>
-
-<p align="center">
-<img alt="python: 3.12" src="https://img.shields.io/badge/python-3.12-3776ab">
-<img alt="frameworks: TRL 1.18.2 · Axolotl 0.21.1 · Unsloth 2026.11.10" src="https://img.shields.io/badge/frameworks-TRL%201.18.2%20%C2%B7%20Axolotl%200.21.1%20%C2%B7%20Unsloth%202026.11.10-informational">
-<img alt="calibration: green on 3 of 3" src="https://img.shields.io/badge/calibration-green%20on%203%20of%203-2ea44f">
-<img alt="planted faults: 22 (3 real-world)" src="https://img.shields.io/badge/planted%20faults-22%20%283%20real--world%29-informational">
-<img alt="candidate findings: 3" src="https://img.shields.io/badge/candidate%20findings-3-orange">
-<img alt="issues posted upstream: 2" src="https://img.shields.io/badge/issues%20posted%20upstream-2-informational">
-<img alt="harness errors caught: 12" src="https://img.shields.io/badge/harness%20errors%20caught-12-lightgrey">
-</p>
+# Parity
 
 Parity checks what LLM fine-tuning frameworks actually feed into training. It runs the same conversations through each framework's own public code path, then compares the token ids and the loss mask, token by token, with an independent reference built from the model's own chat template. A difference is triaged with our own code as the first suspect, and a real one becomes a minimal reproduction script and an issue a maintainer can run.
 
