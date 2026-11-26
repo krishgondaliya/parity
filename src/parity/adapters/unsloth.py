@@ -68,7 +68,6 @@ from unsloth.chat_templates import train_on_responses_only  # noqa: E402
 import copy  # noqa: E402
 import hashlib  # noqa: E402
 import logging  # noqa: E402
-import shutil  # noqa: E402
 import tempfile  # noqa: E402
 from collections.abc import Sequence  # noqa: E402
 from dataclasses import replace  # noqa: E402
@@ -76,10 +75,9 @@ from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
 import datasets  # noqa: E402
-import torch  # noqa: E402
 import transformers  # noqa: E402
 import trl  # noqa: E402
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer  # noqa: E402
+from transformers import AutoTokenizer  # noqa: E402
 from trl import SFTConfig, SFTTrainer  # noqa: E402
 
 import parity  # noqa: E402
@@ -88,6 +86,7 @@ from parity.adapters.unsloth_docs import NOT_CONFIGURABLE  # noqa: E402
 from parity.fixtures import Conversation  # noqa: E402
 from parity.release import LoadedRelease, fetch_release_files  # noqa: E402
 from parity.serving import framework_mode  # noqa: E402
+from parity.tiny import build as build_tiny, save as save_tiny  # noqa: E402
 
 VERSION = "2026.11.10"
 if unsloth.__version__ != VERSION:
@@ -110,8 +109,19 @@ DOCS = {
 INSTRUCTION_PART = "<|im_start|>user\n"
 RESPONSE_PART = "<|im_start|>assistant\n"
 NOTEBOOK_MAX_SEQ_LENGTH = 2048
-TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num_attention_heads": 2,
-        "num_key_value_heads": 1, "head_dim": 8}  # fmt: skip
+# The recipe per release (D1, M5 prep): the path a text-only chat fine-tune takes, and where that comes from. Only
+# Qwen3's whole recipe (loader, response parts, LoRA settings) is decided; the targets wait for the human:
+# - thinkingmachines/Inkling-2-Mini: FastModel takes the vision path (its config declares an image-text class and
+#   the notebook leaves text_only=False), and in this environment the stand-in for that path can't build (it needs
+#   scipy, which the lock doesn't have) and the release's processor (Inkling2Processor) doesn't exist.
+# - deepseek-ai/DeepSeek-V4.1-Flash-1017: the text path (FastModel falls back to the causal LM Unsloth registers),
+#   on the release's own architecture; Unsloth documents no training recipe for it (loader, response parts, LoRA
+#   target modules are open).
+# - tencent/Hy4-flash: Unsloth documents nothing for it; its declared class takes the vision path, and no Hy4 vision
+#   stand-in is registered here.
+PATHS: dict[str, tuple[str, str]] = {
+    "Qwen/Qwen3-0.6B": ("text", f"FastLanguageModel, as the recommended Qwen3 notebook loads it ({DOCS['notebook']})"),
+}
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 LABEL_SHIFTING_LOSSES = ("ForCausalLMLoss",)
 MODE_SETTING = "framework defaults (the model's default mode); other modes are not configurable (unsloth_docs)"
@@ -138,6 +148,9 @@ class UnslothAdapter:
         self.env_lock = env_lock
         self.env_fingerprint = hashlib.sha256((REPO_ROOT / env_lock).read_bytes()).hexdigest()
         self._source = fetch_release_files(release.release)  # tokenizer, template and config files only
+        if release.release.repo_id not in PATHS:
+            raise NotImplementedError(f"no Unsloth recipe decided for {release.release.repo_id} (docs/DECISIONS.md)")
+        self._path, self._path_source = PATHS[release.release.repo_id]
         self._local = self._tiny_model_folder()
         self._declarations: dict[TrainCfg, Declaration] = {}
         self._encoded: dict[tuple[str, str, TrainCfg], Encoded | Dropped] = {}
@@ -146,18 +159,9 @@ class UnslothAdapter:
     def _tiny_model_folder(self) -> Path:
         """A local folder FastLanguageModel can load: a tiny random-weight model plus the real tokenizer files."""
         folder = Path(tempfile.mkdtemp(prefix="parity-unsloth-")) / "model"
-        config = AutoConfig.from_pretrained(self._source)
-        for key, value in TINY.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-        if getattr(config, "layer_types", None):
-            config.layer_types = config.layer_types[: config.num_hidden_layers]
-        torch.manual_seed(0)
-        AutoModelForCausalLM.from_config(config).save_pretrained(folder)  # random weights; nothing downloaded
-        for path in self._source.iterdir():
-            if path.name != "config.json":
-                shutil.copy(path, folder / path.name)
-        return folder
+        tiny = build_tiny(self._source, self._path)  # random weights; nothing downloaded (parity.tiny)
+        self._model_build = {**tiny.record, "path_source": self._path_source}
+        return save_tiny(tiny, self._source, folder)
 
     # The framework, built the way the notebook builds it
 
@@ -235,7 +239,7 @@ class UnslothAdapter:
         if cfg not in self._declarations:
             probe = Conversation(id="probe", messages=copy.deepcopy(PROBE), tools=None)
             trainer = self._trainer([probe], cfg)
-            self._declarations[cfg] = _declaration(trainer, cfg, self._source, MODE_SETTING)
+            self._declarations[cfg] = _declaration(trainer, cfg, self._source, MODE_SETTING, self._model_build)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
@@ -301,7 +305,9 @@ def _loss_name(model: Any) -> str:
     return getattr(loss, "__name__", repr(loss))
 
 
-def _declaration(trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting: str) -> Declaration:
+def _declaration(
+    trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting: str, model_build: dict[str, Any]
+) -> Declaration:
     tokenizer = trainer.processing_class
     template = tokenizer.chat_template
     own = AutoTokenizer.from_pretrained(source).chat_template
@@ -328,6 +334,7 @@ def _declaration(trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting:
         pad_token_id=pad,
         tool_arguments="passed_through",
         serving_mode_setting=mode_setting,
+        model_build=model_build,
         sources=(
             f"chat_template: trainer.processing_class.chat_template, the tokenizer FastLanguageModel.from_pretrained "
             f"returned ({DOCS['notebook']})",

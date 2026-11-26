@@ -54,17 +54,27 @@ from pathlib import Path
 from typing import Any
 
 import datasets
-import torch
 import transformers
 import trl
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoProcessor, AutoTokenizer, ProcessorMixin
 from trl import SFTConfig, SFTTrainer
+from trl.trainer.utils import model_accepts_images
 
 import parity
-from parity.adapters.base import Batch, Declaration, Dropped, Encoded, TrainCfg
+from parity.adapters.base import (
+    Batch,
+    Declaration,
+    Dropped,
+    Encoded,
+    FrameworkRefused,
+    Refusal,
+    TrainCfg,
+    match_refusal,
+)
 from parity.serving import framework_mode, template_kwargs
 from parity.fixtures import Conversation
 from parity.release import LoadedRelease, fetch_release_files
+from parity.tiny import build as build_tiny
 
 VERSION = "1.18.2"
 if trl.__version__ != VERSION:
@@ -88,8 +98,48 @@ DOCS = {
     ),
 }
 TRUNCATION_MODES = {"keep_start": "right", "keep_end": "left"}
-TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num_attention_heads": 2,
-        "num_key_value_heads": 1, "head_dim": 8}  # fmt: skip
+BLOB = "https://github.com/huggingface/trl/blob/v1.18.2"
+# Which model a text-only chat fine-tune of each release gets (D1, M5 prep): what TRL builds from a model id.
+# create_model_from_path builds config.architectures[0] (falling back to AutoModelForCausalLM), and SFTTrainer loads
+# an AutoProcessor when that model accepts images, else an AutoTokenizer; a text-only dataset then takes the language
+# modeling collator either way. So the path follows the release's declared architecture.
+MODEL_ID_PATH = (
+    f"{BLOB}/trl/trainer/utils.py#L1362-L1375 (create_model_from_path) and "
+    f"{BLOB}/trl/trainer/sft_trainer.py#L714-L718 (processing class)"
+)
+PATHS: dict[str, tuple[str, str]] = {
+    "Qwen/Qwen3-0.6B": ("text", "config.architectures: Qwen3ForCausalLM; " + MODEL_ID_PATH),
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017": (
+        "text",
+        "config.architectures: DeepseekV41ForCausalLM (not in transformers, so AutoModelForCausalLM); " + MODEL_ID_PATH,
+    ),
+}
+# Releases whose path is known but can't be built in this environment yet: the human decides (docs/DECISIONS.md).
+PENDING: dict[str, str] = {
+    "thinkingmachines/Inkling-2-Mini": (
+        "the vision path (config.architectures: Inkling2LoopForConditionalGeneration, which accepts images; "
+        + MODEL_ID_PATH
+        + "). Its processor's image processor (Inkling2ImageProcessor) needs torchvision, which TRL's documented "
+        "install (pip install trl) doesn't bring; TRL's own `vlm` extra does"
+    ),
+    "tencent/Hy4-flash": (
+        "the vision path (config.architectures: HYV4FlashForConditionalGeneration). Its processor "
+        "(HYV4FlashProcessor) exists in no environment, so a stand-in processor would be needed; TRL refuses the "
+        "template either way (no generation markers)"
+    ),
+}
+# D2: TRL's own refusals, pinned to the exact exception at v1.18.2 (the installed file is identical to the tag).
+REFUSALS = (
+    Refusal(
+        id="trl.no_training_template",
+        exception="builtins.ValueError",
+        message=(
+            "The chat template is not training-compatible (missing prefix-preservation or `{% generation %}` markers) "
+            "and patching is not supported for this template. Please manually modify the chat template for training."
+        ),
+        source=f"{BLOB}/trl/chat_template_utils.py#L1513-L1516",
+    ),
+)
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 
 datasets.disable_progress_bars()
@@ -108,6 +158,12 @@ class TRLAdapter:
         self.env_lock = ENV_LOCK
         self.env_fingerprint = hashlib.sha256((REPO_ROOT / ENV_LOCK).read_bytes()).hexdigest()
         self._local = fetch_release_files(release.release)  # tokenizer, template and config files only
+        if release.release.repo_id in PENDING:
+            raise NotImplementedError(f"{release.release.repo_id} on TRL is pending: {PENDING[release.release.repo_id]}")
+        if release.release.repo_id not in PATHS:
+            raise NotImplementedError(f"no TRL path decided for {release.release.repo_id} (docs/DECISIONS.md)")
+        self._path, self._path_source = PATHS[release.release.repo_id]
+        self._model_build: dict[str, Any] | None = None
         self._declarations: dict[TrainCfg, Declaration] = {}
         self._encoded: dict[tuple[str, str, TrainCfg], Encoded | Dropped] = {}
         self._batches: dict[tuple[tuple[str, ...], TrainCfg], Batch] = {}
@@ -117,15 +173,12 @@ class TRLAdapter:
     def _trainer(self, rows: list[dict[str, Any]], cfg: TrainCfg) -> SFTTrainer:
         if cfg.objective == "completion_only":
             raise NotImplementedError("TRL's completion-only loss needs a prompt-completion dataset")
-        config = AutoConfig.from_pretrained(self._local)
-        for key, value in TINY.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-        if getattr(config, "layer_types", None):
-            config.layer_types = config.layer_types[: config.num_hidden_layers]
-        torch.manual_seed(0)
-        model = AutoModelForCausalLM.from_config(config)  # random weights; nothing downloaded
-        tokenizer = AutoTokenizer.from_pretrained(self._local)  # fresh: SFTTrainer sets its pad token
+        tiny = build_tiny(self._local, self._path)  # random weights; nothing downloaded (parity.tiny)
+        self._model_build = {**tiny.record, "path_source": self._path_source}
+        model = tiny.model
+        # Fresh, as SFTTrainer would load it from a model id: AutoProcessor when the model accepts images (TRL's own
+        # check), else AutoTokenizer. SFTTrainer sets the pad token.
+        processing = (AutoProcessor if model_accepts_images(model) else AutoTokenizer).from_pretrained(self._local)
         kwargs: dict[str, Any] = {
             "output_dir": tempfile.mkdtemp(prefix="parity-trl-"),
             "report_to": "none",
@@ -139,12 +192,18 @@ class TRLAdapter:
             kwargs["completion_only_loss"] = False
         if cfg.pad_to is not None:
             kwargs["pad_to_multiple_of"] = cfg.pad_to
-        return SFTTrainer(
-            model=model,
-            args=SFTConfig(**kwargs),
-            train_dataset=datasets.Dataset.from_list(rows),
-            processing_class=tokenizer,
-        )
+        try:
+            return SFTTrainer(
+                model=model,
+                args=SFTConfig(**kwargs),
+                train_dataset=datasets.Dataset.from_list(rows),
+                processing_class=processing,
+            )
+        except Exception as exc:  # noqa: BLE001 - only a pinned refusal is mapped; anything else is re-raised
+            refusal = match_refusal(exc, REFUSALS)
+            if refusal is None:
+                raise
+            raise FrameworkRefused(refusal) from exc
 
     def _mode_setting(self, cfg: TrainCfg) -> str:
         if not cfg.serving_mode:
@@ -175,7 +234,7 @@ class TRLAdapter:
         if cfg not in self._declarations:
             probe = Conversation(id="probe", messages=copy.deepcopy(PROBE), tools=None)
             trainer = self._trainer(self._rows([probe], cfg), cfg)
-            self._declarations[cfg] = _declaration(trainer, self._mode_setting(cfg))
+            self._declarations[cfg] = _declaration(trainer, self._mode_setting(cfg), self._model_build)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
@@ -219,7 +278,7 @@ def _row(batch: dict[str, Any], i: int) -> Encoded:
     return Encoded(ids, labels, attention, positions)
 
 
-def _declaration(trainer: SFTTrainer, mode_setting: str) -> Declaration:
+def _declaration(trainer: SFTTrainer, mode_setting: str, model_build: dict[str, Any] | None) -> Declaration:
     args = trainer.args
     if trainer.chat_template is not None:
         template = trainer.chat_template
@@ -248,6 +307,7 @@ def _declaration(trainer: SFTTrainer, mode_setting: str) -> Declaration:
         pad_token_id=pad,
         tool_arguments="passed_through",
         serving_mode_setting=mode_setting,
+        model_build=model_build,
         sources=(
             f"chat_template: {where}; template_source: matched against trl/chat_templates/*.jinja",
             f"objective: SFTConfig.assistant_only_loss={args.assistant_only_loss} ({DOCS['assistant_only_loss']})",
@@ -266,7 +326,9 @@ def _declaration(trainer: SFTTrainer, mode_setting: str) -> Declaration:
 
 def _template_source(template: str, trainer: SFTTrainer) -> str:
     """'model' for the model's own template, else the name of the TRL template file it matches."""
-    own = AutoTokenizer.from_pretrained(trainer.processing_class.name_or_path).chat_template
+    processing = trainer.processing_class
+    tokenizer = processing.tokenizer if isinstance(processing, ProcessorMixin) else processing
+    own = AutoTokenizer.from_pretrained(tokenizer.name_or_path).chat_template
     if template == own:
         return "model"
     for path in files("trl").joinpath("chat_templates").iterdir():

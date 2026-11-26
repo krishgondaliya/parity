@@ -31,6 +31,7 @@ ALLOWED_FILES: tuple[str, ...] = (
     "tokenizer.model",
     "config.json",
     "generation_config.json",
+    "processor_config.json",  # a vision-path release's processor (D1, M5 prep): image-processor settings, no weights
 )
 
 WEIGHT_SUFFIXES: tuple[str, ...] = (".safetensors", ".bin", ".pt", ".pth", ".gguf", ".ckpt", ".h5", ".msgpack", ".onnx")

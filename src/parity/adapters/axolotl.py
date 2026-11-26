@@ -59,7 +59,6 @@ from typing import Any  # noqa: E402
 
 import axolotl  # noqa: E402
 import datasets  # noqa: E402
-import torch  # noqa: E402
 import transformers  # noqa: E402
 import yaml  # noqa: E402
 from axolotl.cli.args import PreprocessCliArgs  # noqa: E402
@@ -68,13 +67,14 @@ from axolotl.common.datasets import load_datasets  # noqa: E402
 from axolotl.loaders import load_tokenizer  # noqa: E402
 from axolotl.utils.chat_templates import get_chat_template_from_config  # noqa: E402
 from axolotl.utils.trainer import disable_datasets_caching, setup_trainer  # noqa: E402
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer  # noqa: E402
+from transformers import AutoTokenizer  # noqa: E402
 
 import parity  # noqa: E402
 from parity.adapters.base import Batch, Declaration, Dropped, Encoded, TrainCfg  # noqa: E402
 from parity.fixtures import Conversation  # noqa: E402
 from parity.release import LoadedRelease, fetch_release_files  # noqa: E402
 from parity.serving import framework_mode, template_kwargs  # noqa: E402
+from parity.tiny import build as build_tiny, save as save_tiny  # noqa: E402
 
 VERSION = "0.21.1"
 if axolotl.__version__ != VERSION:
@@ -93,8 +93,23 @@ DOCS = {
 }
 EXCESS_LENGTH_MODES = {"drop": "drop", "truncate": "right"}
 NO_LIMIT = 8192
-TINY = {"num_hidden_layers": 1, "hidden_size": 16, "intermediate_size": 32, "num_attention_heads": 2,
-        "num_key_value_heads": 1, "head_dim": 8}  # fmt: skip
+# Which model a text-only chat fine-tune of each release gets (D1, M5 prep). Axolotl reads base_model's config and
+# treats it as multimodal when its model_type is in transformers' image-text-to-text mapping (or the config says
+# is_multimodal), and then needs a processor (docs/multimodal.qmd). A release whose declared class is a causal LM
+# takes the text path.
+MULTIMODAL = f"{BLOB}/src/axolotl/utils/config/__init__.py#L358-L376; {BLOB}/docs/multimodal.qmd"
+PATHS: dict[str, tuple[str, str]] = {
+    "Qwen/Qwen3-0.6B": ("text", "model_type qwen3 is not image-text-to-text; " + MULTIMODAL),
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017": (
+        "text",
+        "config.architectures: DeepseekV41ForCausalLM, a causal LM; its stand-in deepseek_v4 is not image-text-to-text; "
+        + MULTIMODAL,
+    ),
+    # thinkingmachines/Inkling-2-Mini and tencent/Hy4-flash: pending the human's decision. Both declare an image-text
+    # class, so Axolotl's path is the multimodal one, and their processors (Inkling2Processor, HYV4FlashProcessor) don't
+    # exist in this environment's transformers. Hy4's template also lacks its tokenizer's EOS, so Axolotl would warn to
+    # set eot_tokens (prompt_strategies/chat_template.py#L422-L432).
+}
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 
 datasets.disable_progress_bars()
@@ -115,6 +130,15 @@ class AxolotlAdapter:
         self.env_fingerprint = hashlib.sha256((REPO_ROOT / ENV_LOCK).read_bytes()).hexdigest()
         self._local = fetch_release_files(release.release)  # tokenizer, template and config files only
         self._work = Path(tempfile.mkdtemp(prefix="parity-axolotl-"))
+        if release.release.repo_id not in PATHS:
+            raise NotImplementedError(f"no Axolotl path decided for {release.release.repo_id} (docs/DECISIONS.md)")
+        self._path, self._path_source = PATHS[release.release.repo_id]
+        tiny = build_tiny(self._local, self._path)
+        self._model_build = {**tiny.record, "path_source": self._path_source}
+        # base_model: the release's own files when this environment builds its architecture (Axolotl reads that
+        # config, as for any model). Otherwise a folder with the stand-in's tiny config next to the release's own
+        # tokenizer and template, so Axolotl resolves the stand-in (D1).
+        self._base = self._local if tiny.record["stand_in"] is None else save_tiny(tiny, self._local, self._work / "model")
         self._runs = 0
         self._declarations: dict[TrainCfg, Declaration] = {}
         self._encoded: dict[tuple[str, str, TrainCfg], Encoded | Dropped] = {}
@@ -132,7 +156,7 @@ class AxolotlAdapter:
         (run / "data.jsonl").write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows))
         dataset: dict[str, Any] = {"path": str(run / "data.jsonl"), "type": "chat_template"}
         config: dict[str, Any] = {
-            "base_model": str(self._local),
+            "base_model": str(self._base),
             "datasets": [dataset],
             "sequence_len": cfg.max_len if cfg.max_len is not None else NO_LIMIT,
             "dataset_prepared_path": str(run / "prepared"),
@@ -169,14 +193,7 @@ class AxolotlAdapter:
 
     def _trainer(self, axolotl_cfg: Any, train_dataset: Any, total_num_steps: int):
         """The trainer `axolotl train` would build, with a tiny random-weight model."""
-        config = AutoConfig.from_pretrained(self._local)
-        for key, value in TINY.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-        if getattr(config, "layer_types", None):
-            config.layer_types = config.layer_types[: config.num_hidden_layers]
-        torch.manual_seed(0)
-        model = AutoModelForCausalLM.from_config(config)  # random weights; nothing downloaded
+        model = build_tiny(self._local, self._path).model  # random weights; nothing downloaded (parity.tiny)
         tokenizer = load_tokenizer(axolotl_cfg)
         return setup_trainer(axolotl_cfg, train_dataset, None, model, tokenizer, None, total_num_steps)
 
@@ -199,7 +216,7 @@ class AxolotlAdapter:
         if cfg not in self._declarations:
             axolotl_cfg, dataset, steps = self._prepare([{"messages": copy.deepcopy(PROBE)}], cfg)
             trainer = self._trainer(axolotl_cfg, dataset, steps)
-            self._declarations[cfg] = _declaration(axolotl_cfg, trainer, self._local)
+            self._declarations[cfg] = _declaration(axolotl_cfg, trainer, self._local, self._model_build)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
@@ -248,7 +265,7 @@ def _batch_row(batch: dict[str, Any], i: int) -> Encoded:
     return Encoded(ids, labels, attention, positions)
 
 
-def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
+def _declaration(axolotl_cfg: Any, trainer: Any, local: Path, model_build: dict[str, Any]) -> Declaration:
     dataset = axolotl_cfg.datasets[0]
     tokenizer = trainer.data_collator.tokenizer
     template = get_chat_template_from_config(cfg=axolotl_cfg, ds_cfg=dataset, tokenizer=tokenizer)
@@ -282,6 +299,7 @@ def _declaration(axolotl_cfg: Any, trainer: Any, local: Path) -> Declaration:
             if axolotl_cfg.chat_template_kwargs
             else "framework defaults (the model's default mode)"
         ),
+        model_build=model_build,
         sources=(
             f"chat_template: get_chat_template_from_config(cfg, datasets[0]) with chat_template={choice!r} "
             f"({DOCS['chat_template']})",

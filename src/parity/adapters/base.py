@@ -185,6 +185,9 @@ class Declaration:
         No framework has an option for it, so it is declared from a version-pinned
         source link and verified by behavior in t1.multiturn_prefix.
     sources: where each value was read from (config field or default), for the verdict.
+    model_build: the tiny model the adapter gave the framework (parity.tiny's record): its class, its path ("text"
+        or "vision"), and, when the environment can't build the release's own architecture, the stand-in and why
+        (D1: a deviation every verdict records). None for adapters that predate parity.tiny.
     """
 
     chat_template: str
@@ -196,6 +199,7 @@ class Declaration:
     sources: tuple[str, ...] = ()
     tool_arguments: str | None = None
     serving_mode_setting: str = "framework defaults (the model's default mode)"
+    model_build: dict[str, Any] | None = None
 
     FIELDS: ClassVar[tuple[str, ...]] = (
         "chat_template",
@@ -223,6 +227,7 @@ class Declaration:
             "pad_token_id": self.pad_token_id,
             "tool_arguments": self.tool_arguments,
             "serving_mode_setting": self.serving_mode_setting,
+            "model_build": self.model_build,
             "sources": list(self.sources),
             "verified": status,
         }
