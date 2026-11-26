@@ -2,6 +2,8 @@
 
 Copy into `findings/<P-000N>/record.md` and `findings/<P-000N>/issue.md`.
 
+The README is rendered from each record's Status, Severity and Upstream lines (`parity.readme`), so keep their format. After editing a record, run `uv run python -m parity.readme`.
+
 ---
 
 ## record.md
@@ -9,7 +11,8 @@ Copy into `findings/<P-000N>/record.md` and `findings/<P-000N>/issue.md`.
 ```markdown
 # P-000N: <one-line symptom>
 
-- Status: candidate | confirmed | fixed | retracted | difference
+- Status: candidate | confirmed | fixed | retracted | difference | harness error | closed: not_configurable
+- Severity: low | medium | high (<why>), by effect x reach (docs/DECISIONS.md). Required unless the status rules it out
 - Date found: YYYY-MM-DD
 - Model: <org/name>@<revision>
 - Framework: <name>@<version>   (lockfile: findings/P-000N/<file>.lock)
@@ -37,9 +40,9 @@ Copy into `findings/<P-000N>/record.md` and `findings/<P-000N>/issue.md`.
 - On fixed version / main: passes / fails / not tested
 
 ## Upstream
-- Issue URL (posted by human): <url>
-- Maintainer response: <date, link, quote of confirmation>
-- Fixed in: <version or commit>, re-run passes: yes/no
+- Issue URL (posted by human): <url> (posted YYYY-MM-DD) | not posted; draft in findings/P-000N/issue.md | none
+- Maintainer response: none yet | YYYY-MM-DD, <link>, "<quote>"   (one line per response)
+- Fixed in: not yet | <version or commit>, <PR or commit URL>, re-run passes: yes/no   (one line per fix)
 ```
 
 ---

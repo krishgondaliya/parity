@@ -1,6 +1,7 @@
 # P-0004: On its CPU backend, Unsloth's Qwen3 recipe trains on rows with a second `<|im_end|>`; its GPU route doesn't add it
 
 - Status: candidate (CPU backend only). Decided by the human, 2026-11-24: on the report card as Unsloth CPU-backend behavior, labeled CPU-only, low impact (`card_label` in `findings/root_causes.json`). Not shrunk. Revisit after the GPU run.
+- Severity: low (CPU backend only)
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca
 - Framework: unsloth@2026.11.10 on its CPU fallback, running trl 1.15.0   (lockfile: envs/unsloth-2026.11.10/uv.lock)
@@ -95,4 +96,7 @@
 - Since the same day's decision on P-0006, Unsloth's non-thinking cells are `not_configurable`. So P-0004 now explains the 8 thinking-mode template-parity fails. Its 7 non-thinking pins stay, and still match the as-run verdicts in git history.
 
 ## Upstream
-- None. Card only (the human's decision, 2026-11-25); revisit after the kill test. Not a TRL report either: TRL #3318 already covers the append, and TRL treats it as intended for text rows.
+- Issue URL (posted by human): none (card only)
+- Maintainer response: none yet
+- Fixed in: not yet
+- Card only (the human's decision, 2026-11-25); revisit after the kill test. Not a TRL report either: TRL #3318 already covers the append, and TRL treats it as intended for text rows.

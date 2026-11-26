@@ -66,4 +66,6 @@
 - `docs/evidence/2026-11-24-m3-rerun/run.py trl`, the non-thinking table. No standalone repro: nothing goes upstream.
 
 ## Upstream
-- None.
+- Issue URL (posted by human): none. A harness error (ours), so nothing goes upstream.
+- Maintainer response: none
+- Fixed in: n/a

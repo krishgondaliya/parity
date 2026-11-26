@@ -84,4 +84,7 @@
 - Not shrunk, and not to be (exploratory).
 
 ## Upstream
-- None. Exploratory, and the open question is ours (the pre-fill zone), not Unsloth's.
+- Issue URL (posted by human): none
+- Maintainer response: none
+- Fixed in: n/a
+- Exploratory, and the open question is ours (the pre-fill zone), not Unsloth's.

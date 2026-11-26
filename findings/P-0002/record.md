@@ -1,6 +1,7 @@
 # P-0002: Axolotl never trains the closing token of an empty assistant turn, despite `train_on_eos: turn`
 
 - Status: candidate
+- Severity: low, on reach (only assistant turns that render empty)
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (found here; also reproduced with SmolLM2, Llama 3.2, Mistral v0.3 and Gemma 3 chat templates)
 - Framework: axolotl@0.21.1   (lockfile: findings/P-0002/uv.lock, a copy of envs/axolotl-0.21.1/uv.lock; findings/P-0002/requirements.txt is the same resolution without Parity)
@@ -113,6 +114,9 @@
 - **So P-0002 stays low, on reach, not on effect.** It would become medium only if ordinary data turned out to produce empty-rendering assistant turns, for example a dataset convention or template that renders ordinary turns empty.
 
 ## Upstream
+- Issue URL (posted by human): not posted; draft in findings/P-0002/issue.md
+- Maintainer response: none yet
+- Fixed in: not yet
 - Draft: `findings/P-0002/issue.md`, laid out for Axolotl's issue form (blank issues are disabled there). Not posted; the human runs the repro, then posts.
 - Reviewed by the `issue-reviewer` subagent (2026-11-24): "ready to post after the fixes". Applied:
   - the form layout and the title in title casing;

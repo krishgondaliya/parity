@@ -84,4 +84,6 @@
 - On main: not tested.
 
 ## Upstream
-- None. It is a known difference (KD-0002, KD-0003), not an issue.
+- Issue URL (posted by human): none. It is a known difference (KD-0002, KD-0003), not an issue.
+- Maintainer response: none
+- Fixed in: n/a

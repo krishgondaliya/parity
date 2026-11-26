@@ -14,6 +14,13 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: The loop's evaluation runs over 10 iterations; the README is rendered from the records
+- **Decision (human, in the request for the public README):** the self-improving loop is evaluated by hidden-vault recall with 95% Wilson intervals over 10 loop iterations, compared against the frozen suite (B1), the loop with no breaker (B2) and the human-only baseline (B3). Until now the blueprint left the number of iterations open ("vN is the suite after N loop iterations").
+- **The README is generated:** `uv run python -m parity.readme` renders `docs/readme/README.in.md` from the ledger, the finding records, the calibration verdicts, the checks and the predictions files. `tests/test_readme_claims.py` fails when a README number or status drifts from them. Each record now carries a `- Severity:` line and the Upstream fields of `findings/_TEMPLATE.md` (issue, maintainer responses, fixes), so the README's upstream sections fill in as the records do.
+- Why: every public number and status has to come from a repo file or a public URL, and stay true as the records change.
+- Evidence: `README.md`, `docs/readme/README.in.md`, `src/parity/readme.py`, `tests/test_readme_claims.py`
+- Reversible? yes, before the loop's first iteration
+
 ## 2026-11-25: A fixture whose assistant turn carries reasoning is not applicable in non-thinking mode (M4, option a); calibration green for all three
 - **Decision (human):** option (a). Applicability is decided from the fixture and the declared serving mode, before any framework output. Reasoning stays fully covered in the primary (thinking) table.
   - Not (b): borrowing TRL's training-template reading of reasoning history into the reference would make TRL's verdicts circular.
