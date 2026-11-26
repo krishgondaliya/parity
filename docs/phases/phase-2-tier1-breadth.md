@@ -45,6 +45,7 @@ The kill test is frozen at 8 fixtures and 432 runs. Real results exist, so chang
   - Today's non-thinking reference is the hard switch (`enable_thinking=False`): the generation prompt pre-fills an empty think block, so it is prompt side.
   - Some frameworks document only the soft switch: Unsloth appends `/no_think` to user turns, and the model emits the empty block itself, so it is model output. Those get `not_configurable` cells today.
   - A second reference, with `/no_think` in the user turn, would let those cells be judged. It needs its own zone rules, and Qwen's model card for which switches are valid when.
+- **A second recipe where a framework refuses the first** (idea, from M5 prep; the human's decision, 2026-11-25). TRL 1.18.2 refuses `assistant_only_loss=True` on templates with no `{% generation %}` markers and no stored training template (Hy4, DeepSeek V4.1), so those cells are `not_supported`. Phase 0 never switches recipes to get around a refusal. A later phase could judge another documented recipe as its own configuration, for example TRL's prompt-completion path with `completion_only_loss`, reported separately and never in place of the refused one.
 - **A truncation fixture where modes disagree beyond `long_answer`.** For example, a multi-turn conversation long enough that a right cut falls inside an earlier assistant turn and a left cut drops the system prompt. Adding it changes the run count, so it starts here, not in Phase 0.
 
 ## Definition of done

@@ -32,9 +32,15 @@ class ServingModeError(TemplateReferenceError):
 
 @dataclass(frozen=True)
 class ModeSpec:
+    """A model's serving modes. `citation_level` says where the default comes from: "model card" when the card at
+    the pinned revision states it, "template only" when only the chat template sets it. `sources` are permalinks at
+    the pinned revision (M5 prep, 2026-11-25: every Phase 0 target's default mode is cited before any run)."""
+
     default: str
     kwargs: dict[str, dict[str, Any] | None]  # mode -> chat-template arguments; None if the model has no such mode
     evidence: str
+    citation_level: str = ""
+    sources: tuple[str, ...] = ()
 
 
 MODE_SPECS: dict[str, ModeSpec] = {
@@ -50,19 +56,48 @@ MODE_SPECS: dict[str, ModeSpec] = {
     "deepseek-ai/DeepSeek-V4.1-Flash-1017": ModeSpec(
         default="thinking",
         kwargs={"thinking": {"thinking": True}, "non_thinking": {"thinking": False}},
-        evidence="The template's thinking_mode defaults to 'thinking'; thinking=False selects 'chat'.",
+        evidence=(
+            "The model card documents no default. It says the release has no Jinja template and points to "
+            "encoding/encoding.py as the prompt-format reference, whose encode_messages takes thinking_mode as a "
+            "required argument ('thinking' or 'chat'; its quick start uses 'thinking'). The chat_template.jinja at "
+            "this revision was added after the release (commit 08c8657, 'Add chat template (#11)', 2026-11-10) and "
+            "says it is 'ported from encoding/encoding.py'; it defaults thinking_mode to 'thinking' (L2, L10-L16), "
+            "and thinking=False selects 'chat'."
+        ),
+        citation_level="template only",
+        sources=(
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/08c8657f02291e11b6f6b63e0e16014f8e748518/README.md",
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/08c8657f02291e11b6f6b63e0e16014f8e748518/encoding/README.md",
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/08c8657f02291e11b6f6b63e0e16014f8e748518/encoding/encoding.py#L810-L816",
+            "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/08c8657f02291e11b6f6b63e0e16014f8e748518/chat_template.jinja#L1-L20",
+        ),
     ),
     "tencent/Hy4-flash": ModeSpec(
         default="thinking",
         kwargs={"thinking": {"reasoning_effort": "high"}, "non_thinking": {"reasoning_effort": "no_think"}},
-        evidence="The template's reasoning_effort defaults to 'high' and accepts only 'high' and 'no_think'.",
+        evidence=(
+            "The model card: 'reasoning_effort supports \"high\" (default, thinking enabled) and \"no_think\" "
+            "(direct responses).' The template agrees: reasoning_effort defaults to 'high' and accepts only 'high' "
+            "and 'no_think' (L38-L45)."
+        ),
+        citation_level="model card",
+        sources=(
+            "https://huggingface.co/tencent/Hy4-flash/blob/eccd3123eec73f2040f4c9ed0de1883593470510/README.md#L242",
+            "https://huggingface.co/tencent/Hy4-flash/blob/eccd3123eec73f2040f4c9ed0de1883593470510/chat_template.jinja#L38-L45",
+        ),
     ),
     "thinkingmachines/Inkling-2-Mini": ModeSpec(
         default="thinking",
         kwargs={"thinking": {}, "non_thinking": None},
         evidence=(
-            "The template takes a numeric reasoning_effort in [0, 0.99] (default 0.9), emitted as a system line; it "
-            "documents no value that turns thinking off, so no non-thinking mode is assumed."
+            "The model card: 'Setting reasoning effort to its minimum does not fully disable reasoning.' So the "
+            "model documents no non-thinking mode. The template takes a numeric reasoning_effort in [0, 0.99] "
+            "(default 0.9, L4-L16), emitted as a system line."
+        ),
+        citation_level="model card",
+        sources=(
+            "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6/README.md#L202",
+            "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6/chat_template.jinja#L4-L16",
         ),
     ),
 }

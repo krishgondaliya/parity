@@ -107,3 +107,18 @@ def test_the_verdict_records_the_mode_and_the_zone_follows_it(qwen3):
     assert [t["token"] for t in primary.evidence["must_train_unsupervised"]] == THINK_BLOCK
     assert primary.reference["template_kwargs"] == {"enable_thinking": True}
     assert secondary.reference["template_kwargs"] == {"enable_thinking": False}
+
+
+def test_every_phase0_targets_default_mode_is_cited_at_its_pinned_revision():
+    """M5 prep (2026-11-25): each target's default mode is fixed and cited before any run, from permalinks at the
+    pinned revision; the citation level says whether the model card or only the template sets it."""
+    from parity.serving import MODE_SPECS
+    from parity.targets import PHASE0_TARGETS
+
+    for target in PHASE0_TARGETS:
+        spec = MODE_SPECS[target.repo_id]
+        assert spec.default in ("thinking", "non_thinking")
+        assert spec.citation_level in ("model card", "template only")
+        assert spec.sources, target.repo_id
+        for url in spec.sources:
+            assert url.startswith(f"https://huggingface.co/{target.repo_id}/blob/{target.revision}/"), url

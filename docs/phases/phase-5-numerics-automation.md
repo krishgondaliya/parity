@@ -38,6 +38,13 @@ then a matrix job per framework running Tier 1 + Tier 2 on CPU, then open a draf
 No posting to any other repo, ever. Document the watchlist in docs/DECISIONS.md.
 ```
 
+**Process lesson from Phase 0 (M5 prep, 2026-11-25): check architecture support, not only the tokenizer.** Phase 0's M0 picked targets because their tokenizers load without repo code. Two of the three turned out to have an architecture no transformers release registers, and the third only the newest one, so most framework × target pairs could not build the model. The watcher's first step for a new release must therefore be a support check, per framework at its pinned version:
+- does the tokenizer load (no remote code)?
+- does the config resolve, and does a tiny `from_config` model build, with the framework's own registrations applied (import the framework first: Unsloth registers some architectures itself)?
+- for a text-plus-vision release, which path does the framework document for a text-only chat fine-tune?
+
+Record the answers as the release's "loads the release's architecture" table on the card, before any check runs. See `docs/DECISIONS.md`, 2026-11-25, "M5 prep".
+
 ### M4. The 48-hour test
 Done when two real releases go from public release to a merged card update in under 48 hours each. Record the timestamps.
 

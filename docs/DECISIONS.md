@@ -14,6 +14,29 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: M5 prep: architecture support, stand-ins, `not_supported`, Inkling's secondary table, the secondary table in M5
+- **Found while planning M5 (read from the installed packages, before any target run):** M0 checked that each target's tokenizer loads without repo code. It never checked that each target's architecture can be built, which rule 6 needs (every adapter builds a tiny `from_config` model).
+  - `deepseek_v41` (DeepSeek V4.1) and `hy_v4_flash` (Hy4) are registered in none of the three environments' transformers, nor in transformers 5.24.1 (the newest on PyPI, 2026-11-24) or main. Neither config has an `auto_map`, so there is no remote code either.
+  - Unsloth 2026.11.10 ships its own DeepSeek V4.1 implementation and registers it with `AutoConfig` at import (`unsloth/import_fixes.py`, `fix_transformers_deepseek_v41_native`).
+  - `inkling2_loop` (Inkling-2-Mini) is in transformers 5.24.x (TRL's environment). Axolotl 0.21.1 requires `transformers==5.20.1` and Unsloth 2026.11.10 `<=5.17.0`, so neither can build it.
+  - All three targets are text-plus-vision configs (`text_config` and `vision_config`). The adapters' `TINY` settings touch only the top-level config, so they would not shrink these models.
+  - TRL 1.18.2 refuses `assistant_only_loss=True` on Hy4 and DeepSeek: their templates have no `{% generation %}` markers and TRL stores no training template for them (`get_training_chat_template`, the final `ValueError`).
+- **Decisions (human):**
+  - **D1, one rule everywhere.**
+    - Build the release's own architecture wherever the framework's documented path can. Otherwise build a stand-in chosen in advance from the same family, recorded as a deviation in every verdict.
+    - The report card gets a "loads the release's architecture" field per pair, with the exact error. That table is a Day-0 result in its own right.
+    - A fail found on a stand-in leaves the repo only with a standalone repro that doesn't need the release's architecture: the release's tokenizer and template with a model the framework supports (like P-0002's tokenizer-only repro). Otherwise it stays internal.
+    - Text-plus-vision releases: before any run, decide per framework from its docs which path a text-only chat fine-tune of that release uses (text model class and tokenizer, or vision model class with its processor and collator), cite it, and keep that path. If it is the vision path, the tiny or stand-in model keeps it too.
+  - **D2, `not_supported`:** a new result for a framework that loudly refuses the model or the config. It is pinned to the framework's exact exception type and message at that version; any other exception stays a harness error. No recipe switch to get around a refusal (for example TRL's prompt-completion path); that is logged as a Phase 2 idea.
+  - **D3:** a model with no documented non-thinking mode gets `not_applicable` for its whole non-thinking table, decided before any framework output, unless its model card at the pinned SHA documents such a mode.
+  - **D4:** M5 runs the secondary (non-thinking) table too, labelled secondary and not counted in the 432.
+  - **Support check before predictions:** it may import Unsloth before the M5 predictions are written, since it never touches the data path. Each M5 predictions file states that the support-check results were known when it was written.
+  - **GPU kit:** write each model's results as soon as that model finishes, so a lost Colab session keeps the finished models.
+- **Process lesson (logged in `docs/phases/phase-5-numerics-automation.md`, M3):** target selection must check architecture support per framework (each framework's pinned transformers, plus anything the framework registers itself), not only tokenizer loading.
+- Why: a stand-in keeps the data-path question answerable (the release's own tokenizer and template), while the support table reports the Day-0 fact without dressing it up. The standalone-repro rule keeps a stand-in artifact from ever reaching a maintainer.
+- Evidence: the plan and its static reading (this session); the support check, `docs/evidence/2026-11-25-m5-env-support/` (to come).
+- Reversible? yes, before the first M5 target run
+
 ## 2026-11-25: The loop's evaluation runs over 10 iterations; the README is rendered from the records
 - **Decision (human, in the request for the public README):** the self-improving loop is evaluated by hidden-vault recall with 95% Wilson intervals over 10 loop iterations, compared against the frozen suite (B1), the loop with no breaker (B2) and the human-only baseline (B3). Until now the blueprint left the number of iterations open ("vN is the suite after N loop iterations").
 - **The README is generated:** `uv run python -m parity.readme` renders `docs/readme/README.in.md` from the ledger, the finding records, the calibration verdicts, the checks and the predictions files. `tests/test_readme_claims.py` fails when a README number or status drifts from them. Each record now carries a `- Severity:` line and the Upstream fields of `findings/_TEMPLATE.md` (issue, maintainer responses, fixes), so the README's upstream sections fill in as the records do.
