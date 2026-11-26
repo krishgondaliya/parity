@@ -14,6 +14,25 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-26: tml-renderers is Thinking Machines' official renderer for Inkling, and the reference for P-0008
+- **Decision (human):** run tml-renderers under the encoding.py conditions, and record before running whether it's Thinking Machines' official renderer (their model card or org publishes it). If it is, it's the reference for P-0008.
+- **Official: yes.** Recorded before any run.
+  - The model card at the pinned revision (`thinkingmachines/Inkling-2-Mini@7a67ae2…`, README.md L41) points to the package: "For accessing our model via Tinker, … installing the tml-renderers package [here](https://pypi.org/project/tml-renderers/)".
+  - PyPI lists the author as "Thinking Machines Lab" with a `thinkingmachines.ai` address; the documentation is on Thinking Machines' own domain.
+  - The docs (https://tinker-docs.thinkingmachines.ai/cookbook/inkling/tml-renderers/): "tml-renderers is Thinking Machines Lab's high-performance rendering package to ensure reliable sampling and post-training. It converts chat messages, tool calls, images, and audio into the token and media representation Inkling expects." It accepts OpenAI-format message dicts.
+  - Caveat: the model card links it in its Tinker section, and the Hugging Face chat template ships in the same release. Where they disagree, the renderer is the reference (the human's rule).
+- **Pin:** tml-renderers 0.5.0 (uploaded to PyPI 2026-11-25). The wheel is `tml_renderers-0.5.0-cp311-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`, sha256 `465f2c7e33ab3f098610aa5086b06ce68e7d964053700e7fd261f873e054db14`; the download matched PyPI's digest. There is no source distribution and no public source repository, so there is no commit to pin; the release file's sha256 stands in for one. The human asked for a commit, so this is reported.
+- **What it imports and does** (static inspection of the unpacked wheel, nothing run):
+  - Python layer: 2,340 lines of `.py`/`.pyi`. It imports the standard library (base64, pathlib, importlib, `urllib.parse` for media URLs), `torch` (in `chat.py`; the docs require PyTorch ≥ 2.10, as libtorch isn't bundled) and its compiled module. `tinker.types` is imported only inside the Tinker adapter functions.
+  - The compiled module (`_tml_renderers.abi3.so`, Rust) links only libc, libm, libpthread, libdl and the loader. Its 248 dynamic imports include `dlopen` (libtorch at runtime) and file calls (`open`, `open64`, `creat`, `write`), and no socket, connect or getaddrinfo. No URLs are embedded.
+  - Tokenizers are built in: `renderers.Inkling2()` takes no tokenizer and reads no files. `render_for_sft(messages)` takes OpenAI-format dicts and returns token spans with per-token loss weights.
+- **Run conditions:**
+  - a throwaway venv in the scratchpad, outside `envs/` (Python 3.12, torch CPU, the pinned wheel);
+  - `unshare -rnm`: no network, and every mount read-only except an empty temp dir, so any write outside it fails the run (tested: writes to the scratchpad, `/tmp` and home fail with EROFS);
+  - `env -i`; the venv's Python with `-I -B`, run from the temp dir;
+  - cases in through stdin as JSON, results out through stdout as JSON.
+- Reversible? yes
+
 ## 2026-11-26: The 9 Axolotl × DeepSeek V4.1 `</think>` cells are a known difference (KD-0004, KD-0005)
 - **Decision (human):** a new known-difference entry, not a candidate, if and only if the cells come from the same Axolotl code path and the same documented test as KD-0002. Scope it exactly: Axolotl 0.21.1, DeepSeek V4.1's template, thinking mode, fixtures without reasoning, the exact signature. If the code path or the documentation differs, report back instead.
 - **Same code path** (`docs/evidence/2026-11-26-kd-deepseek-think-close/trace.py` → `trace.json`): our adapter's full `load_cfg` + `load_datasets` path, in thinking mode, with `ChatTemplateStrategy.find_turn` recorded in Axolotl's worker process.
