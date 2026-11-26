@@ -34,12 +34,16 @@
 - **Adapter uses the documented public path and option:** yes. A tiny release-architecture model and the processing class TRL's own `model_accepts_images` picks, `SFTConfig(assistant_only_loss=True)`. A user passing the model id gets the same model class and processor.
 - **Fixture valid for this model:** yes. An assistant turn with `content: ""` and `tool_calls` is legal OpenAI-format data.
 - **Reference consistent:** yes. Our reference is Inkling's own template, with the messages as given (string content), which is also what the tokenizer and the template's own markers give; our preview found the markers agree with our reference on all 8 fixtures.
+- **Thinking Machines' official renderer agrees with it** (2026-11-26; tml-renderers 0.5.0, the reference for P-0008 by the human's rule, `docs/DECISIONS.md`; run sandboxed, `docs/evidence/2026-11-26-p0008-renderer/`):
+  - with the template's default thinking effort (0.9), `renderers.Inkling2().render_for_sft` gives exactly the Hugging Face template's text and token ids for the `tool_call` fixture with the tool-call turn's content `""`, null or absent;
+  - it renders no empty text message for any of the four forms, including one empty text part (`[{"type": "text", "text": ""}]`). The Hugging Face template renders one for that form, and TRL's vision-path row has one for `""`;
+  - so TRL's row for `""` differs from the model's official format by those three trained tokens, and the template's list branch differs from the model's own renderer.
 - **Documented as intended behavior:** partly. TRL's wrapping of `""` as `[{"type": "text", "text": ""}]` is deliberate (PR #5496, merged 2026-04-10: several VLM processors crash on `content: ""` but accept the empty text part), and TRL's own internals pass `content: ""` with tool calls. Its effect on Inkling 2's render is not intended or documented.
 - **Attribution (after the skeptic):** mainly the model's template.
   - Inkling 2's template contradicts itself: its string branch skips an empty text message on assistant turns with tool calls or reasoning (L75-L76), and its list branch doesn't (L77-L83). The tokenizer alone gives the same 162-token row from the wrapped messages, so Inkling2Processor plays no part.
   - Inkling v1's template renders the empty text message in both forms. Inkling 2 added the rule for the string form only, which suggests its intended format has none, so the string-form reference is probably right.
   - TRL's side is constrained: not wrapping `""` would bring back #5496's crashes. A TRL training template for Inkling 2 is the realistic TRL-side option.
-  - **Not decided until the official renderer is checked** (below).
+  - **Decided by the official renderer (2026-11-26):** it never renders an empty text message here, so the template's list branch is what departs from the model's own format. TRL's wrapping of `""` is the trigger.
 - **Duplicates searched** (read-only, TRL issues and PRs): "prepare_multimodal_messages empty content", "prepare_multimodal_messages tool_calls", "empty text block tool call processor", "inkling SFTTrainer", "content empty string tool_calls vlm". No duplicate. Related:
   - #6928 / #6930 (closed): vLLM-side handling of content-less tool calls;
   - #8497 (open): tracking Inkling 2 support, nothing about this;
@@ -57,7 +61,7 @@
   - no duplicate in TRL or in the model repo's discussions.
 - **Corrections, applied:** severity provisionally low (reach unmeasured; the "common convention" wording dropped); "the template's string-form render" instead of "the model's own render"; the wrapping is deliberate (#5496); TRL's default path for a model id, while transformers documents `Inkling2LoopForCausalLM` for text-only use, which takes the unaffected tokenizer path.
 - **To check before any upstream draft:**
-  1. **The official renderer.** Thinking Machines' tml-renderers (`renderers.Inkling2`, `render_for_sft`) with `content` as `""`, null and `[{"type": "text", "text": ""}]` plus tool calls. This decides the reference. Not run: the skeptic downloaded the wheel into the scratchpad but running it was blocked by the permission system, and it needs the human's OK.
+  1. **Done 2026-11-26:** the official renderer, run under the human's conditions after the human's OK (the skeptic's earlier attempt was blocked and not re-run on its behalf). It renders no empty text message in any form and equals the Hugging Face template for `""`, null and absent (above).
   2. What vLLM and SGLang render for a history turn with `""` plus tool calls.
   3. Whether `[]`, or leaving `""` alone on tool-call turns, avoids #5496's crashes (whether any TRL-side fix is possible).
   4. How often popular tool-calling datasets write `""` rather than null on tool-call turns.

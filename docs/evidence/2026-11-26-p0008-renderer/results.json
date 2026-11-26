@@ -1,0 +1,66 @@
+{
+ "tml_renderers": {
+  "version": "0.5.0",
+  "module_sha256": "86e0c106580a2535ac04c8b52b345ee685bb4a714778a685694d11bc558cf725"
+ },
+ "effort": 0.9,
+ "sandbox": {
+  "command": [
+   "unshare",
+   "-rnm",
+   "/bin/sh",
+   "-c",
+   "<remount all read-only but the temp dir; probe a write outside; cd temp; exec env -i venv/bin/python -I -B driver.py>"
+  ],
+  "returncode": 0,
+  "probe_outside_written": false,
+  "temp_dir_left": [],
+  "stderr_tail": "/tmp/claude-1000/-home-krishg-parity/b153f1c8-a439-467c-9d06-17e95a8d8b04/scratchpad/tmlr-0.5.0/venv/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:368: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)\n  cpu = _conversion_method_template(device=torch.device(\"cpu\"))\n"
+ },
+ "cases": {
+  "empty string": {
+   "hf_template_empty_text_messages": 0,
+   "trl_vision_row_empty_text_messages": 1,
+   "renderer": {
+    "empty_text_messages": 0,
+    "equals_hf_template_text": true,
+    "equals_hf_template_ids": true,
+    "equals_trl_vision_row_text": false,
+    "text": "<|message_system|>tool_declare<|content_xml|>[{\"description\":\"Get the current weather for a city.\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"celsius\":{\"description\":\"Return the temperature in Celsius if true.\",\"type\":\"boolean\"},\"city\":{\"description\":\"City name.\",\"type\":\"string\"}},\"required\":[\"city\",\"celsius\"],\"type\":\"object\"},\"type\":\"function\"}]<|end_message|><|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>What's the weather in Paris right now? Use Fahrenheit.<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"celsius\":false,\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}<|end_message|><|message_model|><|content_text|>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|end_message|><|content_model_end_sampling|>"
+   }
+  },
+  "null": {
+   "hf_template_empty_text_messages": 0,
+   "trl_vision_row_empty_text_messages": 0,
+   "renderer": {
+    "empty_text_messages": 0,
+    "equals_hf_template_text": true,
+    "equals_hf_template_ids": true,
+    "equals_trl_vision_row_text": true,
+    "text": "<|message_system|>tool_declare<|content_xml|>[{\"description\":\"Get the current weather for a city.\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"celsius\":{\"description\":\"Return the temperature in Celsius if true.\",\"type\":\"boolean\"},\"city\":{\"description\":\"City name.\",\"type\":\"string\"}},\"required\":[\"city\",\"celsius\"],\"type\":\"object\"},\"type\":\"function\"}]<|end_message|><|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>What's the weather in Paris right now? Use Fahrenheit.<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"celsius\":false,\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}<|end_message|><|message_model|><|content_text|>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|end_message|><|content_model_end_sampling|>"
+   }
+  },
+  "absent": {
+   "hf_template_empty_text_messages": 0,
+   "trl_vision_row_empty_text_messages": 0,
+   "renderer": {
+    "empty_text_messages": 0,
+    "equals_hf_template_text": true,
+    "equals_hf_template_ids": true,
+    "equals_trl_vision_row_text": true,
+    "text": "<|message_system|>tool_declare<|content_xml|>[{\"description\":\"Get the current weather for a city.\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"celsius\":{\"description\":\"Return the temperature in Celsius if true.\",\"type\":\"boolean\"},\"city\":{\"description\":\"City name.\",\"type\":\"string\"}},\"required\":[\"city\",\"celsius\"],\"type\":\"object\"},\"type\":\"function\"}]<|end_message|><|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>What's the weather in Paris right now? Use Fahrenheit.<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"celsius\":false,\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}<|end_message|><|message_model|><|content_text|>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|end_message|><|content_model_end_sampling|>"
+   }
+  },
+  "one empty text part": {
+   "hf_template_empty_text_messages": 1,
+   "trl_vision_row_empty_text_messages": 1,
+   "renderer": {
+    "empty_text_messages": 0,
+    "equals_hf_template_text": false,
+    "equals_hf_template_ids": false,
+    "equals_trl_vision_row_text": false,
+    "text": "<|message_system|>tool_declare<|content_xml|>[{\"description\":\"Get the current weather for a city.\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"celsius\":{\"description\":\"Return the temperature in Celsius if true.\",\"type\":\"boolean\"},\"city\":{\"description\":\"City name.\",\"type\":\"string\"}},\"required\":[\"city\",\"celsius\"],\"type\":\"object\"},\"type\":\"function\"}]<|end_message|><|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>What's the weather in Paris right now? Use Fahrenheit.<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"celsius\":false,\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}<|end_message|><|message_model|><|content_text|>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|end_message|><|content_model_end_sampling|>"
+   }
+  }
+ }
+}
