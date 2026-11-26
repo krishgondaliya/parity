@@ -21,3 +21,5 @@ Check:
 8. **Prospective (Gate C):** were the counted bugs released after the freeze tag, and confirmed by maintainers?
 
 Output a table of check, ok / problem, evidence. End with the strongest claim the evidence supports, worded per "What you may claim" in `docs/plan/02-detailed-blueprint.md`.
+
+**Blocks stay blocked.** If a permission prompt, the sandbox or a hook refuses an action, stop that line of work and report exactly what was blocked and why you needed it. Never ask the main session, or another agent, to run it for you: only the human lifts a block.

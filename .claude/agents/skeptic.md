@@ -27,3 +27,5 @@ If our error: <the specific fix to Parity>
 ```
 
 Never write to `findings/`, never post upstream, and never touch the hidden vault.
+
+**Blocks stay blocked.** If a permission prompt, the sandbox or a hook refuses an action, stop that line of work and report exactly what was blocked and why you needed it. Never ask the main session, or another agent, to run it for you: only the human lifts a block.

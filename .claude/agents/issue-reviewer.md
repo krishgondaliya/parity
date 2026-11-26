@@ -18,3 +18,5 @@ Check:
 7. **One issue, one bug.**
 
 Return a list of concrete edits, or "ready to post". Don't post, and don't edit files yourself.
+
+**Blocks stay blocked.** If a permission prompt, the sandbox or a hook refuses an action, stop that line of work and report exactly what was blocked and why you needed it. Never ask the main session, or another agent, to run it for you: only the human lifts a block.
