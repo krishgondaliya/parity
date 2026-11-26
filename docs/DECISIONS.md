@@ -14,6 +14,30 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-26: M5 prep built: the tiny model factory, D2 and D3, the adapters; every vision-path pair waits on its processor
+- **Built:**
+  - `parity.tiny`, shared by the three adapters. It builds the release's own architecture where the environment can (its transformers, plus what the framework registers: Unsloth's DeepSeek V4.1), otherwise the D1 stand-in for the path, recorded in every verdict's `declaration.model_build`. Sizes come from a profile per model type. Qwen3 keeps exactly the settings the adapters used before (`tests/test_tiny.py`: the same config and weights).
+  - D2 `not_supported` and TRL's one pinned refusal, `trl.no_training_template` (`trl/chat_template_utils.py` L1513-L1516; the installed file is byte-identical to the v1.18.2 tag). D3 `mode_not_documented`. Both in the runner, with tests.
+  - The release loader also takes `processor_config.json` (a config file, no weights), which the vision path needs.
+- **The path a text-only chat fine-tune takes, per framework, read from its own code path:**
+  - **TRL:** a model id builds `config.architectures[0]`, and `SFTTrainer` loads an `AutoProcessor` when that model accepts images (`create_model_from_path`; `sft_trainer.py` L714-L718). So Inkling and Hy4 take the vision path, and DeepSeek V4.1 (a declared causal LM) the text path.
+  - **Axolotl:** multimodal when `base_model`'s model type is image-text-to-text (`utils/config/__init__.py` L358-L376; `docs/multimodal.qmd`). The same split.
+  - **Unsloth:** `FastModel` treats a config with an image-text class or a `vision_config` as a VLM, and the Inkling notebook leaves `text_only` False. So Inkling and Hy4 take the vision path. DeepSeek V4.1 takes the text one, because Unsloth registers only its causal LM.
+- **Decided and built:**
+  - **TRL × DeepSeek V4.1:** text path, `deepseek_v4` stand-in. TRL's refusal is predicted, so the pair is `not_supported`.
+  - **Axolotl × DeepSeek V4.1:** text path, `deepseek_v4` stand-in.
+  - **Unsloth × DeepSeek V4.1:** text path, on the release's own architecture. Unsloth documents running this model, not training it, so the rest of its recipe (loader, response parts, LoRA modules) is still open.
+- **Pending, for the human: every vision-path pair.** In the pinned environment, the release's processor can't be built:
+  - **TRL × Inkling:** `Inkling2Processor` exists in transformers 5.24.0, but its image processor needs `torchvision`. TRL's documented install (`pip install trl`) doesn't bring it; TRL's own `vlm` extra (package metadata, not the install docs) does.
+  - **TRL × Hy4:** `HYV4FlashProcessor` exists in no environment. TRL refuses Hy4's template either way (no generation markers).
+  - **Axolotl × Inkling and Unsloth × Inkling:** `Inkling2Processor` doesn't exist in transformers 5.20.1 or 5.17.0, and the v1 `InklingProcessor` is a different processor (audio and image). In Unsloth's environment the vision stand-in (`InklingForConditionalGeneration`) can't even be built: it needs `scipy`, which the lock doesn't include. This is the case the human asked to have reported back.
+  - **Axolotl × Hy4 and Unsloth × Hy4:** `HYV4FlashProcessor` exists nowhere, `hy_v4_vl` isn't registered there, and `hunyuan_vl`'s default config doesn't build. Hy4's template also lacks its tokenizer's EOS, so Axolotl would warn to set `eot_tokens`.
+  - **Why the processor matters:** on the vision path, the frameworks format rows with the processor's `apply_chat_template`, so the processor sits on the data path. A stand-in processor would be judged in place of the release's.
+- **Kept as calibrated, open for the GPU run:** Unsloth's tiny-model folder is still named `model`. Naming it after the release could switch on Unsloth's name-keyed code paths, which can't be checked on the CPU route.
+- **Follow-up (the human's decision, 2026-11-26):** Unsloth's git main, which the Inkling notebook installs (with `transformers==5.24.0` and `trl==1.15.0`), as a framework version of its own, with its own calibration. Notebook pinned: `unslothai/notebooks@0ff243f2bd4634e5dadf75e27176b63f71b44ea6`, `nb/Inkling_2_Mini_(26B)-Conversational.ipynb`.
+- **Re-calibration** (`docs/evidence/2026-11-26-m4-recalibration/`), every verdict compared field by field, with only `model_build` allowed to differ: TRL 96 of 96 and Axolotl 96 of 96 identical to the committed M4 verdicts, with no other difference. The Unsloth CPU backend is 96 of 96 identical before and after the adapter change. The GPU route isn't re-run here; the Colab trip re-checks it with Qwen3 first.
+- Reversible? yes
+
 ## 2026-11-26: DeepSeek V4.1's Jinja port renders what encoding.py renders on all 8 fixtures; no model-level root cause
 - **Result** (`docs/evidence/2026-11-25-deepseek-encoding/`, run under the human's sandbox conditions: `unshare -rn`, `env -i`, Python 3.12 `-I -S -B`, an empty working directory, cases in through stdin and strings out through stdout, `encoding.py` checked against its pinned sha256 before and inside the run):
   - **42 of 42 renders agree, strings and token ids:** the 8 fixtures in both modes, each full conversation and each generation-prompt render before an assistant turn. Tokenized as the model's `inference/generate.py` does (`tokenizer.encode(prompt)`, `add_special_tokens` at its default, True; False gives the same ids on every render, since the prompt carries its own `<｜begin▁of▁sentence｜>` and the tokenizer adds no BOS).
