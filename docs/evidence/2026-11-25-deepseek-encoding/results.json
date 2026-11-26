@@ -1,0 +1,885 @@
+{
+ "target": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+ "encoding_file": "encoding/encoding.py",
+ "encoding_sha256": "13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2",
+ "jinja_sha256": "95b7033a693b321ceaefb6f89ad07d1e0cf2b095305711f934a4ac649456739d",
+ "tokenization": "tokenizer.encode(prompt), add_special_tokens left at its default (True), as inference/generate.py L156; the prompt string already starts with <｜begin▁of▁sentence｜>",
+ "versions": {
+  "transformers": "5.24.0",
+  "tokenizers": "0.23.3"
+ },
+ "sandbox": [
+  {
+   "mapping": "documented",
+   "command": [
+    "unshare",
+    "-rn",
+    "/usr/bin/env",
+    "-i",
+    "python3.12",
+    "-I",
+    "-S",
+    "-B",
+    "driver.py",
+    "encoding/encoding.py",
+    "13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2",
+    "documented"
+   ],
+   "python": "3.12.13",
+   "working_dir_left_empty": true,
+   "code_folder_unchanged": true,
+   "stderr": ""
+  },
+  {
+   "mapping": "loader",
+   "command": [
+    "unshare",
+    "-rn",
+    "/usr/bin/env",
+    "-i",
+    "python3.12",
+    "-I",
+    "-S",
+    "-B",
+    "driver.py",
+    "encoding/encoding.py",
+    "13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2",
+    "loader"
+   ],
+   "python": "3.12.13",
+   "working_dir_left_empty": true,
+   "code_folder_unchanged": true,
+   "stderr": ""
+  }
+ ],
+ "rows": [
+  {
+   "key": "thinking/single_turn/full",
+   "fixture": "single_turn",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "b449945058b3d7a7"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "b449945058b3d7a7"
+   },
+   "jinja_sha256": "b449945058b3d7a7"
+  },
+  {
+   "key": "thinking/single_turn/prompt@1",
+   "fixture": "single_turn",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "2cfb3319f16f9094"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "2cfb3319f16f9094"
+   },
+   "jinja_sha256": "2cfb3319f16f9094"
+  },
+  {
+   "key": "non_thinking/single_turn/full",
+   "fixture": "single_turn",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "6aa95cfd09d8c3c4"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "6aa95cfd09d8c3c4"
+   },
+   "jinja_sha256": "6aa95cfd09d8c3c4"
+  },
+  {
+   "key": "non_thinking/single_turn/prompt@1",
+   "fixture": "single_turn",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "3c7d5b1fc3f44cb9"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "3c7d5b1fc3f44cb9"
+   },
+   "jinja_sha256": "3c7d5b1fc3f44cb9"
+  },
+  {
+   "key": "thinking/multi_turn/full",
+   "fixture": "multi_turn",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "e307a5975cf6c16e"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "e307a5975cf6c16e"
+   },
+   "jinja_sha256": "e307a5975cf6c16e"
+  },
+  {
+   "key": "thinking/multi_turn/prompt@1",
+   "fixture": "multi_turn",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "6a2fbc8e0cd2f4c6"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "6a2fbc8e0cd2f4c6"
+   },
+   "jinja_sha256": "6a2fbc8e0cd2f4c6"
+  },
+  {
+   "key": "thinking/multi_turn/prompt@3",
+   "fixture": "multi_turn",
+   "mode": "thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "23d9572da18f9d70"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "23d9572da18f9d70"
+   },
+   "jinja_sha256": "23d9572da18f9d70"
+  },
+  {
+   "key": "thinking/multi_turn/prompt@5",
+   "fixture": "multi_turn",
+   "mode": "thinking",
+   "render": "prompt@5",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "77a93f69f1af5564"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "77a93f69f1af5564"
+   },
+   "jinja_sha256": "77a93f69f1af5564"
+  },
+  {
+   "key": "non_thinking/multi_turn/full",
+   "fixture": "multi_turn",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "64da1d12349ed797"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "64da1d12349ed797"
+   },
+   "jinja_sha256": "64da1d12349ed797"
+  },
+  {
+   "key": "non_thinking/multi_turn/prompt@1",
+   "fixture": "multi_turn",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a6b09ab03a97eb7b"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a6b09ab03a97eb7b"
+   },
+   "jinja_sha256": "a6b09ab03a97eb7b"
+  },
+  {
+   "key": "non_thinking/multi_turn/prompt@3",
+   "fixture": "multi_turn",
+   "mode": "non_thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d9c3c4ad2418e866"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d9c3c4ad2418e866"
+   },
+   "jinja_sha256": "d9c3c4ad2418e866"
+  },
+  {
+   "key": "non_thinking/multi_turn/prompt@5",
+   "fixture": "multi_turn",
+   "mode": "non_thinking",
+   "render": "prompt@5",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "3cef2301d7f24479"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "3cef2301d7f24479"
+   },
+   "jinja_sha256": "3cef2301d7f24479"
+  },
+  {
+   "key": "thinking/system_prompt/full",
+   "fixture": "system_prompt",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5f4c32ee9a67d248"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5f4c32ee9a67d248"
+   },
+   "jinja_sha256": "5f4c32ee9a67d248"
+  },
+  {
+   "key": "thinking/system_prompt/prompt@2",
+   "fixture": "system_prompt",
+   "mode": "thinking",
+   "render": "prompt@2",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "e04f41e24bdcc090"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "e04f41e24bdcc090"
+   },
+   "jinja_sha256": "e04f41e24bdcc090"
+  },
+  {
+   "key": "non_thinking/system_prompt/full",
+   "fixture": "system_prompt",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "270b8d71e35e6849"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "270b8d71e35e6849"
+   },
+   "jinja_sha256": "270b8d71e35e6849"
+  },
+  {
+   "key": "non_thinking/system_prompt/prompt@2",
+   "fixture": "system_prompt",
+   "mode": "non_thinking",
+   "render": "prompt@2",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "694a716d023c9bfa"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "694a716d023c9bfa"
+   },
+   "jinja_sha256": "694a716d023c9bfa"
+  },
+  {
+   "key": "thinking/tool_call/full",
+   "fixture": "tool_call",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d51f7dcc90220ae2"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "68c0ed48407f18c4",
+    "first_char_difference": 122,
+    "jinja_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜D",
+    "encoding_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invok",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>"
+   },
+   "jinja_sha256": "d51f7dcc90220ae2"
+  },
+  {
+   "key": "thinking/tool_call/prompt@1",
+   "fixture": "tool_call",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "e5d7e40d95a86fe0"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "eeb7d0d208de967a",
+    "first_char_difference": 122,
+    "jinja_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜D",
+    "encoding_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think>",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think>"
+   },
+   "jinja_sha256": "e5d7e40d95a86fe0"
+  },
+  {
+   "key": "thinking/tool_call/prompt@3",
+   "fixture": "tool_call",
+   "mode": "thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "26ec67e1e1502bed"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "b36e9c4d92357cfd",
+    "first_char_difference": 122,
+    "jinja_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜D",
+    "encoding_context": "ffort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invok",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think>"
+   },
+   "jinja_sha256": "26ec67e1e1502bed"
+  },
+  {
+   "key": "non_thinking/tool_call/full",
+   "fixture": "tool_call",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "313f0ad697218f26"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "8ee757a887072113",
+    "first_char_difference": 23,
+    "jinja_context": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writin",
+    "encoding_context": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"g",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>"
+   },
+   "jinja_sha256": "313f0ad697218f26"
+  },
+  {
+   "key": "non_thinking/tool_call/prompt@1",
+   "fixture": "tool_call",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "db2ef10c9328381c"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "585caa1c027ba432",
+    "first_char_difference": 23,
+    "jinja_context": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writin",
+    "encoding_context": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>"
+   },
+   "jinja_sha256": "db2ef10c9328381c"
+  },
+  {
+   "key": "non_thinking/tool_call/prompt@3",
+   "fixture": "tool_call",
+   "mode": "non_thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d9b8e9e996658a35"
+   },
+   "loader": {
+    "text_equal": false,
+    "ids_equal": false,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5398a520e5d71b2c",
+    "first_char_difference": 23,
+    "jinja_context": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writin",
+    "encoding_context": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"g",
+    "jinja_text": "<｜begin▁of▁sentence｜><｜System｜>\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name.\"}, \"celsius\": {\"type\": \"boolean\", \"description\": \"Return the temperature in Celsius if true.\"}}, \"required\": [\"city\", \"celsius\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜></think>",
+    "encoding_text": "<｜begin▁of▁sentence｜><｜User｜>What's the weather in Paris right now? Use Fahrenheit.<｜Assistant｜></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 64, \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜></think>"
+   },
+   "jinja_sha256": "d9b8e9e996658a35"
+  },
+  {
+   "key": "thinking/reasoning/full",
+   "fixture": "reasoning",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "606cffc87beb1386"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "606cffc87beb1386"
+   },
+   "jinja_sha256": "606cffc87beb1386"
+  },
+  {
+   "key": "thinking/reasoning/prompt@1",
+   "fixture": "reasoning",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d8172c6418ff72b1"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d8172c6418ff72b1"
+   },
+   "jinja_sha256": "d8172c6418ff72b1"
+  },
+  {
+   "key": "thinking/reasoning/prompt@3",
+   "fixture": "reasoning",
+   "mode": "thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "b2952599d4d7c02f"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "b2952599d4d7c02f"
+   },
+   "jinja_sha256": "b2952599d4d7c02f"
+  },
+  {
+   "key": "non_thinking/reasoning/full",
+   "fixture": "reasoning",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "486fc288e57791bd"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "486fc288e57791bd"
+   },
+   "jinja_sha256": "486fc288e57791bd"
+  },
+  {
+   "key": "non_thinking/reasoning/prompt@1",
+   "fixture": "reasoning",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ff71c6f323d6c5ae"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ff71c6f323d6c5ae"
+   },
+   "jinja_sha256": "ff71c6f323d6c5ae"
+  },
+  {
+   "key": "non_thinking/reasoning/prompt@3",
+   "fixture": "reasoning",
+   "mode": "non_thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5661716dea68e31b"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5661716dea68e31b"
+   },
+   "jinja_sha256": "5661716dea68e31b"
+  },
+  {
+   "key": "thinking/empty_assistant/full",
+   "fixture": "empty_assistant",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "4252abc5fb50f71c"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "4252abc5fb50f71c"
+   },
+   "jinja_sha256": "4252abc5fb50f71c"
+  },
+  {
+   "key": "thinking/empty_assistant/prompt@1",
+   "fixture": "empty_assistant",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5e24261a16a57607"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5e24261a16a57607"
+   },
+   "jinja_sha256": "5e24261a16a57607"
+  },
+  {
+   "key": "thinking/empty_assistant/prompt@3",
+   "fixture": "empty_assistant",
+   "mode": "thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d6b2a87ceb80c422"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "d6b2a87ceb80c422"
+   },
+   "jinja_sha256": "d6b2a87ceb80c422"
+  },
+  {
+   "key": "non_thinking/empty_assistant/full",
+   "fixture": "empty_assistant",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ac57302ee296d515"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ac57302ee296d515"
+   },
+   "jinja_sha256": "ac57302ee296d515"
+  },
+  {
+   "key": "non_thinking/empty_assistant/prompt@1",
+   "fixture": "empty_assistant",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "f8788f37db36756a"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "f8788f37db36756a"
+   },
+   "jinja_sha256": "f8788f37db36756a"
+  },
+  {
+   "key": "non_thinking/empty_assistant/prompt@3",
+   "fixture": "empty_assistant",
+   "mode": "non_thinking",
+   "render": "prompt@3",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "86a3b3e07701fcaf"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "86a3b3e07701fcaf"
+   },
+   "jinja_sha256": "86a3b3e07701fcaf"
+  },
+  {
+   "key": "thinking/long_answer/full",
+   "fixture": "long_answer",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "7684fe06a856d09e"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "7684fe06a856d09e"
+   },
+   "jinja_sha256": "7684fe06a856d09e"
+  },
+  {
+   "key": "thinking/long_answer/prompt@1",
+   "fixture": "long_answer",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "71e173bf45209b9a"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "71e173bf45209b9a"
+   },
+   "jinja_sha256": "71e173bf45209b9a"
+  },
+  {
+   "key": "non_thinking/long_answer/full",
+   "fixture": "long_answer",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a11608b8437abace"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a11608b8437abace"
+   },
+   "jinja_sha256": "a11608b8437abace"
+  },
+  {
+   "key": "non_thinking/long_answer/prompt@1",
+   "fixture": "long_answer",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5cb1fb5d985dfdcc"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "5cb1fb5d985dfdcc"
+   },
+   "jinja_sha256": "5cb1fb5d985dfdcc"
+  },
+  {
+   "key": "thinking/non_ascii/full",
+   "fixture": "non_ascii",
+   "mode": "thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ea3b8c26f1b74681"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "ea3b8c26f1b74681"
+   },
+   "jinja_sha256": "ea3b8c26f1b74681"
+  },
+  {
+   "key": "thinking/non_ascii/prompt@1",
+   "fixture": "non_ascii",
+   "mode": "thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "8de4e3c2cc59c377"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "8de4e3c2cc59c377"
+   },
+   "jinja_sha256": "8de4e3c2cc59c377"
+  },
+  {
+   "key": "non_thinking/non_ascii/full",
+   "fixture": "non_ascii",
+   "mode": "non_thinking",
+   "render": "full",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "f8b958e669723c90"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "f8b958e669723c90"
+   },
+   "jinja_sha256": "f8b958e669723c90"
+  },
+  {
+   "key": "non_thinking/non_ascii/prompt@1",
+   "fixture": "non_ascii",
+   "mode": "non_thinking",
+   "render": "prompt@1",
+   "documented": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a4e35f9dbf22dfc6"
+   },
+   "loader": {
+    "text_equal": true,
+    "ids_equal": true,
+    "add_special_tokens_false_same_ids": true,
+    "sha256": "a4e35f9dbf22dfc6"
+   },
+   "jinja_sha256": "a4e35f9dbf22dfc6"
+  }
+ ]
+}
