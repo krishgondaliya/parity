@@ -25,6 +25,6 @@ row = tok.decode(strategy.tokenize_prompt({"messages": messages, "tools": tools}
 template = get_chat_template("exaone4")
 expected = tok.apply_chat_template(messages, tools=tools, chat_template=template, tokenize=False, **kwargs)
 print("mappings:", ds.message_property_mappings, "| analyzer found:", sorted(strategy.prompter.chat_template_msg_variables))
-for what, mark in (("tool call", '<tool_call>{"name": "get_weather"'), ("reasoning", "The tool says 18C.")):
-    print(f"{what}: in the template's render: {mark in expected}; in Axolotl's row: {mark in row}")
+start = expected.index("[|user|]")  # from the first user turn on; the system prompt (the tool list) is the same in both
+print("--- the template's render ---\n" + expected[start:] + "\n--- Axolotl's row ---\n" + row[row.index("[|user|]"):])
 sys.exit(0 if row == expected else 1)

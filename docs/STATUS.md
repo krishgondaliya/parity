@@ -83,7 +83,7 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 
 ## Next actions
 
-1. **Human: `/draft-issue P-0007`** (Axolotl). The draft skill is user-invocation only, so it wasn't run. Lead with the analyzer's rule; the EXAONE-4.0 repro; Gemma 4 and DeepSeek V4.1 as instances; the workaround. Keep the `</think>` question out of it.
+1. **Human: post P-0007** (axolotl-ai-cloud/axolotl, Bug report form) from `findings/P-0007/issue.md`, after running `findings/P-0007/HOW-TO-RUN.md`. Drafted and reviewed by the issue-reviewer 2026-11-26; its edits applied (PR #3825 as related prior art, the repro now prints both texts, the form layout). Attach `requirements.txt`.
 2. **Human: `/draft-issue P-0008`** for the model repo (`thinkingmachines/Inkling-2-Mini`: the list branch should skip an empty text part, as its string branch and Thinking Machines' renderer do). TRL only as a note on #8497.
 3. **Human: the Colab run** with `dist/gpu-kit/4b4de273e093/` (Qwen3, then DeepSeek V4.1). After it: ingest, and compare Unsloth's documented auto-detection on the same rows (the human's item 3).
 4. **After M5 (not yet):** whether `AutoProcessor`'s silent fallback to the tokenizer changes what TRL trains on for Inkling under a plain `pip install trl` (the human's item 4); predictions first.

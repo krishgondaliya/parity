@@ -60,7 +60,9 @@ the bundled `gemma4` and `gemma4_unified` rows lose the reasoning silently, and 
   tool_call_id dropped, exaone4, exaone4 reasoning, skip_think, gemma4 tool / tool_call_id / reasoning_content /
   TypeError, concatenate str NoneType, properties on the message. Related, not duplicates:
   - #3824 (open): the DPO strategy drops `tool_calls`;
-  - #3228 (open PR): adds tool fields to the empty-mapping default, a branch the validated config never reaches;
+  - #3228 (open PR): adds a `tool` key to the empty-mapping default, a branch the validated config never reaches;
   - #3768 (open PR): bounds the analyzer's recursion depth;
   - #2260 (closed PR, 2025): added config for passing optional message fields, and asked why not pass the whole
-    message.
+    message;
+  - #3825 (open PR): for the DPO strategy, unions the OpenAI message keys into the analyzer's fields, noting the
+    analysis misses `message.get(...)` reads (e.g. gemma4). Found by the issue-reviewer, not by the searches above.

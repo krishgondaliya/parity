@@ -43,8 +43,37 @@ Expected output (after Axolotl's and torch's log lines on stderr), then `exit co
 
 ```
 mappings: {'role': 'role', 'content': 'content'} | analyzer found: ['content', 'role']
-tool call: in the template's render: True; in Axolotl's row: False
-reasoning: in the template's render: True; in Axolotl's row: False
+--- the template's render ---
+[|user|]
+Weather in Paris?[|endofturn|]
+[|assistant|]
+<think>
+
+</think>
+
+<tool_call>{"name": "get_weather", "arguments": {"city": "Paris"}}</tool_call>[|endofturn|]
+[|tool|]
+<tool_result>{"result": "18C"}</tool_result>[|endofturn|]
+[|assistant|]
+<think>
+The tool says 18C.
+</think>
+
+It's 18C.[|endofturn|]
+
+--- Axolotl's row ---
+[|user|]
+Weather in Paris?[|endofturn|]
+[|assistant|]
+[|endofturn|]
+[|tool|]
+<tool_result>{"result": "18C"}</tool_result>[|endofturn|]
+[|assistant|]
+<think>
+
+</think>
+
+It's 18C.[|endofturn|]
 ```
 
 ## 4. Run it on Axolotl's main branch
@@ -56,12 +85,12 @@ VIRTUAL_ENV="$WORK/.venv-main" uv pip install "axolotl @ git+https://github.com/
 .venv-main/bin/python repro.py; echo "exit code: $?"
 ```
 
-On main at `de8549a` (axolotl 0.21.2.dev0, transformers 5.22.0, torch 2.15.0), the same three lines, then
+On main at `de8549a` (axolotl 0.21.2.dev0, transformers 5.22.0, torch 2.15.0), the same output, then
 `exit code: 1`.
 
 ## What was checked, 2026-11-26
 
-- 3 runs on 0.21.1 and 3 on main: exit 1 every time, with the output above.
+- 3 runs on 0.21.1 and 3 on main: exit 1 every time, with the output above, identical across the six runs. (An earlier version printed True/False lines for the two marks; the issue-reviewer asked for the texts themselves, and this version was re-run 3+3.)
 - `findings/P-0007/path_check.py` (in Parity's Axolotl environment): on this conversation, the full path
   (`load_cfg` + `load_datasets`, what `axolotl preprocess` runs, with EXAONE-4.0's config and tokenizer files as
   `base_model`) gives the same input ids and labels as the script's direct strategy call. With `reasoning_content` and

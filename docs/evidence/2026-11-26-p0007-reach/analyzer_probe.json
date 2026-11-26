@@ -1,0 +1,32 @@
+{
+ "loop variable `message`, attribute": {
+  "template": "{% for message in messages %}{{ message.x }}{% endfor %}",
+  "found": [
+   "x"
+  ],
+  "found_on_a_second_call": [
+   "x"
+  ]
+ },
+ "loop variable `message`, .get()": {
+  "template": "{% for message in messages %}{{ message.get(\"x\") }}{% endfor %}",
+  "found": [
+   "get"
+  ],
+  "found_on_a_second_call": [
+   "get"
+  ]
+ },
+ "loop variable `msg`, attribute": {
+  "template": "{% for msg in messages %}{{ msg.x }}{% endfor %}",
+  "found": [],
+  "found_on_a_second_call": []
+ },
+ "`set msg = messages[i]`, attribute": {
+  "template": "{% for i in range(messages|length) %}{% set msg = messages[i] %}{{ msg.x }}{% endfor %}",
+  "found": [],
+  "found_on_a_second_call": [
+   "x"
+  ]
+ }
+}

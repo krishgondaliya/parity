@@ -55,9 +55,10 @@
 - **Duplicates searched** (read-only, issues and PRs, 2026-11-26, including the searches the skeptic's rate limit cut short; the full list is in the reach README). No duplicate, and no fix on main (`de8549a`: the analyzer and both templates have no commits since v0.21.1; `transform_message` is identical). Related:
   - #3824 (open): the DPO strategy drops `tool_calls`, a different strategy;
   - #3768 (open PR): the analyzer raises `RecursionError` on deeply nested templates, a loud failure;
-  - #3228 (open PR, "include tool in default message_property_mappings"): edits the empty-mapping branch the validated path never reaches;
+  - #3228 (open PR, "include tool in default message_property_mappings"): adds a `tool` key to the empty-mapping default, a branch the validated path never reaches;
   - #2762 (closed): generation tags in the analyzer;
-  - #2260 (closed PR, 2025): added config for passing optional message fields, and asked why not pass the whole message.
+  - #2260 (closed PR, 2025): added config for passing optional message fields, and asked why not pass the whole message;
+  - #3825 (open PR, the DPO strategy, from #3824's author): unions the OpenAI message keys (`tool_calls`, `tool_call_id`, `name`, `reasoning_content`, `reasoning`) into the analyzer's fields, with the comment that the analysis misses `message.get(...)` reads (e.g. gemma4). DPO only; found by the issue-reviewer.
 
 ## Skeptic verdict (2026-11-26)
 - **Real candidate, for the dropped fields only.** Confidence high on the mechanism and the reproduction, medium on severity and reach as first framed. Our adapter and fixtures are not the cause.
@@ -75,18 +76,18 @@
 - **To check before any upstream draft:**
   1. A standalone repro: `tokenizer_config` pointing at the DeepSeek release files, `base_model` a supported model, exit 1 when a row differs from the render.
   2. Done 2026-11-26: `exaone4` and `gemma4` hold through the full preprocess path, and so do `gemma4_unified` and two models' own templates (Reach today). The issue leads with the analyzer's rule, with these templates as instances.
-  3. Done 2026-11-26: the duplicate searches the rate limit cut short. No duplicate.
+  3. Done 2026-11-26: the duplicate searches the rate limit cut short. No duplicate. The analyzer's rule is probed on four one-line templates (`docs/evidence/2026-11-26-p0007-reach/analyzer_probe.py`): only attributes of `message` are found, `message.get("x")` is recorded as `get`, and `msg` (loop or `set`) finds nothing.
   4. The non-reasoning `</think>` question stays out of the issue.
   5. No "bug" in the title (rule 8).
 
 ## Repro
-- **`findings/P-0007/repro.py`** (2026-11-26), 30 lines, no Parity code, tokenizer and template only. EXAONE-4.0-1.2B's pinned tokenizer, Axolotl's bundled `exaone4` template, the dataset config validated by Axolotl's own `SFTDataset` and dumped as its config validation does (`exclude_none=True`), then `load` + `tokenize_prompt`. One conversation: a tool call with empty content, its result, and a final answer with reasoning (`skip_think: false`). It prints the validated mappings (`{role, content}`) and the analyzer's fields (`content`, `role`), and shows the tool call and the reasoning in the template's render but not in Axolotl's row. Exit 1.
-- **Runs:** 3 of 3 exit 1 on axolotl 0.21.1 (fresh venv from `requirements.txt`, transformers 5.20.1, torch 2.14.1) and 3 of 3 on main at `de8549a` (axolotl 0.21.2.dev0, transformers 5.22.0). There is no fixed version to test. Commands and expected output: `findings/P-0007/HOW-TO-RUN.md`; lockfile `findings/P-0007/uv.lock`.
+- **`findings/P-0007/repro.py`** (2026-11-26), 30 lines, no Parity code, tokenizer and template only. EXAONE-4.0-1.2B's pinned tokenizer, Axolotl's bundled `exaone4` template, the dataset config validated by Axolotl's own `SFTDataset` and dumped as its config validation does (`exclude_none=True`), then `load` + `tokenize_prompt`. One conversation: a tool call with empty content, its result, and a final answer with reasoning (`skip_think: false`). It prints the validated mappings (`{role, content}`) and the analyzer's fields (`content`, `role`), then the template's render and Axolotl's row from the first user turn on: the render has the tool call and the reasoning, and the row has neither (the tool-call turn is empty, and the last turn's think block is empty). Exit 1.
+- **Runs** (the current version, after the issue-reviewer's edit; the first version printed True/False lines and also failed 3+3): 3 of 3 exit 1, with identical output, on axolotl 0.21.1 (fresh venv from `requirements.txt`, transformers 5.20.1, torch 2.14.1) and 3 of 3 on main at `de8549a` (axolotl 0.21.2.dev0, transformers 5.22.0). There is no fixed version to test. Commands and expected output: `findings/P-0007/HOW-TO-RUN.md`; lockfile `findings/P-0007/uv.lock`.
 - **Checked** (`findings/P-0007/path_check.py`, `path_check.json`): the full path (`load_cfg` + `load_datasets`, EXAONE-4.0's config and tokenizer files as `base_model`) gives the same input ids and labels as the repro's direct strategy call, and with `reasoning_content` and `tool_calls` mapped explicitly the row equals the render.
 - **Why EXAONE-4.0 leads, not DeepSeek V4.1:** Axolotl 0.21.1 loads EXAONE-4.0 today (D1: a fail found on a stand-in leaves the repo only with a repro that doesn't need the release's architecture). DeepSeek V4.1, Gemma 4 and the scan are evidence for the issue text, not for the repro.
 - **Repro slip, caught before recording:** the first version dumped the config without `exclude_none=True`, so `field_messages` was None and the script crashed with `ValueError: Messages is null`. That also exits 1, so the exit code alone wasn't enough: the output was checked, and every run above printed the three lines.
 
 ## Upstream
-- Issue URL (posted by human): none
+- Issue URL (posted by human): not posted; draft in findings/P-0007/issue.md (reviewed by the issue-reviewer, 2026-11-26)
 - Maintainer response: none yet
 - Fixed in: not yet
