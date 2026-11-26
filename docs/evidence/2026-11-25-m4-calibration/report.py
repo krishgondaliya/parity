@@ -150,6 +150,9 @@ def render(statuses: dict, rows: list[str], unsloth_facts: dict | None) -> str:
         ):
             lines.append(f"- {label}: {len(cells)}")
             lines += [f"  - {c}" for c in cells]
+        if s.not_supported:  # D2: blocks green; listed only when present, so earlier reports render unchanged
+            lines.append(f"- **Not supported (the framework refuses)**: {len(s.not_supported)}")
+            lines += [f"  - {c}" for c in s.not_supported]
         lines.append("")
     lines += [
         "## Framework x mode x check",

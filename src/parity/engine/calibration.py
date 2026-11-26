@@ -4,6 +4,8 @@ Green (the human's definition, 2026-11-25) means:
 - no untriaged fail;
 - no harness-caused inconclusive;
 - every planted fault caught.
+And, added with D2 (2026-11-25), so a refusal can never make a run vacuously green: no not_supported cell. A
+calibration run needs every cell judged, and a framework that refuses the calibration model can't be calibrated.
 Fails linked to a triaged finding (P-0002, P-0005) or to a known difference are allowed, and listed.
 
 Each inconclusive verdict is attributed to one side:
@@ -49,10 +51,11 @@ class Status:
     framework_inconclusives: list[Cell] = field(default_factory=list)  # explained by a linked template parity fail
     harness_inconclusives: list[Cell] = field(default_factory=list)
     missed_plants: list[Cell] = field(default_factory=list)
+    not_supported: list[Cell] = field(default_factory=list)
 
     @property
     def green(self) -> bool:
-        return not (self.untriaged_fails or self.harness_inconclusives or self.missed_plants)
+        return not (self.untriaged_fails or self.harness_inconclusives or self.missed_plants or self.not_supported)
 
 
 def attribute(verdicts: Iterable[Verdict]) -> list[Status]:
@@ -73,6 +76,8 @@ def _status(name: str, verdicts: list[Verdict]) -> Status:
                 status.linked_fails.setdefault(v.root_cause, []).append(cell)
             else:
                 status.untriaged_fails.append(cell)
+        elif v.result == "not_supported":
+            status.not_supported.append(Cell(cell.mode, cell.check, cell.fixture, (v.reason or "")[:160]))
         elif v.result == "inconclusive":
             gate = parity.get((v.serving_mode, v.fixture))
             framework_side = "blocked_by_template_parity" in v.flags or (v.reason or "").startswith(UNALIGNED)

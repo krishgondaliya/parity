@@ -2,14 +2,19 @@
 
 Order of decisions:
 
-1. Applicability, from the fixture and the serving mode alone: the check's
-   own rule, then the serving-mode rule (`parity.serving.not_applicable_in_mode`).
-   Not applicable means the check is not run at all.
-2. The clean run. A reference that cannot be computed without guessing, or
+1. Applicability, from the fixture, the model and the serving mode alone: the
+   check's own rule, then the model-level rule (`parity.serving.mode_not_documented`:
+   a model that documents no such mode, D3), then the serving-mode rule
+   (`parity.serving.not_applicable_in_mode`). Not applicable means the check is
+   not run at all.
+2. The framework's declaration. ModeNotConfigurable makes the cell not_configurable;
+   FrameworkRefused (one of the adapter's pinned refusals, D2) makes it not_supported.
+   Nothing is encoded in either case.
+3. The clean run. A reference that cannot be computed without guessing, or
    any error, makes it inconclusive, never pass.
-3. Every planted fault that applies to this fixture, run the same way. A
+4. Every planted fault that applies to this fixture, run the same way. A
    fault counts as caught only if its run ends in a `fail` of kind `bug`.
-4. If any applicable fault was missed, or none applies, the verdict is
+5. If any applicable fault was missed, or none applies, the verdict is
    inconclusive whatever the clean run said (hard rule 3). The clean result is
    kept in the evidence so nothing is lost.
 """
@@ -20,12 +25,12 @@ from collections.abc import Sequence
 from dataclasses import replace
 from typing import Any
 
-from parity.adapters.base import ModeNotConfigurable
+from parity.adapters.base import FrameworkRefused, ModeNotConfigurable
 from parity.engine.verdict import Verdict, make_verdict
 from parity.fixtures import Fixture
 from parity.references.properties import marker_disagreement_property_id
 from parity.references.template import MarkerDisagreementError, TemplateReferenceError
-from parity.serving import not_applicable_in_mode
+from parity.serving import mode_not_documented, not_applicable_in_mode
 
 BLOCKING_CHECK = "t1.template_parity"
 
@@ -107,7 +112,7 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     verdict = _evaluate(check, adapter, fixture)
     if verdict.serving_mode is None and hasattr(check, "mode"):
         verdict = replace(verdict, serving_mode=check.mode(adapter.release))
-    if verdict.result == "not_configurable":
+    if verdict.result in ("not_configurable", "not_supported"):
         return replace(verdict, declaration={"error": verdict.reason})
     if verdict.result != "not_applicable" and hasattr(check, "reference_properties"):
         try:
@@ -128,6 +133,8 @@ def evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
 def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
     reason = check.not_applicable(fixture)
     if reason is None and hasattr(check, "mode"):
+        reason = mode_not_documented(adapter.release, check.mode(adapter.release))
+    if reason is None and hasattr(check, "mode"):
         reason = not_applicable_in_mode(fixture, check.mode(adapter.release))
     if reason is not None:
         return make_verdict(check.id, adapter, fixture.id, "not_applicable", reason=reason)
@@ -137,6 +144,8 @@ def _evaluate(check: Any, adapter: Any, fixture: Fixture) -> Verdict:
         adapter.declare(check.base_cfg)
     except ModeNotConfigurable as exc:
         return make_verdict(check.id, adapter, fixture.id, "not_configurable", reason=f"serving mode: {exc}")
+    except FrameworkRefused as exc:
+        return make_verdict(check.id, adapter, fixture.id, "not_supported", reason=f"framework refuses: {exc}")
     clean = run_safely(check, adapter, fixture)
     try:
         plants = list(check.plants(release, fixture, adapter.declare))

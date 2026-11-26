@@ -230,6 +230,8 @@ def _results_table(cells: list[Cell], by_id: dict[str, TemplateProperty]) -> lis
             notes.append(f"not applicable on {c.not_applicable} fixture(s)")
         if c.not_configurable:
             notes.append(f"not configurable on {c.not_configurable} fixture(s): " + "; ".join(c.not_configurable_reasons))
+        if c.not_supported:
+            notes.append(f"not supported on {c.not_supported} fixture(s): " + "; ".join(c.not_supported_reasons))
         lines.append(f"| {c.framework} | {c.check} | {c.result} | {c.ran_on} of {c.fixtures} | {'; '.join(notes)} |")
     lines.append("")
     return lines

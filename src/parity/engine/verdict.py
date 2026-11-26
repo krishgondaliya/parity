@@ -2,10 +2,15 @@
 
 One verdict per (check, model, framework, fixture). Rules the record enforces:
 
-- `result` is pass, fail, inconclusive, not_applicable or not_configurable.
+- `result` is pass, fail, inconclusive, not_applicable, not_configurable or not_supported.
 - `not_configurable` means the framework documents no way to run in the
   requested serving mode, so nothing was encoded. Never a pass, never a fail;
   the reason says why.
+- `not_supported` means the framework, at this version, loudly refused the model
+  or the config with one of its pinned refusals (parity.adapters.base.Refusal:
+  exact exception type and message), so nothing was encoded. Never a pass, never
+  a fail; the reason names the refusal. Any other exception stays a harness error
+  (D2, the human's decision, 2026-11-25).
 - `not_applicable` means the check has nothing to test on this fixture in this
   serving mode. That is decided from the fixture and the mode alone, before any
   framework output exists. It is never a pass, and the report counts how many
@@ -41,7 +46,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "parity.verdict/v0"
-RESULTS = ("pass", "fail", "inconclusive", "not_applicable", "not_configurable")
+RESULTS = ("pass", "fail", "inconclusive", "not_applicable", "not_configurable", "not_supported")
 KINDS = ("bug", "difference")
 SELF_TESTS = ("caught", "missed")
 BACKENDS = ("gpu", "cpu")
@@ -93,7 +98,7 @@ class Verdict:
             raise ValueError("known_difference is set exactly when kind is 'difference'")
         if self.self_test is not None and self.self_test not in SELF_TESTS:
             raise ValueError(f"self_test must be one of {SELF_TESTS} or None, got {self.self_test!r}")
-        if self.result in ("inconclusive", "not_applicable", "not_configurable") and not self.reason:
+        if self.result in ("inconclusive", "not_applicable", "not_configurable", "not_supported") and not self.reason:
             raise ValueError(f"a {self.result} verdict needs a reason")
         unknown = [f for f in self.flags if f not in FLAGS]
         if unknown:
@@ -146,8 +151,8 @@ def require_self_test(verdict: Verdict) -> Verdict:
                 f"(self_test={verdict.self_test!r}, {len(plants)} planted fault record(s)); "
                 "run it through parity.engine.runner.evaluate"
             )
-    if verdict.result == "not_applicable" and (verdict.self_test is not None or verdict.plants):
-        raise ValueError(f"{verdict.check} on {verdict.fixture}: a not_applicable verdict runs no planted fault")
+    if verdict.result in ("not_applicable", "not_supported") and (verdict.self_test is not None or verdict.plants):
+        raise ValueError(f"{verdict.check} on {verdict.fixture}: a {verdict.result} verdict runs no planted fault")
     return verdict
 
 

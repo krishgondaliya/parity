@@ -302,3 +302,95 @@ def test_a_not_applicable_cell_stays_not_applicable():
 
     na = _v(result="not_applicable", reason="fewer than two assistant turns")
     assert as_not_configurable(na, "no hard switch", "the decision") == na
+
+
+# D2: a framework's pinned refusal makes the cell not_supported; anything else stays a harness error
+
+
+def _refusal():
+    from parity.adapters.base import Refusal
+
+    return Refusal(
+        id="x.refuses",
+        exception="builtins.ValueError",
+        message="this template is not training-compatible",
+        source="https://example.invalid/blob/v1/x.py#L1",
+    )
+
+
+class RefusingAdapter:
+    """Wraps a stand-in; declare() raises whatever it is given."""
+
+    def __init__(self, inner, exc):
+        self._inner, self._exc = inner, exc
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+    def declare(self, cfg):
+        raise self._exc
+
+
+def test_a_pinned_refusal_makes_the_cell_not_supported_before_anything_is_encoded(official, single_turn, tmp_path):
+    from parity.adapters.base import FrameworkRefused
+
+    adapter = RefusingAdapter(official, FrameworkRefused(_refusal()))
+    v = evaluate(FakeCheck(raises=AssertionError("must not run")), adapter, single_turn)
+    assert (v.result, v.kind, v.self_test, v.plants) == ("not_supported", None, None, [])
+    assert v.reason.startswith("framework refuses: x.refuses: builtins.ValueError: this template is not training-compatible")
+    assert v.declaration == {"error": v.reason}
+    assert read_verdict(write_verdict(v, tmp_path)) == v
+
+
+def test_only_the_exact_type_and_message_match_a_refusal():
+    from parity.adapters.base import match_refusal
+
+    refusal = _refusal()
+    assert match_refusal(ValueError("this template is not training-compatible"), [refusal]) is refusal
+    assert match_refusal(ValueError("this template is not training-compatible!"), [refusal]) is None
+    assert match_refusal(TypeError("this template is not training-compatible"), [refusal]) is None
+    assert match_refusal(RuntimeError("anything"), []) is None
+
+
+def test_an_unpinned_exception_from_declare_is_never_not_supported(official, single_turn):
+    adapter = RefusingAdapter(official, ValueError("this template is not training-compatible"))
+    with pytest.raises(ValueError):
+        evaluate(FakeCheck(), adapter, single_turn)
+
+
+def test_not_supported_needs_a_reason_and_runs_no_planted_fault(tmp_path):
+    with pytest.raises(ValueError, match="reason"):
+        _v(result="not_supported")
+    with pytest.raises(ValueError, match="not_supported"):
+        write_verdict(_v(result="not_supported", reason="x", plants=[{"plant": "p", "caught": True}]), tmp_path)
+
+
+def test_a_cell_refused_everywhere_is_not_supported_and_blocks_a_green_calibration():
+    from parity.engine.calibration import attribute
+
+    vs = [_v(fixture=f, result="not_supported", reason="framework refuses: x", serving_mode="thinking") for f in ("a", "b")]
+    [cell] = summarize(vs)
+    assert (cell.result, cell.not_supported, cell.ran_on) == ("not_supported", 2, 0)
+    [status] = attribute(vs)
+    assert not status.green and len(status.not_supported) == 2
+
+
+# D3: a model that documents no such serving mode is not applicable there, before the framework is touched
+
+
+def test_a_model_with_no_documented_mode_is_not_applicable_before_anything_runs(qwen3, single_turn):
+    from parity.adapters.base import FrameworkRefused
+    from parity.release import LoadedRelease, Release
+
+    unknown = LoadedRelease(Release("org/unknown", "1" * 40), qwen3.tokenizer, qwen3.stop_token_ids)
+    adapter = RefusingAdapter(TemplateStubFor(unknown), FrameworkRefused(_refusal()))  # declare would refuse
+    v = evaluate(_in_mode("non_thinking", raises=AssertionError("must not run")), adapter, single_turn)
+    assert (v.result, v.self_test, v.plants, v.serving_mode) == ("not_applicable", None, [], "non_thinking")
+    assert v.reason.startswith("non_thinking mode: the model documents no such mode")
+    assert evaluate(_in_mode("non_thinking"), TemplateStubFor(qwen3), single_turn).result == "pass"
+
+
+def TemplateStubFor(release):
+    from stubs import official_stub
+
+    return official_stub(release)

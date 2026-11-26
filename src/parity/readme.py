@@ -489,7 +489,7 @@ def calibration_table(runs: list[CalibrationRun]) -> str:
         route = r.route
         linked = ", ".join(f"{rc} ×{len(cells)}" for rc, cells in sorted(s.linked_fails.items()))
         not_judged = ", ".join(
-            f"{s.results[k]} {k.replace('_', ' ')}" for k in ("not_applicable", "not_configurable") if s.results.get(k)
+            f"{s.results[k]} {k.replace('_', ' ')}" for k in ("not_applicable", "not_configurable", "not_supported") if s.results.get(k)
         )
         caught = sum(1 for p in r.plants if p.get("caught"))
         name, _, version = r.verdicts[0].framework.partition("@")

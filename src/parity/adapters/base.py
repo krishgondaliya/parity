@@ -88,6 +88,40 @@ class ModeNotConfigurable(Exception):
 
 
 @dataclass(frozen=True)
+class Refusal:
+    """One loud refusal by a framework, pinned to its exact exception at one version (D2, 2026-11-25).
+
+    Only an exception whose fully qualified type and whole message equal a pinned Refusal makes a cell
+    not_supported; any other exception stays a harness error. `source` is a permalink at the pinned version.
+    """
+
+    id: str
+    exception: str  # fully qualified type, e.g. "builtins.ValueError"
+    message: str  # the exact str(exception)
+    source: str
+
+
+class FrameworkRefused(Exception):
+    """The framework refused this model or config with one of its pinned refusals. The cell is not_supported."""
+
+    def __init__(self, refusal: Refusal):
+        self.refusal = refusal
+        super().__init__(f"{refusal.id}: {refusal.exception}: {refusal.message} ({refusal.source})")
+
+
+def exception_type(exc: BaseException) -> str:
+    return f"{type(exc).__module__}.{type(exc).__qualname__}"
+
+
+def match_refusal(exc: BaseException, refusals: Sequence[Refusal]) -> Refusal | None:
+    """The pinned refusal this exception is, exactly (type and whole message), or None."""
+    for refusal in refusals:
+        if exception_type(exc) == refusal.exception and str(exc) == refusal.message:
+            return refusal
+    return None
+
+
+@dataclass(frozen=True)
 class Encoded:
     """One training row, exactly as the framework would train on it.
 

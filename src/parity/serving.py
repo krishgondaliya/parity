@@ -137,6 +137,19 @@ def template_kwargs(release: LoadedRelease, mode: str | None) -> dict[str, Any]:
     return dict(kwargs)
 
 
+def mode_not_documented(release: LoadedRelease, mode: str) -> str | None:
+    """Why a model has nothing to test in this serving mode, or None. Decided from the model alone, before any
+    framework output (D3, the human's decision, 2026-11-25): a model whose mode spec documents no such mode (its
+    chat-template arguments are None, e.g. Inkling-2-Mini's non-thinking mode) gets not_applicable for that mode's
+    whole table, unless its model card at the pinned revision documents the mode."""
+    if mode_spec(release).kwargs.get(mode) is None:
+        return (
+            f"{mode} mode: the model documents no such mode ({mode_spec(release).evidence}) Decided from the model "
+            "alone, before any framework output (D3)"
+        )
+    return None
+
+
 REASONING_NOT_NON_THINKING = (
     "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think "
     "content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before "
