@@ -2,8 +2,8 @@
 
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
-- **Current phase:** Phase 0, kill test. M0-M4 done (calibration green for all three). **M5 prep:** modes cited, coverage preview, support check, DeepSeek's Jinja checked against its own `encoding.py`; the tiny model factory, D2 (`not_supported`) and D3 built; the adapters use them, and calibration is unchanged cell for cell. **Waiting on the human:** the vision path's processors (below), before the M5 predictions. Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-26 (M5 prep built; vision-path pairs pending)
+- **Current phase:** Phase 0, kill test. M0-M4 done (calibration green for all three). **M5 prep done:** every pair decided (4 run, 5 not judged), the adapters built and re-calibrated cell for cell, and predictions committed for the 4 pairs that run. **Next: the M5 runs.** Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
+- **Last updated:** 2026-11-26 (vision-path decisions; Unsloth x DeepSeek recipe; P-0002 on the targets; predictions for the 4 runnable pairs)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -31,14 +31,24 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
 
 ## M5 coverage, the honest math (primary table, 432 cells = 9 pairs x 48)
 
-From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the support check (`docs/evidence/2026-11-25-m5-env-support/`) and the paths read from each framework's code (`docs/DECISIONS.md`, 2026-11-26). Nothing has run on a target yet, so "judgeable" means "at most": a cell can still end inconclusive.
+From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the Day-0 support table (`docs/evidence/2026-11-25-m5-env-support/summary.md`) and the human's decisions (`docs/DECISIONS.md`, 2026-11-26). Nothing has run on a target yet, so "judgeable" means "at most": the predictions put some of these at inconclusive.
 
-- **Judgeable at most: 284 of 432.**
-  - **On the release's own architecture: 76.** TRL × Inkling 44 (vision path, pending: its processor needs `torchvision`), Unsloth × DeepSeek V4.1 32 (text path; Unsloth's recipe for it still open).
-  - **On stand-ins: 208.** Axolotl × DeepSeek V4.1 32 (`deepseek_v4`, text, decided). The other 176 are four vision-path pairs (Axolotl × Inkling, Axolotl × Hy4, Unsloth × Inkling, Unsloth × Hy4) that can be judged only if a stand-in processor is accepted, and for Unsloth × Inkling only if its stand-in can be built (it needs `scipy`).
-- **Not judgeable at all: 148.** 36 n/a (4 per pair: the multi-turn check on single-assistant fixtures); 24 where our reference refuses (DeepSeek V4.1 `tool_call` and `empty_assistant`, in Axolotl and Unsloth); 88 `not_supported`, predicted from TRL's source (TRL refuses assistant-only loss on Hy4's and DeepSeek's templates: no generation markers, no stored training template).
-- **If none of the six pending vision-path pairs can be judged: 64 of 432** (Axolotl × DeepSeek 32 on a stand-in, Unsloth × DeepSeek 32 on the release's architecture), all on one model.
-- Secondary (non-thinking) table: at most 64 of 144 per framework; Inkling's 48 are n/a (D3: its card documents no non-thinking mode).
+| Pair | Model | Judgeable at most | Not judgeable |
+| --- | --- | --- | --- |
+| TRL × Inkling (vlm variant) | the release's own (vision path) | 44 | 4 n/a |
+| TRL × DeepSeek V4.1 | `deepseek_v4` stand-in | 0 | 44 `not_supported` (TRL's refusal, predicted), 4 n/a |
+| Axolotl × DeepSeek V4.1 | `deepseek_v4` stand-in | 32 | 12 reference refuses, 4 n/a |
+| Unsloth × DeepSeek V4.1 (GPU) | the release's own (text path) | 32 | 12 reference refuses, 4 n/a |
+| TRL × Hy4, Axolotl × Inkling, Axolotl × Hy4, Unsloth × Inkling, Unsloth × Hy4 | not judged: can't build the release's processor | 0 | 240 |
+
+- **Judgeable at most: 108 of 432.** 76 on the release's own architecture (TRL × Inkling 44, Unsloth × DeepSeek 32) and 32 on a stand-in (Axolotl × DeepSeek).
+- **Not judgeable: 324.**
+  - 240 in the five pairs whose release processor can't be built (their cells include 20 that would be n/a anyway);
+  - 44 predicted `not_supported`;
+  - 24 our reference refuses (DeepSeek's `tool_call` and `empty_assistant`);
+  - 16 n/a.
+- **Predicted, not yet run:** of the 108, the predictions expect 73 pass, 24 fail (DeepSeek V4.1's think markers, in Axolotl and Unsloth; one TRL × Inkling template-parity fail) and 11 inconclusive. These are the files in `docs/evidence/2026-11-26-m5-*/predictions.md`.
+- Secondary (non-thinking) table: Inkling's 48 cells are n/a (D3), Unsloth × DeepSeek's are `not_configurable`, and TRL × DeepSeek's are `not_supported`.
 
 ## This session (2026-11-25 to 26)
 
@@ -48,15 +58,25 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 - **Support check:** the release's architecture builds in 2 of 9 pairs (TRL × Inkling, Unsloth × DeepSeek V4.1, via Unsloth's own implementation). Hy4's transformers support is an unmerged PR.
 - **Built:** `parity.tiny` (Qwen3 unchanged, tested), D2/D3 in the engine, `model_build` in every declaration, the adapters on the factory with a path table per framework, TRL's pinned refusal, `processor_config.json` allowed.
 - **Re-calibration** (`docs/evidence/2026-11-26-m4-recalibration/`): every verdict identical to M4 apart from the new `model_build` (TRL 96/96, Axolotl 96/96); Unsloth's CPU backend 96/96 before and after. The GPU route is re-checked on the next Colab trip.
-- Tests: core 561, TRL environment 590, Axolotl environment 589, Unsloth environment 592 (1 expected failure).
+- **2026-11-26, after the first checkpoint:**
+  - P-0002 posted by the human (axolotl-ai-cloud/axolotl#4318); a collaborator replied the same day. Its mechanism reproduces on all three target tokenizers.
+  - The human's decisions:
+    - TRL's `vlm` variant for TRL × Inkling;
+    - the vision-path pairs whose processor can't be built are not judged (applied to TRL × Hy4 too, flagged);
+    - Unsloth × DeepSeek V4.1 follows the general docs with the template's role markers;
+    - `encoding.py`'s loader observation is out of scope;
+    - the sandbox write slip is harness error H-12.
+  - Built: `envs/trl-1.18.2/vlm` (Qwen3 calibration there 96/96 identical to M4), the processor step and the per-pair Day-0 support table, the Unsloth recipe table (CPU calibration still 96/96). Predictions committed for the 4 runnable pairs, each on its own.
+- Tests: core 561, TRL environment 590 (and 590 in its `vlm` variant), Axolotl environment 589, Unsloth environment 592 (1 expected failure).
 
 ## Next actions
 
-1. **Human: the vision-path processors** (`docs/DECISIONS.md`, 2026-11-26), for TRL × Inkling (TRL's own `vlm` extra adds `torchvision`), Axolotl × Inkling and × Hy4, and Unsloth × Inkling and × Hy4 (no release processor in the environment; a stand-in processor, or not judged). Also: Unsloth's recipe for DeepSeek V4.1 (Unsloth documents running it, not training it).
-2. **Then the M5 predictions:** one folder per pair (`docs/evidence/<date>-m5-<framework>-<target>/predictions.md`), from docs and source alone, each saying the support-check and factory results were known; the M5 runner refuses a pair without its committed predictions.
-3. **Then the Unsloth kit** at that commit, `MODELS` = Qwen3 first (re-checks the GPU calibration) plus the targets, writing each model's results as it finishes.
-4. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix.
-5. Watch unslothai/unsloth#19567 (P-0005) for a maintainer's reply.
+1. **The M5 runs, predictions first:** each pair's `predictions.md` is committed (`docs/evidence/2026-11-26-m5-*`).
+   - Locally: TRL × Inkling in `envs/trl-1.18.2/vlm`, TRL × DeepSeek V4.1 in `envs/trl-1.18.2`, Axolotl × DeepSeek V4.1.
+   - Unsloth × DeepSeek V4.1 on GPU: build the kit at that commit, `MODELS` = Qwen3 first (re-checks the GPU calibration) then DeepSeek V4.1, writing each model's results as it finishes (the kit change is still to do).
+   - Before the first run, the M5 runner should refuse a pair without its committed predictions (planned, not built).
+2. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix.
+3. Watch unslothai/unsloth#19567 (P-0005) for a maintainer's reply.
 
 ## Open questions
 
@@ -73,7 +93,7 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 ## Findings so far
 
 - **P-0001** (Axolotl 0.21.1): only the think opener is untrained. Known difference KD-0002/KD-0003, thinking mode only; possible docs gap.
-- **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity on reach (ordinary reasoning and tool-call turns are not affected; checked). **Posted 2026-11-26:** [axolotl-ai-cloud/axolotl#4318](https://github.com/axolotl-ai-cloud/axolotl/issues/4318); an Axolotl collaborator replied the same day ("may have been an edge case") and invited a contributor's fix. Still a candidate: whether that counts as confirmation is the human's call.
+- **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity on reach (ordinary reasoning and tool-call turns are not affected; checked). **Posted 2026-11-26:** [axolotl-ai-cloud/axolotl#4318](https://github.com/axolotl-ai-cloud/axolotl/issues/4318); an Axolotl collaborator replied the same day ("may have been an edge case") and invited a contributor's fix. Still a candidate: whether that counts as confirmation is the human's call. **Reproduces on all three target tokenizers** (DeepSeek V4.1, Inkling, Hy4) through Axolotl's `chat_template` strategy, tokenizer only (`findings/P-0002/target_reach.py`); for Inkling and Hy4 that is the text strategy, not their documented multimodal path.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours; fixed. Never counted against TRL.
 - **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render. Card only; revisit after the kill test.
 - **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk. **Posted 2026-11-25:** [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567) (main repo, as unsloth-zoo#698 asks); awaiting a maintainer. Explains the 8 special-tokens width fails of the M4 GPU calibration (pinned).
