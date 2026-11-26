@@ -1,0 +1,4297 @@
+{
+ "generated_by": "docs/evidence/2026-11-25-m5-coverage-preview/preview.py",
+ "versions": {
+  "transformers": "5.24.0",
+  "tokenizers": "0.23.3"
+ },
+ "targets": {
+  "thinkingmachines/Inkling-2-Mini": {
+   "spec": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+   "default_mode": "thinking",
+   "citation_level": "model card",
+   "reference": [
+    {
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 30,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 64,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 5,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 62,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 2,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 248,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 142,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 41,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 587,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 105,
+     "default_render_equals_mode_render": true,
+     "marker_check": "agrees",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "status": "n/a (D3): the model documents no non-thinking mode"
+    }
+   ],
+   "cells": [
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 5
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 5
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 5
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 3
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 5
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode; also could not set up the planted faults: ServingModeError: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 documents no non_thinking mode",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "inconclusive: reference refuses"
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a (D3): the model documents no non-thinking mode",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0,
+     "today": "n/a"
+    }
+   ]
+  },
+  "tencent/Hy4-flash": {
+   "spec": "tencent/Hy4-flash@eccd3123eec73f2040f4c9ed0de1883593470510",
+   "default_mode": "thinking",
+   "citation_level": "model card",
+   "reference": [
+    {
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 34,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 78,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 5,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 64,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 2,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 300,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 103,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": [
+      2
+     ]
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 49,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 514,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 112,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 36,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 80,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 5,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 66,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 2,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 302,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "status": "n/a (mode rule)",
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 51,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 516,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 114,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    }
+   ],
+   "cells": [
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 3
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 3
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    }
+   ]
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+   "spec": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+   "default_mode": "thinking",
+   "citation_level": "template only",
+   "reference": [
+    {
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 43,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 71,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "structural",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "structural",
+       "prefill_missing": null
+      },
+      {
+       "message": 5,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": [
+      2,
+      4
+     ]
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 71,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 2,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "status": "refuses",
+     "reason": "TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 105,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "structural",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": [
+      2
+     ]
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "status": "refuses",
+     "reason": "TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 526,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "status": "computes",
+     "tokens": 122,
+     "default_render_equals_mode_render": true,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 16,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 44,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "structural",
+       "prefill_missing": null
+      },
+      {
+       "message": 3,
+       "method": "structural",
+       "prefill_missing": null
+      },
+      {
+       "message": 5,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 45,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 2,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "status": "refuses",
+     "reason": "TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+    },
+    {
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "status": "n/a (mode rule)",
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    {
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "status": "refuses",
+     "reason": "TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+    },
+    {
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 499,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    },
+    {
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "status": "computes",
+     "tokens": 95,
+     "marker_check": "no_markers",
+     "spans": [
+      {
+       "message": 1,
+       "method": "prefix_diff",
+       "prefill_missing": null
+      }
+     ],
+     "prefix_breaks": []
+    }
+   ],
+   "cells": [
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 3
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "single_turn",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 7
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "multi_turn",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "system_prompt",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "tool_call",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "reasoning",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: mask_closing_tokens, wrong_closing_token",
+     "plants_missed": [
+      "mask_closing_tokens",
+      "wrong_closing_token"
+     ],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also could not set up the planted faults: TemplateReferenceError: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "empty_assistant",
+     "mode": "non_thinking",
+     "class": "inconclusive: reference refuses",
+     "result": "inconclusive",
+     "kind": null,
+     "self_test": "missed",
+     "reason": "reference: message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate; also planted fault(s) not caught: history_edit",
+     "plants_missed": [
+      "history_edit"
+     ],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 3
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "long_answer",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    },
+    {
+     "check": "t1.template_parity",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.assistant_mask",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 6
+    },
+    {
+     "check": "t1.end_of_turn",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 2
+    },
+    {
+     "check": "t1.special_tokens",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 4
+    },
+    {
+     "check": "t1.truncation",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "judgeable",
+     "result": "pass",
+     "kind": null,
+     "self_test": "caught",
+     "reason": null,
+     "plants_missed": [],
+     "plants_run": 1
+    },
+    {
+     "check": "t1.multiturn_prefix",
+     "fixture": "non_ascii",
+     "mode": "non_thinking",
+     "class": "n/a",
+     "result": "not_applicable",
+     "kind": null,
+     "self_test": null,
+     "reason": "no prefix of this conversation ends in an assistant turn before the last message",
+     "plants_missed": [],
+     "plants_run": 0
+    }
+   ]
+  }
+ }
+}
