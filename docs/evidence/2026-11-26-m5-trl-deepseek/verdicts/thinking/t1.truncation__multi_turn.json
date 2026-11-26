@@ -1,0 +1,27 @@
+{
+  "schema": "parity.verdict/v0",
+  "check": "t1.truncation",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+  "framework": "trl@1.18.2",
+  "fixture": "multi_turn",
+  "result": "not_supported",
+  "kind": null,
+  "self_test": null,
+  "known_difference": null,
+  "reason": "framework refuses: trl.no_training_template: builtins.ValueError: The chat template is not training-compatible (missing prefix-preservation or `{% generation %}` markers) and patching is not supported for this template. Please manually modify the chat template for training. (https://github.com/huggingface/trl/blob/v1.18.2/trl/chat_template_utils.py#L1513-L1516)",
+  "evidence": {},
+  "conventions": {},
+  "reference": {},
+  "plants": [],
+  "declaration": {
+    "error": "framework refuses: trl.no_training_template: builtins.ValueError: The chat template is not training-compatible (missing prefix-preservation or `{% generation %}` markers) and patching is not supported for this template. Please manually modify the chat template for training. (https://github.com/huggingface/trl/blob/v1.18.2/trl/chat_template_utils.py#L1513-L1516)"
+  },
+  "template_properties": [],
+  "flags": [],
+  "serving_mode": "thinking",
+  "root_cause": null,
+  "env_lock": "envs/trl-1.18.2/uv.lock",
+  "env_fingerprint": "88835319f769c9a5d83263d0f55dc7e7ae203b03d99aaf4d26bf822c148cbe0f",
+  "repro": null,
+  "backend": null
+}
