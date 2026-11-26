@@ -1,0 +1,532 @@
+{
+ "axolotl": "0.21.1",
+ "transformers": "5.20.1",
+ "cases": {
+  "exaone4": {
+   "model": "LGAI-EXAONE/EXAONE-4.0-1.2B@3abf2810673c7c0778df64a73c2d52eab32d91c4",
+   "model_type": "exaone4",
+   "chat_template_kwargs": {
+    "skip_think": false
+   },
+   "runs": {
+    "bundled/reasoning/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 57,
+      "row": "[|user|]\nIs 97 prime?[|endofturn|]\n[|assistant|]\n<think>\n\n</think>\n\nYes, 97 is prime.[|endofturn|]\n",
+      "render": "[|user|]\nIs 97 prime?[|endofturn|]\n[|assistant|]\n<think>\nPROBE_REASONING: no divisor up to 9.\n</think>\n\nYes, 97 is prime.[|endofturn|]\n"
+     }
+    },
+    "bundled/reasoning/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": false,
+     "reasoning_trained": true,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "bundled/tool_call/defaults": {
+     "render_has_reasoning": false,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 1025,
+      "row": ".[|endofturn|]\n[|user|]\nWhat's the weather in Paris?[|endofturn|]\n[|assistant|]\n[|endofturn|]\n[|tool|]\n<tool_result>{\"result\": \"18C and sunny\"}</tool_result>[|endofturn|]\n[|assistant|]\n<think>\n\n</thin",
+      "render": ".[|endofturn|]\n[|user|]\nWhat's the weather in Paris?[|endofturn|]\n[|assistant|]\n<think>\n\n</think>\n\n<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}</tool_call>[|endofturn|]\n[|tool|]\n"
+     }
+    },
+    "bundled/tool_call/mapped": {
+     "render_has_reasoning": false,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": true,
+     "reasoning_trained": false,
+     "call_trained": true,
+     "first_difference": null
+    },
+    "own/reasoning/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 57,
+      "row": "[|user|]\nIs 97 prime?[|endofturn|]\n[|assistant|]\n<think>\n\n</think>\n\nYes, 97 is prime.[|endofturn|]\n",
+      "render": "[|user|]\nIs 97 prime?[|endofturn|]\n[|assistant|]\n<think>\nPROBE_REASONING: no divisor up to 9.\n</think>\n\nYes, 97 is prime.[|endofturn|]\n"
+     }
+    },
+    "own/reasoning/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": false,
+     "reasoning_trained": true,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "own/tool_call/defaults": {
+     "render_has_reasoning": false,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 1025,
+      "row": ".[|endofturn|]\n[|user|]\nWhat's the weather in Paris?[|endofturn|]\n[|assistant|]\n[|endofturn|]\n[|tool|]\n<tool_result>{\"result\": \"18C and sunny\"}</tool_result>[|endofturn|]\n[|assistant|]\n<think>\n\n</thin",
+      "render": ".[|endofturn|]\n[|user|]\nWhat's the weather in Paris?[|endofturn|]\n[|assistant|]\n<think>\n\n</think>\n\n<tool_call>{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\"}}</tool_call>[|endofturn|]\n[|tool|]\n"
+     }
+    },
+    "own/tool_call/mapped": {
+     "render_has_reasoning": false,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": true,
+     "reasoning_trained": false,
+     "call_trained": true,
+     "first_difference": null
+    }
+   },
+   "analyzer_fields": {
+    "bundled": [
+     "content",
+     "role"
+    ],
+    "own": [
+     "content",
+     "role"
+    ]
+   }
+  },
+  "gemma4": {
+   "model": "google/gemma-4-31B@5bbc2fb1c1b2c611d06e3d9f23c170ba21659d89",
+   "model_type": "gemma4",
+   "chat_template_kwargs": {},
+   "runs": {
+    "bundled/reasoning/defaults": {
+     "render_has_reasoning": false,
+     "render_has_call": false,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "bundled/reasoning/mapped": {
+     "render_has_reasoning": false,
+     "render_has_call": false,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "bundled/tool_call_native/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": true,
+     "reasoning_trained": false,
+     "call_trained": true,
+     "first_difference": {
+      "char": 281,
+      "row": "}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|tool_call>call:get_weather{city:<|\"|>Paris<|\"|>}<tool_call|><|tool_response>response:get_weather{value:<|\"|>18C and sunn",
+      "render": "}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|channel>thought\nPROBE_REASONING: I should call the weather tool.\n<channel|><|tool_call>call:get_weather{city:<|\"|>Paris<"
+     }
+    },
+    "bundled/tool_call_native/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": null
+    },
+    "bundled/tool_call/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "raised": "TypeError: can only concatenate str (not \"NoneType\") to str"
+    },
+    "bundled/tool_call/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": null
+    }
+   },
+   "analyzer_fields": {
+    "bundled": [
+     "content",
+     "get",
+     "role",
+     "tool_calls",
+     "tool_responses"
+    ]
+   }
+  },
+  "gemma4_unified": {
+   "model": "google/gemma-4-12B-it@43c9d014b231474fa7212dbb48a762566c2b255d",
+   "model_type": "gemma4_unified",
+   "chat_template_kwargs": {},
+   "runs": {
+    "bundled/reasoning/defaults": {
+     "render_has_reasoning": false,
+     "render_has_call": false,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "bundled/reasoning/mapped": {
+     "render_has_reasoning": false,
+     "render_has_call": false,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "bundled/tool_call_native/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": true,
+     "reasoning_trained": false,
+     "call_trained": true,
+     "first_difference": {
+      "char": 281,
+      "row": "}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|tool_call>call:get_weather{city:<|\"|>Paris<|\"|>}<tool_call|><|tool_response>response:get_weather{value:<|\"|>18C and sunn",
+      "render": "}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|channel>thought\nPROBE_REASONING: I should call the weather tool.\n<channel|><|tool_call>call:get_weather{city:<|\"|>Paris<"
+     }
+    },
+    "bundled/tool_call_native/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": null
+    },
+    "bundled/tool_call/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "raised": "TypeError: can only concatenate str (not \"NoneType\") to str"
+    },
+    "bundled/tool_call/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": null
+    },
+    "own/reasoning/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 50,
+      "row": "<bos><|turn>user\nIs 97 prime?<turn|>\n<|turn>model\nYes, 97 is prime.<turn|>\n",
+      "render": "<bos><|turn>user\nIs 97 prime?<turn|>\n<|turn>model\n<|channel>thought\nPROBE_REASONING: no divisor up to 9.\n<channel|>Yes, 97 is prime.<turn|>\n"
+     }
+    },
+    "own/reasoning/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": false,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": false,
+     "reasoning_trained": true,
+     "call_trained": false,
+     "first_difference": null
+    },
+    "own/tool_call_native/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 279,
+      "row": "|>}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\nIt is 18C and sunny in Paris.<turn|>\n",
+      "render": "|>}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|channel>thought\nPROBE_REASONING: I should call the weather tool.\n<channel|><|tool_call>call:get_weather{city:<|\"|>Pari"
+     }
+    },
+    "own/tool_call_native/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": {
+      "char": 434,
+      "row": "|><|tool_call>call:get_weather{city:<|\"|>Paris<|\"|>}<tool_call|><|tool_response>It is 18C and sunny in Paris.<turn|>\n",
+      "render": "|><|tool_call>call:get_weather{city:<|\"|>Paris<|\"|>}<tool_call|><|tool_response>response:get_weather{value:<|\"|>18C and sunny<|\"|>}<tool_response|>It is 18C and sunny in Paris.<turn|>\n"
+     }
+    },
+    "own/tool_call/defaults": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "role": "role",
+      "content": "content"
+     },
+     "rows": 1,
+     "row_equals_render": false,
+     "row_has_reasoning": false,
+     "row_has_call": false,
+     "reasoning_trained": false,
+     "call_trained": false,
+     "first_difference": {
+      "char": 279,
+      "row": "|>}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\nIt is 18C and sunny in Paris.<turn|>\n",
+      "render": "|>}}<tool|><turn|>\n<|turn>user\nWhat's the weather in Paris?<turn|>\n<|turn>model\n<|channel>thought\nPROBE_REASONING: I should call the weather tool.\n<channel|><|tool_call>call:get_weather{city:<|\"|>Pari"
+     }
+    },
+    "own/tool_call/mapped": {
+     "render_has_reasoning": true,
+     "render_has_call": true,
+     "validated_mappings": {
+      "content": "content",
+      "name": "name",
+      "reasoning_content": "reasoning_content",
+      "role": "role",
+      "tool_call_id": "tool_call_id",
+      "tool_calls": "tool_calls"
+     },
+     "rows": 1,
+     "row_equals_render": true,
+     "row_has_reasoning": true,
+     "row_has_call": true,
+     "reasoning_trained": true,
+     "call_trained": true,
+     "first_difference": null
+    }
+   },
+   "analyzer_fields": {
+    "bundled": [
+     "content",
+     "get",
+     "role",
+     "tool_calls",
+     "tool_responses"
+    ],
+    "own": [
+     "content",
+     "get",
+     "role"
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,2505 @@
+{
+ "axolotl": "0.21.1",
+ "templates": {
+  "alpaca": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "aya": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "chatml": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "cohere": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "command_a": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_call_id",
+    "tool_calls",
+    "tool_plan"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "command_a_rag": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_call_id",
+    "tool_calls",
+    "tool_plan"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "command_a_tool_use": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_call_id",
+    "tool_calls",
+    "tool_plan"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "deepseek_v2": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "deepseek_v3": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TypeError: can only concatenate str (not \"dict\") to str>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TypeError: can only concatenate str (not \"dict\") to str>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TypeError: can only concatenate str (not \"dict\") to str>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "exaone": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "exaone4": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [
+      "reasoning_content",
+      "tool_calls"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [
+      "tool_calls"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [
+      "tool_calls"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [
+      "reasoning_content"
+     ],
+     "row_differs_with": [
+      "{\"skip_think\": false}"
+     ],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [
+    "reasoning_content",
+    "tool_calls"
+   ],
+   "row_differs": true
+  },
+  "falcon_h1": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "gemma": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "gemma3": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "gemma3n": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "gemma4": {
+   "analyzer_fields": [
+    "content",
+    "get",
+    "role",
+    "tool_calls",
+    "tool_responses"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [
+    "name",
+    "reasoning",
+    "reasoning_content",
+    "tool_call_id"
+   ],
+   "row_differs": true
+  },
+  "gemma4_unified": {
+   "analyzer_fields": [
+    "content",
+    "get",
+    "role",
+    "tool_calls",
+    "tool_responses"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [
+      "name",
+      "tool_call_id"
+     ],
+     "row_differs_with": [
+      "{}",
+      "{\"enable_thinking\": true}",
+      "{\"skip_think\": false}"
+     ],
+     "raised": false,
+     "kept_view_raises": "<raised TypeError: can only concatenate str (not \"NoneType\") to str>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [
+    "name",
+    "reasoning",
+    "reasoning_content",
+    "tool_call_id"
+   ],
+   "row_differs": true
+  },
+  "jamba": {
+   "analyzer_fields": [
+    "citations",
+    "content",
+    "name",
+    "role",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "llama3": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "llama3_2_vision": {
+   "analyzer_fields": [
+    "content",
+    "function",
+    "role",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "llama4": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "llava": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "upper"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "metharme": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "mistral_v1": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "mistral_v2v3": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_call_id",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "mistral_v3_tekken": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_call_id",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "mistral_v7_tekken": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Only user, system and assistant roles are supported!>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Only user, system and assistant roles are supported!>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Only user, system and assistant roles are supported!>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "nemotron_h": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Unexpected role: tool>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Unexpected role: tool>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: Unexpected role: tool>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "phi_3": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "phi_35": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "phi_4": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "pixtral": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": true,
+     "error": "<raised TemplateError: After the optional system message, conversation roles must alternate user/assistant/user/assistant/...>"
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "qwen2_vl": {
+   "analyzer_fields": [
+    "content",
+    "role"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id",
+      "tool_calls"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "qwen3": {
+   "analyzer_fields": [
+    "content",
+    "endswith",
+    "reasoning_content",
+    "role",
+    "startswith",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "qwen3_5": {
+   "analyzer_fields": [
+    "content",
+    "endswith",
+    "reasoning_content",
+    "role",
+    "startswith",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  },
+  "qwen_25": {
+   "analyzer_fields": [
+    "content",
+    "role",
+    "tool_calls"
+   ],
+   "probes": {
+    "tool_call/reasoning_content": {
+     "dropped": [
+      "name",
+      "reasoning_content",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/reasoning": {
+     "dropped": [
+      "name",
+      "reasoning",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "tool_call/thinking": {
+     "dropped": [
+      "name",
+      "thinking",
+      "tool_call_id"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning_content": {
+     "dropped": [
+      "reasoning_content"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/reasoning": {
+     "dropped": [
+      "reasoning"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    },
+    "reasoning/thinking": {
+     "dropped": [
+      "thinking"
+     ],
+     "dropped_and_read": [],
+     "row_differs_with": [],
+     "raised": false
+    }
+   },
+   "dropped_and_read": [],
+   "row_differs": false
+  }
+ }
+}

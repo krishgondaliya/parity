@@ -1,7 +1,7 @@
-# P-0007: Axolotl drops every message field its template analyzer can't see; on DeepSeek V4.1, the reasoning and the tool calls
+# P-0007: Axolotl drops every message field its template analyzer can't see: reasoning and tool calls on EXAONE-4.0, Gemma 4 and DeepSeek V4.1 templates
 
 - Status: candidate
-- Severity: medium (effect: on an affected template, reasoning SFT silently becomes empty-think SFT, and a tool-call turn becomes an empty turn, whose end token P-0002's rule then leaves untrained too; reach: any conversation with reasoning or tool calls on a template whose fields Axolotl's analyzer misses: DeepSeek V4.1's, and, preliminarily, Axolotl's own bundled `exaone4` and `gemma4` templates), by effect x reach (docs/DECISIONS.md)
+- Severity: medium (effect: reasoning SFT silently becomes empty-think SFT, and a tool-call turn loses its call, becoming an empty turn whose end token P-0002's rule then leaves untrained; reach, users today: EXAONE-4.0 with Axolotl's bundled `exaone4` or its own template, and gemma-4-12B-it with its own template, lose reasoning and tool calls silently on ordinary OpenAI-format data; the bundled `gemma4` and `gemma4_unified` raise an unexplained `TypeError` on OpenAI-format tool results, and drop reasoning silently only in Gemma's native tool format. Latent: DeepSeek V4.1, once Axolotl's transformers builds it), by effect x reach (docs/DECISIONS.md; `docs/evidence/2026-11-26-p0007-reach/`)
 - Date found: 2026-11-26
 - Model: deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518 (its tokenizer and chat template; the mechanism needs no architecture)
 - Framework: axolotl@0.21.1   (lockfile: envs/axolotl-0.21.1/uv.lock)
@@ -16,6 +16,18 @@
 - **The model generates `</think>`** (`triage_encoding_think.py`, the model's own `encoding/encoding.py`, sandboxed): in thinking mode the prompt ends `<｜Assistant｜><think>`, and the model generates `</think>Red, yellow and blue.<｜end▁of▁sentence｜>`, or the reasoning then `</think>…`. So on a dropped reasoning turn, neither the reasoning nor its `</think>` is trained.
 - **Qwen3, the same path:** reasoning and tool calls reach the template, and the rows equal the render (`triage_fields.json`, `triage_reasoning.json`).
 - **The skeptic's own reproduction, without Parity:** a plain `type: chat_template` config on an OpenAI-format jsonl, through `load_cfg` + `load_datasets`, with `base_model` a Qwen3 config folder and `tokenizer_config` the DeepSeek V4.1 files. Same result twice; no stand-in involved.
+
+## Reach today (`docs/evidence/2026-11-26-p0007-reach/`, 2026-11-26)
+- **Bundled templates, 3 of 36** (`scan_bundled.py`, behavioral: a field counts if the render changes when it's removed, or when it's put back into the conversation as Axolotl keeps it):
+  - `exaone4` drops `reasoning_content` and `tool_calls`;
+  - `gemma4` and `gemma4_unified` drop `reasoning`, `reasoning_content`, `name` and `tool_call_id`.
+  The other 33 keep every field they read in our probes.
+- **Through Axolotl's full path** (`full_path.py`, `load_cfg` + `load_datasets`, plain OpenAI-format jsonl, Axolotl's validated defaults; models Axolotl 0.21.1 loads, tokenizer and config only):
+  - EXAONE-4.0-1.2B, bundled `exaone4` and its own template (`skip_think: false`): the reasoning and the tool call are missing from the rows, silently.
+  - gemma-4-12B-it with its own template (`tokenizer_default`): the reasoning and the tool call are missing, silently.
+  - gemma-4-31B with `gemma4` and gemma-4-12B-it with `gemma4_unified` (Axolotl's v0.21.1 examples): a tool conversation in OpenAI format raises `TypeError: can only concatenate str (not "NoneType") to str` in preprocessing (the template reads the result's `name`, else `tool_call_id`, both dropped). In Gemma's native form (`tool_responses` on the assistant message) the reasoning is missing, silently. These templates render no reasoning on turns without a tool call.
+  - With the fields mapped explicitly, every OpenAI-format row equals its render and the reasoning and calls are trained.
+- **Latent:** DeepSeek V4.1 (above), once a transformers release Axolotl uses builds `deepseek_v41`.
 
 ## Mechanism (axolotl 0.21.1; files byte-identical to the v0.21.1 tag; `chat_template.py` and `jinja_template_analyzer.py` unchanged in substance on main `de8549a`)
 1. Config validation fills `message_property_mappings: {role: role, content: content}` (the validated dataset config, `triage_reasoning.json`). The mappings are never empty on the real `load_cfg` path, so the branch of `ChatTemplatePrompter.__init__` that would add `reasoning_content` (`prompt_strategies/chat_template.py` L82-L88) never runs.
@@ -40,11 +52,12 @@
 - **Stand-in (D1):** the M5 run used `deepseek_v4`, but the validated mappings, the analyzer and `transform_message` read only the config and the template. The skeptic reproduced it with Qwen3's config. A standalone repro needs only the release's tokenizer and template.
 - **Documented as intended behavior:** no. The schema documents the opposite (`utils/schemas/datasets.py` L152, `message_property_mappings`): "If a property exists in the template but not in this mapping, the system will attempt to load it directly from the message using the property name as the key." The conversation docs' tool-use example also shows `tool_calls` with no mapping config.
 - **Workaround, tested by the skeptic:** explicit `message_property_mappings: {role: role, content: content, reasoning_content: reasoning_content, tool_calls: tool_calls}`. Then both rows equal the render, and `</think>` is trained on the reasoning turn. Setting `field_thinking` and `template_thinking_key` doesn't help.
-- **Duplicates searched** (read-only, issues and PRs): "JinjaTemplateAnalyzer", "chat_template_msg_variables", "reasoning_content dropped", "tool_calls missing chat_template", "message_property_mappings reasoning_content", "deepseek v4 tool_calls", "properties on the message". No duplicate; the skeptic's further searches were cut short by the search API's rate limit. Related:
+- **Duplicates searched** (read-only, issues and PRs, 2026-11-26, including the searches the skeptic's rate limit cut short; the full list is in the reach README). No duplicate, and no fix on main (`de8549a`: the analyzer and both templates have no commits since v0.21.1; `transform_message` is identical). Related:
   - #3824 (open): the DPO strategy drops `tool_calls`, a different strategy;
   - #3768 (open PR): the analyzer raises `RecursionError` on deeply nested templates, a loud failure;
   - #3228 (open PR, "include tool in default message_property_mappings"): edits the empty-mapping branch the validated path never reaches;
-  - #2762 (closed): generation tags in the analyzer.
+  - #2762 (closed): generation tags in the analyzer;
+  - #2260 (closed PR, 2025): added config for passing optional message fields, and asked why not pass the whole message.
 
 ## Skeptic verdict (2026-11-26)
 - **Real candidate, for the dropped fields only.** Confidence high on the mechanism and the reproduction, medium on severity and reach as first framed. Our adapter and fixtures are not the cause.
@@ -61,8 +74,8 @@
   - the workaround is now tested.
 - **To check before any upstream draft:**
   1. A standalone repro: `tokenizer_config` pointing at the DeepSeek release files, `base_model` a supported model, exit 1 when a row differs from the render.
-  2. `exaone4` and `gemma4` at render level through the full preprocess path. If they hold, the issue leads with the analyzer's variable-name rule, with DeepSeek as one instance.
-  3. The duplicate searches the rate limit cut short: "message_property_mappings reasoning_content", "exaone4 tool_calls", "gemma4 reasoning_content".
+  2. Done 2026-11-26: `exaone4` and `gemma4` hold through the full preprocess path, and so do `gemma4_unified` and two models' own templates (Reach today). The issue leads with the analyzer's rule, with these templates as instances.
+  3. Done 2026-11-26: the duplicate searches the rate limit cut short. No duplicate.
   4. The non-reasoning `</think>` question stays out of the issue.
   5. No "bug" in the title (rule 8).
 
