@@ -14,7 +14,7 @@ None found for the templates checked.
 | trl@1.18.2 | t1.end_of_turn | inconclusive | 8 of 8 |  |
 | trl@1.18.2 | t1.multiturn_prefix | inconclusive | 4 of 8 | not applicable on 4 fixture(s) |
 | trl@1.18.2 | t1.special_tokens | inconclusive | 8 of 8 | blocked by t1.template_parity on 1 fixture(s) |
-| trl@1.18.2 | t1.template_parity | fail | 8 of 8 | 1 untriaged fail(s) |
+| trl@1.18.2 | t1.template_parity | fail | 8 of 8 | root cause: P-0008 |
 | trl@1.18.2 | t1.truncation | inconclusive | 8 of 8 |  |
 
 ### Secondary results: non_thinking mode
@@ -38,8 +38,8 @@ Secondary: each framework encoded again with its documented setting for non_thin
 
 ### Fails by root cause
 
-1 fail verdict(s) (1 of kind bug, 0 known differences; 1 thinking (primary), 0 non_thinking) come from 1 framework root cause(s): 0 linked, 1 untriaged (each untriaged fail counts as its own).
+1 fail verdict(s) (1 of kind bug, 0 known differences; 1 thinking (primary), 0 non_thinking) come from 1 framework root cause(s): 1 linked, 0 untriaged (each untriaged fail counts as its own).
 
 | Root cause | Fail verdicts | Where |
 | --- | --- | --- |
-| untriaged | 1 | trl@1.18.2 t1.template_parity/tool_call (thinking) |
+| P-0008 | 1 | trl@1.18.2 t1.template_parity/tool_call |

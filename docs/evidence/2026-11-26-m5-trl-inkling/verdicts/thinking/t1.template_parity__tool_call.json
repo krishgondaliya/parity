@@ -115,7 +115,7 @@
   "template_properties": [],
   "flags": [],
   "serving_mode": "thinking",
-  "root_cause": null,
+  "root_cause": "P-0008",
   "env_lock": "envs/trl-1.18.2/vlm/uv.lock",
   "env_fingerprint": "5bc0c44a6de14f9d3ef0bca18b0bc05a9edb44fbac20dbc87d469568a3e2ab2f",
   "repro": null,

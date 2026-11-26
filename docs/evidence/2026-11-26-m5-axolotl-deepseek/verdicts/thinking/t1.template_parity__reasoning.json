@@ -118,7 +118,7 @@
   "template_properties": [],
   "flags": [],
   "serving_mode": "thinking",
-  "root_cause": null,
+  "root_cause": "P-0007",
   "env_lock": "envs/axolotl-0.21.1/uv.lock",
   "env_fingerprint": "bf1a1261b0914f900db89c235177c833d195b5fd21985bf8a463c1342b665f9b",
   "repro": null,

@@ -2,8 +2,8 @@
 
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
-- **Current phase:** Phase 0, kill test. M0-M4 done (calibration green for all three). **M5 prep done:** every pair decided (4 run, 5 not judged), the adapters built and re-calibrated cell for cell, and predictions committed for the 4 pairs that run. **Next: the M5 runs.** Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-26 (vision-path decisions; Unsloth x DeepSeek recipe; P-0002 on the targets; predictions for the 4 runnable pairs)
+- **Current phase:** Phase 0, kill test. M0-M4 done (calibration green for all three). **M5:** the three local pairs are run and triaged; Unsloth x DeepSeek V4.1 waits on the Colab run (kit built). Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
+- **Last updated:** 2026-11-26 (M5 local runs; P-0007 and P-0008 from triage; the GPU kit for Qwen3 + DeepSeek V4.1)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -69,14 +69,27 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
   - Built: `envs/trl-1.18.2/vlm` (Qwen3 calibration there 96/96 identical to M4), the processor step and the per-pair Day-0 support table, the Unsloth recipe table (CPU calibration still 96/96). Predictions committed for the 4 runnable pairs, each on its own.
 - Tests: core 561, TRL environment 590 (and 590 in its `vlm` variant), Axolotl environment 589, Unsloth environment 592 (1 expected failure).
 
+## M5 so far (primary and secondary, 96 cells per pair)
+
+| Pair | Cells as predicted | Primary result | Evidence |
+| --- | --- | --- | --- |
+| TRL 1.18.2 × DeepSeek V4.1 | 96 of 96 | 44 `not_supported` (TRL's pinned refusal: no generation markers), 4 n/a | `docs/evidence/2026-11-26-m5-trl-deepseek/` |
+| TRL 1.18.2 (vlm) × Inkling-2-Mini | 96 of 96 | 38 pass, 1 fail (P-0008, `tool_call`), 5 inconclusive, 4 n/a | `docs/evidence/2026-11-26-m5-trl-inkling/` |
+| Axolotl 0.21.1 × DeepSeek V4.1 | 90 of 96 | 17 pass, 10 fail (1 P-0007; 9 untriaged: `</think>` on turns without reasoning, the human's call), 17 inconclusive, 4 n/a; the 6 misses are all `reasoning` | `docs/evidence/2026-11-26-m5-axolotl-deepseek/` |
+| Unsloth 2026.11.10 × DeepSeek V4.1 (GPU) | not run yet | predictions committed | `docs/evidence/2026-11-26-m5-unsloth-deepseek/predictions.md` |
+
+- **Built for M5:** the runner refuses a pair without committed predictions (`parity.engine.predictions`, `docs/evidence/2026-11-26-m5-runs/run.py`); the GPU kit applies the same guard to its archive and zips each model's results as it finishes.
+- **The Colab kit:** `dist/gpu-kit/4b4de273e093/` (built from `4b4de27`), `MODELS` = Qwen3 then DeepSeek V4.1. Follow `docs/gpu-run/GPU-RUN.md`.
+
 ## Next actions
 
-1. **The M5 runs, predictions first:** each pair's `predictions.md` is committed (`docs/evidence/2026-11-26-m5-*`).
-   - Locally: TRL × Inkling in `envs/trl-1.18.2/vlm`, TRL × DeepSeek V4.1 in `envs/trl-1.18.2`, Axolotl × DeepSeek V4.1.
-   - Unsloth × DeepSeek V4.1 on GPU: build the kit at that commit, `MODELS` = Qwen3 first (re-checks the GPU calibration) then DeepSeek V4.1, writing each model's results as it finishes (the kit change is still to do).
-   - Before the first run, the M5 runner should refuse a pair without its committed predictions (planned, not built).
-2. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix.
-3. Watch unslothai/unsloth#19567 (P-0005) for a maintainer's reply.
+1. **Human: the Colab run** with the kit above. Bring back the per-model zips and the results zip.
+2. **After it:** ingest the GPU results; for Unsloth × DeepSeek V4.1, compare its labels with Unsloth's documented auto-detection (`train_on_responses_only` with no parts) on the same rows (the human's item 3).
+3. **Human: the `</think>` question** (P-0007's record, "The `</think>` fails on fixtures without reasoning"): on turns without reasoning, Qwen3's `</think>` is untrained too (KD-0002's first-field rule; the skeptic confirmed the field drop doesn't cause DeepSeek's). A new KD entry for DeepSeek's template, or a candidate on both? Until then 9 Axolotl × DeepSeek cells are untriaged.
+4. **Human: P-0008's official-renderer check.** Thinking Machines' tml-renderers decides P-0008's reference (empty content as `""`, null and an empty text part, with tool calls). Running it needs your OK: the skeptic's attempt was blocked by the permission system, and I didn't run it in its place.
+5. **M6 for P-0007 and P-0008:** standalone repros (D1: tokenizer and template, a model the framework supports), then drafts, after the human's calls.
+6. **After M5 (not yet):** whether `AutoProcessor`'s silent fallback to the tokenizer changes what TRL trains on for Inkling under a plain `pip install trl` (the human's item 4); predictions first.
+7. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix. Watch unslothai/unsloth#19567 (P-0005).
 
 ## Open questions
 
@@ -98,3 +111,5 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 - **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render. Card only; revisit after the kill test.
 - **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk. **Posted 2026-11-25:** [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567) (main repo, as unsloth-zoo#698 asks); awaiting a maintainer. Explains the 8 special-tokens width fails of the M4 GPU calibration (pinned).
 - **P-0006** (Unsloth 2026.11.10, non-thinking mode): `train_on_responses_only` trains the last turn's empty think block, which our hard-switch reference treats as a pre-fill. **Closed: not_configurable.** Unsloth documents non-thinking training via the `/no_think` soft switch; hard-switch training is not configurable.
+- **P-0007** (Axolotl 0.21.1, M5): message fields the template analyzer can't see are dropped before rendering (only a variable named `message` counts), though the schema says unmapped template properties load directly; on DeepSeek V4.1 (loop variable `msg`) the reasoning and the tool calls vanish. Candidate, medium; skeptic: real for the dropped fields only. Workaround tested: explicit `message_property_mappings`. Axolotl's own `exaone4` and `gemma4` templates likely hit too (preliminary). Pinned to its one cell (template parity on `reasoning`); not shrunk.
+- **P-0008** (TRL 1.18.2 `vlm` × Inkling-2-Mini, M5): on the vision path, an assistant turn with `content: ""` and tool calls or reasoning gains a trained empty text message. Candidate, low provisionally (reach unmeasured). Skeptic: real, but mainly the model's template (its string and list forms render empty content differently); TRL's wrapping of `""` is deliberate (#5496). The official renderer decides the reference (not run). Pinned; not shrunk.

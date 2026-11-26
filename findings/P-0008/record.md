@@ -1,7 +1,7 @@
-# P-0008: On its vision path, TRL trains an empty text message before Inkling-2-Mini tool calls that the template doesn't render
+# P-0008: On TRL's vision path, Inkling-2-Mini tool-call turns with empty content gain a trained empty text message
 
 - Status: candidate
-- Severity: medium (effect: three extra tokens (an empty text message) are rendered and trained in each affected assistant turn, so the model learns to open an empty text message before its tool call or after its reasoning, which the model's own render never has; reach: assistant turns with tool calls or reasoning whose `content` is the empty string, a common convention in tool-calling and reasoning data, but not reached when `content` is `null`), by effect x reach (docs/DECISIONS.md)
+- Severity: low, provisionally (effect: three extra tokens (an empty text message) are rendered and trained in each affected assistant turn, which the template's string-form render doesn't have; reach unmeasured: TRL's documented tool-call format leaves `content` out, which becomes null and is unaffected, so only data that writes `content: ""` on tool-call or reasoning turns is reached. It becomes medium if ordinary datasets turn out to do that), by effect x reach (docs/DECISIONS.md)
 - Date found: 2026-11-26
 - Model: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 (the release's own architecture and processor)
 - Framework: trl@1.18.2, `vlm` extra   (lockfile: envs/trl-1.18.2/vlm/uv.lock)
@@ -34,21 +34,37 @@
 - **Adapter uses the documented public path and option:** yes. A tiny release-architecture model and the processing class TRL's own `model_accepts_images` picks, `SFTConfig(assistant_only_loss=True)`. A user passing the model id gets the same model class and processor.
 - **Fixture valid for this model:** yes. An assistant turn with `content: ""` and `tool_calls` is legal OpenAI-format data.
 - **Reference consistent:** yes. Our reference is Inkling's own template, with the messages as given (string content), which is also what the tokenizer and the template's own markers give; our preview found the markers agree with our reference on all 8 fixtures.
-- **Documented as intended behavior:** no. TRL documents `prepare_multimodal_messages` as converting string content into structured blocks; nothing says the rendered text may change.
-- **Attribution, open:**
-  - **TRL's side:** it wraps the empty string as one empty text part instead of no parts.
-  - **The model's side:** its template treats an empty text part differently from an empty string.
-  - Either fix removes the difference. Rule 4 is cleared for our side; which side to report to is for the skeptic and the human.
+- **Documented as intended behavior:** partly. TRL's wrapping of `""` as `[{"type": "text", "text": ""}]` is deliberate (PR #5496, merged 2026-04-10: several VLM processors crash on `content: ""` but accept the empty text part), and TRL's own internals pass `content: ""` with tool calls. Its effect on Inkling 2's render is not intended or documented.
+- **Attribution (after the skeptic):** mainly the model's template.
+  - Inkling 2's template contradicts itself: its string branch skips an empty text message on assistant turns with tool calls or reasoning (L75-L76), and its list branch doesn't (L77-L83). The tokenizer alone gives the same 162-token row from the wrapped messages, so Inkling2Processor plays no part.
+  - Inkling v1's template renders the empty text message in both forms. Inkling 2 added the rule for the string form only, which suggests its intended format has none, so the string-form reference is probably right.
+  - TRL's side is constrained: not wrapping `""` would bring back #5496's crashes. A TRL training template for Inkling 2 is the realistic TRL-side option.
+  - **Not decided until the official renderer is checked** (below).
 - **Duplicates searched** (read-only, TRL issues and PRs): "prepare_multimodal_messages empty content", "prepare_multimodal_messages tool_calls", "empty text block tool call processor", "inkling SFTTrainer", "content empty string tool_calls vlm". No duplicate. Related:
   - #6928 / #6930 (closed): vLLM-side handling of content-less tool calls;
   - #8497 (open): tracking Inkling 2 support, nothing about this;
   - #8513 (merged 2026-11-24, after v1.18.2): an Inkling v1 training template.
 
-## Skeptic verdict
-Not run yet (the human asked for it on P-0007).
+## Skeptic verdict (2026-11-26)
+- **Real candidate, partly:** the behavior is real and not our harness, but it isn't a TRL bug on its own. The template contradicts itself, and TRL's wrapping that triggers it is deliberate. Confidence high on the reproduction, the mechanism and the labels; medium on which side owns it.
+- **Checked by the skeptic:**
+  - the tokenizer and processor renders of unwrapped string content are equal;
+  - the wrapped messages give 162 tokens against 159, with the tokenizer alone too;
+  - `content: []` renders like `""`;
+  - the inserted tokens have `assistant_masks` 1, and their labels equal their ids, in the dataset and after collation;
+  - TRL loading the processor itself (`processing_class=None`) gives the adapter's row;
+  - `prepare_multimodal_messages` and `_tokenize` are unchanged on TRL main;
+  - no duplicate in TRL or in the model repo's discussions.
+- **Corrections, applied:** severity provisionally low (reach unmeasured; the "common convention" wording dropped); "the template's string-form render" instead of "the model's own render"; the wrapping is deliberate (#5496); TRL's default path for a model id, while transformers documents `Inkling2LoopForCausalLM` for text-only use, which takes the unaffected tokenizer path.
+- **To check before any upstream draft:**
+  1. **The official renderer.** Thinking Machines' tml-renderers (`renderers.Inkling2`, `render_for_sft`) with `content` as `""`, null and `[{"type": "text", "text": ""}]` plus tool calls. This decides the reference. Not run: the skeptic downloaded the wheel into the scratchpad but running it was blocked by the permission system, and it needs the human's OK.
+  2. What vLLM and SGLang render for a history turn with `""` plus tool calls.
+  3. Whether `[]`, or leaving `""` alone on tool-call turns, avoids #5496's crashes (whether any TRL-side fix is possible).
+  4. How often popular tool-calling datasets write `""` rather than null on tool-call turns.
+- **Report to:** the model repo first (its list branch should skip an empty text part the way its string branch does), and TRL only as a note on #8497 or a request for an Inkling 2 training template.
 
 ## Repro
-- Not written yet. It needs the release's tokenizer, template and processor (Inkling2Processor, transformers 5.24 with torchvision), and a model class that accepts images.
+- Not written yet. It needs only the release's tokenizer and template: `apply_chat_template` with `content: ""` against `[{"type": "text", "text": ""}]` shows the template half, and `trl.data_utils.prepare_multimodal_messages` on top shows TRL's trigger. No Trainer, processor or model.
 
 ## Upstream
 - Issue URL (posted by human): none

@@ -422,6 +422,38 @@
           "evidence_sha256": "81be85c1f9ac3013ab4b8ae88f847a531ad350196903cda59b793eb3890e5da5"
         }
       ]
+    },
+    {
+      "id": "P-0007",
+      "record": "findings/P-0007/record.md",
+      "status": "candidate",
+      "framework": "axolotl@0.21.1",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+      "summary": "DeepSeek V4.1's template is opaque to Axolotl's Jinja analyzer (it finds no message fields; only a loop variable named 'message' counts), and the validated mappings are role and content, so reasoning_content and tool_calls are dropped before rendering: the reasoning fixture's row loses its reasoning (template parity). Only that cell: the 9 </think> fails on fixtures without reasoning are KD-0002's first-field rule on DeepSeek's template (skeptic, 2026-11-26), untriaged until the human decides.",
+      "pins": [
+        {
+          "check": "t1.template_parity",
+          "fixture": "reasoning",
+          "serving_mode": "thinking",
+          "evidence_sha256": "1e68f0e82bc9b4a39b9e459ca0122b28ecc1a80ac853f3bb879d546db48cb2bb"
+        }
+      ]
+    },
+    {
+      "id": "P-0008",
+      "record": "findings/P-0008/record.md",
+      "status": "candidate",
+      "framework": "trl@1.18.2",
+      "model": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+      "summary": "On TRL's vision path (Inkling2Processor), prepare_multimodal_messages wraps an assistant turn's empty content as an empty text part, and Inkling's template renders it as an empty text message (<|content_text|><|end_message|><|message_model|>, trained) before the tool call, which the template's string-form render doesn't have. Skeptic: mainly the template's own inconsistency (string vs list form); TRL's wrapping of '' is deliberate (#5496).",
+      "pins": [
+        {
+          "check": "t1.template_parity",
+          "fixture": "tool_call",
+          "serving_mode": "thinking",
+          "evidence_sha256": "9811afbe2feb7ad4031b77ec30dee765c194ad8c57ca84d7350ca030a0c0ade4"
+        }
+      ]
     }
   ]
 }
