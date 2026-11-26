@@ -70,7 +70,7 @@ import hashlib  # noqa: E402
 import logging  # noqa: E402
 import tempfile  # noqa: E402
 from collections.abc import Sequence  # noqa: E402
-from dataclasses import replace  # noqa: E402
+from dataclasses import dataclass, replace  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
@@ -82,7 +82,7 @@ from trl import SFTConfig, SFTTrainer  # noqa: E402
 
 import parity  # noqa: E402
 from parity.adapters.base import Batch, Declaration, Dropped, Encoded, ModeNotConfigurable, TrainCfg  # noqa: E402
-from parity.adapters.unsloth_docs import NOT_CONFIGURABLE  # noqa: E402
+from parity.adapters.unsloth_docs import NOT_CONFIGURABLE, NOT_CONFIGURABLE_UNDOCUMENTED  # noqa: E402
 from parity.fixtures import Conversation  # noqa: E402
 from parity.release import LoadedRelease, fetch_release_files  # noqa: E402
 from parity.serving import framework_mode  # noqa: E402
@@ -106,25 +106,84 @@ DOCS = {
     "tool_notebook": f"{NOTEBOOKS}/0313a67513a87462ffdb78934f31d2181ba61b06/nb/Qwen3_(4B)-Tool_Calling.ipynb",
     "trl_add_eos": "https://github.com/huggingface/trl/blob/v1.15.0/trl/trainer/sft_trainer.py#L1284-L1306",
 }
-INSTRUCTION_PART = "<|im_start|>user\n"
-RESPONSE_PART = "<|im_start|>assistant\n"
 NOTEBOOK_MAX_SEQ_LENGTH = 2048
-# The recipe per release (D1, M5 prep): the path a text-only chat fine-tune takes, and where that comes from. Only
-# Qwen3's whole recipe (loader, response parts, LoRA settings) is decided; the targets wait for the human:
-# - thinkingmachines/Inkling-2-Mini: FastModel takes the vision path (its config declares an image-text class and
-#   the notebook leaves text_only=False), and in this environment the stand-in for that path can't build (it needs
-#   scipy, which the lock doesn't have) and the release's processor (Inkling2Processor) doesn't exist.
-# - deepseek-ai/DeepSeek-V4.1-Flash-1017: the text path (FastModel falls back to the causal LM Unsloth registers),
-#   on the release's own architecture; Unsloth documents no training recipe for it (loader, response parts, LoRA
-#   target modules are open).
-# - tencent/Hy4-flash: Unsloth documents nothing for it; its declared class takes the vision path, and no Hy4 vision
-#   stand-in is registered here.
-PATHS: dict[str, tuple[str, str]] = {
-    "Qwen/Qwen3-0.6B": ("text", f"FastLanguageModel, as the recommended Qwen3 notebook loads it ({DOCS['notebook']})"),
+GENERAL = {
+    "fine_tuning_guide": "https://unsloth.ai/docs/get-started/fine-tuning-llms-guide",
+    "lora_guide": "https://unsloth.ai/docs/get-started/fine-tuning-llms-guide/lora-hyperparameters-guide",
+    "chat_templates": "https://unsloth.ai/docs/basics/chat-templates",
+    "deepseek_v4": "https://unsloth.ai/docs/models/deepseek-v4",
+}
+DEEPSEEK_DOCS = (
+    "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/08c8657f02291e11b6f6b63e0e16014f8e748518/"
+    "encoding/README.md"
+)
+DEFAULT_TARGET_MODULES = ("q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj")
+
+
+@dataclass(frozen=True)
+class Recipe:
+    """What Unsloth's docs say to run for one release: the loader's settings, the response parts, the trainer's
+    documented settings, where they come from, and how sure that is (`citation`)."""
+
+    path: str  # parity.tiny: "text" or "vision"
+    instruction_part: str
+    response_part: str
+    trainer_args: dict[str, Any]  # SFTConfig settings the docs show; anything else is left at its default
+    citation: str
+    sources: tuple[str, ...]
+    parts_source: str  # where the response parts come from, as the declaration records it
+    not_configurable: str  # why a non-default serving mode is not_configurable for this release
+    mode_setting: str
+
+
+RECIPES: dict[str, Recipe] = {
+    "Qwen/Qwen3-0.6B": Recipe(
+        path="text",
+        instruction_part="<|im_start|>user\n",
+        response_part="<|im_start|>assistant\n",
+        trainer_args={
+            "per_device_train_batch_size": 2, "gradient_accumulation_steps": 4, "warmup_steps": 5, "max_steps": 30,
+            "learning_rate": 2e-4, "logging_steps": 1, "optim": "adamw_8bit", "weight_decay": 0.001,
+            "lr_scheduler_type": "linear", "seed": 3407, "padding_free": False,
+        },  # fmt: skip
+        citation="the model's own notebook",
+        sources=(DOCS["notebook"], DOCS["assistant_only"]),
+        parts_source=DOCS["assistant_only"],
+        not_configurable=NOT_CONFIGURABLE,
+        mode_setting="framework defaults (the model's default mode); other modes are not configurable (unsloth_docs)",
+    ),
+    # The human's decision (2026-11-26): Unsloth's DeepSeek-V4 guide documents running, not training, so its general
+    # SFT docs apply: FastLanguageModel with max_seq_length 2048 and 4-bit loading, the default LoRA target list, the
+    # guide's trainer settings (nothing else set, so padding_free is Unsloth's choice), and the template's own role
+    # markers as the response parts. A finding here leaves the repo only if it reproduces with documented choices.
+    "deepseek-ai/DeepSeek-V4.1-Flash-1017": Recipe(
+        path="text",
+        instruction_part="<｜User｜>",
+        response_part="<｜Assistant｜>",
+        trainer_args={"per_device_train_batch_size": 2, "gradient_accumulation_steps": 4, "max_steps": 60,
+                      "learning_rate": 2e-4},  # fmt: skip
+        citation="general docs; training this model is not documented",
+        sources=(
+            GENERAL["fine_tuning_guide"], GENERAL["lora_guide"], GENERAL["chat_templates"], GENERAL["deepseek_v4"],
+            f"role markers: {DEEPSEEK_DOCS} (special tokens: <｜User｜> 'User turn prefix', <｜Assistant｜> "
+            "'Assistant turn prefix'); checked on our reference render: docs/evidence/2026-11-26-unsloth-deepseek-parts/",
+        ),  # fmt: skip
+        parts_source=f"the template's own role markers ({DEEPSEEK_DOCS}); Unsloth's guidance: {GENERAL['lora_guide']}",
+        not_configurable=NOT_CONFIGURABLE_UNDOCUMENTED,
+        mode_setting="framework defaults (the model's default mode); other modes are not configurable (unsloth_docs)",
+    ),
+}
+# Not judged (the human's decision, 2026-11-26), with the evidence in docs/evidence/2026-11-25-m5-env-support/:
+# thinkingmachines/Inkling-2-Mini and tencent/Hy4-flash take FastModel's vision path (an image-text class declared,
+# text_only left False), and their processors can't be built here (no Inkling2Processor or HYV4FlashProcessor in
+# transformers 5.17.0). The Inkling vision stand-in also needs scipy, which the lock doesn't have.
+NOT_JUDGED = {
+    "thinkingmachines/Inkling-2-Mini": "can't build the release's processor: module transformers has no attribute "
+    "Inkling2Processor",
+    "tencent/Hy4-flash": "can't build the release's processor: module transformers has no attribute HYV4FlashProcessor",
 }
 PROBE = [{"role": "user", "content": "Hi."}, {"role": "assistant", "content": "Hello."}]
 LABEL_SHIFTING_LOSSES = ("ForCausalLMLoss",)
-MODE_SETTING = "framework defaults (the model's default mode); other modes are not configurable (unsloth_docs)"
 
 datasets.disable_progress_bars()
 transformers.logging.set_verbosity_error()
@@ -148,9 +207,13 @@ class UnslothAdapter:
         self.env_lock = env_lock
         self.env_fingerprint = hashlib.sha256((REPO_ROOT / env_lock).read_bytes()).hexdigest()
         self._source = fetch_release_files(release.release)  # tokenizer, template and config files only
-        if release.release.repo_id not in PATHS:
-            raise NotImplementedError(f"no Unsloth recipe decided for {release.release.repo_id} (docs/DECISIONS.md)")
-        self._path, self._path_source = PATHS[release.release.repo_id]
+        repo_id = release.release.repo_id
+        if repo_id in NOT_JUDGED:
+            raise NotImplementedError(f"{repo_id} on Unsloth is not judged: {NOT_JUDGED[repo_id]}")
+        if repo_id not in RECIPES:
+            raise NotImplementedError(f"no Unsloth recipe decided for {repo_id} (docs/DECISIONS.md)")
+        self._recipe = RECIPES[repo_id]
+        self._path, self._path_source = self._recipe.path, f"{self._recipe.citation}: " + "; ".join(self._recipe.sources)
         self._local = self._tiny_model_folder()
         self._declarations: dict[TrainCfg, Declaration] = {}
         self._encoded: dict[tuple[str, str, TrainCfg], Encoded | Dropped] = {}
@@ -178,7 +241,7 @@ class UnslothAdapter:
         model = FastLanguageModel.get_peft_model(
             model,
             r=32,
-            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+            target_modules=list(DEFAULT_TARGET_MODULES),  # the documented default list (lora_guide)
             lora_alpha=32,
             lora_dropout=0,
             bias="none",
@@ -194,18 +257,8 @@ class UnslothAdapter:
         args: dict[str, Any] = {
             "output_dir": tempfile.mkdtemp(prefix="parity-unsloth-out-"),
             "dataset_text_field": "text",
-            "per_device_train_batch_size": 2,
-            "gradient_accumulation_steps": 4,
-            "warmup_steps": 5,
-            "max_steps": 30,
-            "learning_rate": 2e-4,
-            "logging_steps": 1,
-            "optim": "adamw_8bit",
-            "weight_decay": 0.001,
-            "lr_scheduler_type": "linear",
-            "seed": 3407,
+            **self._recipe.trainer_args,
             "report_to": "none",
-            "padding_free": False,
             "packing": cfg.packing,
         }
         if cfg.max_len is not None:
@@ -220,7 +273,9 @@ class UnslothAdapter:
             args=SFTConfig(**args),
         )
         if cfg.objective == "assistant_only":
-            trainer = train_on_responses_only(trainer, instruction_part=INSTRUCTION_PART, response_part=RESPONSE_PART)
+            trainer = train_on_responses_only(
+                trainer, instruction_part=self._recipe.instruction_part, response_part=self._recipe.response_part
+            )
         _enter_training_mode(trainer)
         return trainer
 
@@ -228,7 +283,7 @@ class UnslothAdapter:
         """The config as Unsloth gets it: in the model's default mode it is told nothing; any other mode refuses."""
         cfg = replace(cfg, serving_mode=framework_mode(self.release, cfg.serving_mode))  # None in the default mode
         if cfg.serving_mode is not None:
-            raise ModeNotConfigurable(NOT_CONFIGURABLE)
+            raise ModeNotConfigurable(self._recipe.not_configurable)
         return cfg
 
     # The adapter contract
@@ -239,7 +294,7 @@ class UnslothAdapter:
         if cfg not in self._declarations:
             probe = Conversation(id="probe", messages=copy.deepcopy(PROBE), tools=None)
             trainer = self._trainer([probe], cfg)
-            self._declarations[cfg] = _declaration(trainer, cfg, self._source, MODE_SETTING, self._model_build)
+            self._declarations[cfg] = _declaration(trainer, cfg, self._source, self._recipe, self._model_build)
         return self._declarations[cfg]
 
     def encode(self, conv: Conversation, cfg: TrainCfg) -> Encoded | Dropped:
@@ -306,8 +361,9 @@ def _loss_name(model: Any) -> str:
 
 
 def _declaration(
-    trainer: SFTTrainer, cfg: TrainCfg, source: Path, mode_setting: str, model_build: dict[str, Any]
+    trainer: SFTTrainer, cfg: TrainCfg, source: Path, recipe: Recipe, model_build: dict[str, Any]
 ) -> Declaration:
+    mode_setting = recipe.mode_setting
     tokenizer = trainer.processing_class
     template = tokenizer.chat_template
     own = AutoTokenizer.from_pretrained(source).chat_template
@@ -338,8 +394,8 @@ def _declaration(
         sources=(
             f"chat_template: trainer.processing_class.chat_template, the tokenizer FastLanguageModel.from_pretrained "
             f"returned ({DOCS['notebook']})",
-            f"objective: {cfg.objective}; train_on_responses_only(instruction_part={INSTRUCTION_PART!r}, "
-            f"response_part={RESPONSE_PART!r}) for assistant_only ({DOCS['assistant_only']})",
+            f"objective: {cfg.objective}; train_on_responses_only(instruction_part={recipe.instruction_part!r}, "
+            f"response_part={recipe.response_part!r}) for assistant_only ({recipe.parts_source})",
             f"label_convention: the model's loss_function is {loss}, which shifts labels itself",
             f"truncation_mode: trainer.args.truncation_mode={args.truncation_mode!r}, "
             f"max_length={args.max_length} (TRL {trl.__version__})",

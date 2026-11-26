@@ -1,0 +1,273 @@
+[
+ {
+  "fixture": "single_turn",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    34,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "multi_turn",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 3,
+  "assistant_messages": 3,
+  "user_markers": 3,
+  "user_or_tool_messages": 3,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    36,
+    "</think>"
+   ],
+   [
+    46,
+    "</think>"
+   ],
+   [
+    61,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "system_prompt",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    46,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "tool_call",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 2,
+  "assistant_messages": 2,
+  "user_markers": 2,
+  "user_or_tool_messages": 2,
+  "status": "reference refuses",
+  "reason": "message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ {
+  "fixture": "reasoning",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 2,
+  "assistant_messages": 2,
+  "user_markers": 2,
+  "user_or_tool_messages": 2,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    36,
+    "</think>"
+   ],
+   [
+    62,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "empty_assistant",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 2,
+  "assistant_messages": 2,
+  "user_markers": 2,
+  "user_or_tool_messages": 2,
+  "status": "reference refuses",
+  "reason": "message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ {
+  "fixture": "long_answer",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    43,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "non_ascii",
+  "mode": "thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    59,
+    "<think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "single_turn",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    8,
+    "</think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "multi_turn",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 3,
+  "assistant_messages": 3,
+  "user_markers": 3,
+  "user_or_tool_messages": 3,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    10,
+    "</think>"
+   ],
+   [
+    20,
+    "</think>"
+   ],
+   [
+    35,
+    "</think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "system_prompt",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    21,
+    "</think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "tool_call",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 2,
+  "assistant_messages": 2,
+  "user_markers": 2,
+  "user_or_tool_messages": 2,
+  "status": "reference refuses",
+  "reason": "message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ {
+  "fixture": "reasoning",
+  "mode": "non_thinking",
+  "status": "n/a (mode rule)"
+ },
+ {
+  "fixture": "empty_assistant",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 2,
+  "assistant_messages": 2,
+  "user_markers": 2,
+  "user_or_tool_messages": 2,
+  "status": "reference refuses",
+  "reason": "message 1: cutting it out of the full render does not give the render without it; structural method: message 1: it has no text content to locate"
+ },
+ {
+  "fixture": "long_answer",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    17,
+    "</think>"
+   ]
+  ]
+ },
+ {
+  "fixture": "non_ascii",
+  "mode": "non_thinking",
+  "parts_declared_tokens": true,
+  "parts_in_content": false,
+  "assistant_markers": 1,
+  "assistant_messages": 1,
+  "user_markers": 1,
+  "user_or_tool_messages": 1,
+  "status": "computed",
+  "must_train_outside_response": [],
+  "must_not_train_inside_response": [
+   [
+    33,
+    "</think>"
+   ]
+  ]
+ }
+]

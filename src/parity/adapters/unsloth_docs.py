@@ -17,6 +17,11 @@ set a serving mode gets not_configurable cells):
 NOT_CONFIGURABLE = (
     "Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
 )
+# A release Unsloth documents no training recipe for (DeepSeek V4.1, the human's decision, 2026-11-26): no documented
+# way to prepare training data in another serving mode either.
+NOT_CONFIGURABLE_UNDOCUMENTED = (
+    "Unsloth documents no training recipe for this model, so no way to set its serving mode in training data."
+)
 NOTEBOOK = (
     "https://github.com/unslothai/notebooks/blob/ebe88117bb560d296910f6e733693294d630f024/"
     "nb/Qwen3_(14B)-Reasoning-Conversational.ipynb"

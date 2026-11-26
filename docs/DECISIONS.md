@@ -14,6 +14,22 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-26: Unsloth × DeepSeek V4.1: the general docs' recipe, with the template's role markers
+- **Decision (human):** if Unsloth's DeepSeek-V4 guide documents fine-tuning, use that; otherwise use its general SFT docs. The response parts are the template's own role markers, cited and checked against our reference render. The LoRA modules are Unsloth's documented default list. The card shows the citation level "general docs; training this model is not documented". A finding here leaves the repo only if it reproduces with documented choices.
+- **The DeepSeek-V4 guide documents running, not training** (https://unsloth.ai/docs/models/deepseek-v4: V4-Flash-0731 and V4-Pro-0813 only, no notebook and no training settings; "V4.1" doesn't appear). So the recipe is the general one (`src/parity/adapters/unsloth.py`, `RECIPES`):
+  - **Loader:** `FastLanguageModel.from_pretrained(max_seq_length=2048, load_in_4bit=True)`, the fine-tuning guide's settings.
+  - **LoRA:** the documented default `target_modules` list (`q_proj`, `k_proj`, `v_proj`, `o_proj`, `gate_proj`, `up_proj`, `down_proj`; lora-hyperparameters-guide). In Unsloth's own DeepSeek V4.1 implementation, 4 of the 7 names exist (`k_proj`, `gate_proj`, `up_proj`, `down_proj`; its attention uses `q_a/q_b`, `kv`, `o_a/o_b` projections). PEFT targets the ones that exist. LoRA doesn't touch the data path.
+  - **Trainer:** the guide's settings only (batch size 2, gradient accumulation 4, 60 steps, learning rate 2e-4). Nothing else is set, so `padding_free` is Unsloth's own choice. The Qwen3 recipe sets it False, as its notebook does.
+  - **Formatting:** `tokenizer.apply_chat_template(messages, tokenize=False)` into a `text` column (chat-templates page).
+  - **Response parts:** `instruction_part="<｜User｜>"`, `response_part="<｜Assistant｜>"`, from the model's own `encoding/README.md` (special tokens: "User turn prefix", "Assistant turn prefix"). Unsloth's own examples use each template's user and assistant headers.
+  - **Serving modes:** non-default modes are `not_configurable`. Unsloth documents no training recipe for this model, so it documents no way to set its mode in training data either.
+- **Checked on our reference render** (`docs/evidence/2026-11-26-unsloth-deepseek-parts/`, core environment, nothing of Unsloth's runs):
+  - Both parts are declared tokens and appear in no message's content.
+  - `<｜Assistant｜>` occurs once per assistant message, and `<｜User｜>` once per user or tool turn, on every fixture our reference computes.
+  - Every must-train token lies inside the region the parts mark as response. **That region also takes in tokens our reference puts on the prompt side:** the generation prompt's `<think>` on the last turn (thinking mode), and the pre-filled `</think>` on history turns (thinking mode) and on every turn (non-thinking). These are the predicted assistant-mask fails.
+- Re-calibration after the recipe table: Unsloth's CPU backend is 96 of 96 identical to its baseline, apart from `model_build`.
+- Reversible? yes
+
 ## 2026-11-26: The vision path: TRL × Inkling in TRL's vlm variant; five pairs not judged; P-0002 on the targets
 - **Decisions (human):**
   - **TRL × Inkling:** TRL's own `vlm` extra, as a lock variant (`envs/trl-1.18.2/vlm/`): installing the way TRL's package declares it for vision models. The parent's pins are all kept, and only the extra's packages are new (Pillow 13.0.0, torchvision 0.29.2+cu132, num2words 0.5.14). torchvision's compiled ops run with torch 2.15.0 (checked).
