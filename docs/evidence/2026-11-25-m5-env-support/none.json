@@ -1,0 +1,209 @@
+{
+ "framework": "none",
+ "python": ".venv/bin/python3",
+ "env_lock": "uv.lock",
+ "env_lock_sha256": "9c393f6acb925c4020dffa1b9310014921272267f18acd9cf84d8a9a7f9e827d",
+ "versions": {
+  "transformers": "5.24.0",
+  "tokenizers": "0.23.3",
+  "torch": "not installed"
+ },
+ "targets": {
+  "thinkingmachines/Inkling-2-Mini": {
+   "spec": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+   "tokenizer": {
+    "ok": true,
+    "class": "TokenizersBackend",
+    "len": 200058,
+    "bos": null,
+    "eos": "<|content_model_end_sampling|>",
+    "pad": "<|endoftext|>"
+   },
+   "renders": {
+    "thinking/single_turn": "8c8289a615e0cf45",
+    "thinking/multi_turn": "f869f4d44323d75f",
+    "thinking/system_prompt": "ec5a6d3fbe3dad38",
+    "thinking/tool_call": "d85264bc0c25702a",
+    "thinking/reasoning": "c9b1e941b3e66647",
+    "thinking/empty_assistant": "87a2f510bec58674",
+    "thinking/long_answer": "f88ecee87d6e21e1",
+    "thinking/non_ascii": "3f9ab5bed769def8"
+   },
+   "config": {
+    "ok": true,
+    "class": "Inkling2LoopConfig",
+    "model_type": "inkling2_loop",
+    "text_model_type": "inkling2_loop_text"
+   },
+   "build": {
+    "causal_lm(config)": {
+     "ok": false,
+     "error": {
+      "type": "skipped",
+      "message": "torch is not installed in this environment"
+     }
+    },
+    "image_text_to_text(config)": {
+     "ok": false,
+     "error": {
+      "type": "skipped",
+      "message": "torch is not installed in this environment"
+     }
+    },
+    "causal_lm(text_config)": {
+     "ok": false,
+     "error": {
+      "type": "skipped",
+      "message": "torch is not installed in this environment"
+     }
+    }
+   }
+  },
+  "tencent/Hy4-flash": {
+   "spec": "tencent/Hy4-flash@eccd3123eec73f2040f4c9ed0de1883593470510",
+   "tokenizer": {
+    "ok": true,
+    "class": "TokenizersBackend",
+    "len": 120832,
+    "bos": "<｜hy_start:opensource｜>",
+    "eos": "<｜hy_end:opensource｜>",
+    "pad": "<｜hy_pad:opensource｜>"
+   },
+   "renders": {
+    "thinking/single_turn": "661592ab34fcb97f",
+    "thinking/multi_turn": "958e08e75c19533b",
+    "thinking/system_prompt": "8a162bf72f427ef9",
+    "thinking/tool_call": "cb1fd42ce57d7dd0",
+    "thinking/reasoning": "3ec37762b79ecb70",
+    "thinking/empty_assistant": "4e860ed926a8f1a1",
+    "thinking/long_answer": "86020b3c0e820f72",
+    "thinking/non_ascii": "9419436e8f5f4275",
+    "non_thinking/single_turn": "66d2fe2a5922ae94",
+    "non_thinking/multi_turn": "361ee5f2135488d4",
+    "non_thinking/system_prompt": "e6490b8b9f8fc07c",
+    "non_thinking/tool_call": "29149165492f908f",
+    "non_thinking/reasoning": "a503724874bc3c5e",
+    "non_thinking/empty_assistant": "c8d6270ee8bb3da8",
+    "non_thinking/long_answer": "9677e97ceb439d45",
+    "non_thinking/non_ascii": "5d9c263cccef56ca"
+   },
+   "config": {
+    "ok": false,
+    "error": {
+     "type": "builtins.ValueError",
+     "message": "The checkpoint you are trying to load has model type `hy_v4_flash` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
+    }
+   }
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+   "spec": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+   "tokenizer": {
+    "ok": true,
+    "class": "TokenizersBackend",
+    "len": 129280,
+    "bos": "<｜begin▁of▁sentence｜>",
+    "eos": "<｜end▁of▁sentence｜>",
+    "pad": "<｜end▁of▁sentence｜>"
+   },
+   "renders": {
+    "thinking/single_turn": "bc00365b1295e37f",
+    "thinking/multi_turn": "e38678a29cff352c",
+    "thinking/system_prompt": "efe99735cadc80ab",
+    "thinking/tool_call": "7a01b64e53cfcc49",
+    "thinking/reasoning": "02e67888156d2649",
+    "thinking/empty_assistant": "c302d8d384a9c97d",
+    "thinking/long_answer": "8c8d01f4773faa10",
+    "thinking/non_ascii": "f198b0e81e7b9443",
+    "non_thinking/single_turn": "abc1febdda446896",
+    "non_thinking/multi_turn": "fb10a05a96debfb7",
+    "non_thinking/system_prompt": "cdc9c27f9dac5821",
+    "non_thinking/tool_call": "836ff648f228bf1b",
+    "non_thinking/reasoning": "37ca30487320e243",
+    "non_thinking/empty_assistant": "4ae3672de79583dd",
+    "non_thinking/long_answer": "f5f1bc29d4574941",
+    "non_thinking/non_ascii": "f693b5b48d47ead5"
+   },
+   "config": {
+    "ok": false,
+    "error": {
+     "type": "builtins.ValueError",
+     "message": "The checkpoint you are trying to load has model type `deepseek_v41` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
+    }
+   }
+  }
+ },
+ "stand_ins": {
+  "deepseek_v41/text/deepseek_v4": {
+   "for": "deepseek_v41",
+   "path": "text",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  },
+  "hy_v4_flash/text/hy_v4": {
+   "for": "hy_v4_flash",
+   "path": "text",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  },
+  "hy_v4_flash/vision/hy_v4_vl": {
+   "for": "hy_v4_flash",
+   "path": "vision",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  },
+  "hy_v4_flash/vision/hunyuan_vl": {
+   "for": "hy_v4_flash",
+   "path": "vision",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  },
+  "inkling2_loop/text/inkling_text": {
+   "for": "inkling2_loop",
+   "path": "text",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  },
+  "inkling2_loop/vision/inkling_mm_model": {
+   "for": "inkling2_loop",
+   "path": "vision",
+   "registered": true,
+   "build": {
+    "ok": false,
+    "error": {
+     "type": "skipped",
+     "message": "torch is not installed in this environment"
+    }
+   }
+  }
+ }
+}
