@@ -1,0 +1,136 @@
+{
+ "release": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
+ "shapes": {
+  "tool call, content '' (the fixture)": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": false,
+    "extra_tokens": 3,
+    "at": 103,
+    "inserted": [
+     "<|content_text|>",
+     "<|end_message|>",
+     "<|message_model|>"
+    ]
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "tool call, content None": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "tool call, content text": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "tool call, content '', with reasoning": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": false,
+    "extra_tokens": 3,
+    "at": 111,
+    "inserted": [
+     "<|content_text|>",
+     "<|end_message|>",
+     "<|message_model|>"
+    ]
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "two tool-call turns, content ''": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": false,
+    "extra_tokens": 6,
+    "at": 103,
+    "inserted": [
+     "<|content_text|>",
+     "<|end_message|>",
+     "<|message_model|>",
+     "get",
+     "_",
+     "weather"
+    ]
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "reasoning only, content '' (no tool call)": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": false,
+    "extra_tokens": 3,
+    "at": 108,
+    "inserted": [
+     "<|message_model|>",
+     "<|content_text|>",
+     "<|end_message|>"
+    ]
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  },
+  "empty reply, content '' (no tool call, no reasoning)": {
+   "vision": {
+    "processing_class": "Inkling2Processor",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   },
+   "text": {
+    "processing_class": "TokenizersBackend",
+    "equal_to_the_template": true,
+    "extra_tokens": 0,
+    "at": null,
+    "inserted": []
+   }
+  }
+ }
+}

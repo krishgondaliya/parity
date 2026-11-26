@@ -1,0 +1,40 @@
+{
+ "sandbox": {
+  "mapping": "documented",
+  "command": [
+   "unshare",
+   "-rn",
+   "/usr/bin/env",
+   "-i",
+   "python3.12",
+   "-I",
+   "-S",
+   "-B",
+   "driver.py",
+   "encoding/encoding.py",
+   "13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2",
+   "documented"
+  ],
+  "python": "3.12.13",
+  "working_dir_left_empty": true,
+  "code_folder_unchanged": true,
+  "stderr": ""
+ },
+ "cases": {
+  "one turn, no reasoning": {
+   "prompt_ends": "hree primary colors.<｜Assistant｜><think>",
+   "full_starts_with_prompt": true,
+   "generated": "</think>Red, yellow and blue.<｜end▁of▁sentence｜>"
+  },
+  "one turn, with reasoning": {
+   "prompt_ends": "hree primary colors.<｜Assistant｜><think>",
+   "full_starts_with_prompt": true,
+   "generated": "Classic color theory.</think>Red, yellow and blue.<｜end▁of▁sentence｜>"
+  },
+  "after a history turn": {
+   "prompt_ends": "ence｜><｜User｜>Again.<｜Assistant｜><think>",
+   "full_starts_with_prompt": true,
+   "generated": "</think>Red, yellow and blue.<｜end▁of▁sentence｜>"
+  }
+ }
+}

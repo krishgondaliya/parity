@@ -1,0 +1,66 @@
+{
+ "message_variables": {
+  "Qwen/Qwen3-0.6B": [
+   "content",
+   "endswith",
+   "reasoning_content",
+   "role",
+   "startswith",
+   "tool_calls"
+  ],
+  "thinkingmachines/Inkling-2-Mini": [
+   "content",
+   "name",
+   "reasoning_content",
+   "role",
+   "tool_call_id",
+   "tool_calls"
+  ],
+  "tencent/Hy4-flash": [
+   "content",
+   "reasoning",
+   "reasoning_content",
+   "role",
+   "tool_calls"
+  ],
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017": []
+ },
+ "rows": {
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017 / tool_call": {
+   "row_equals_render": false,
+   "'get_weather' in the template's render": 2,
+   "'get_weather' in Axolotl's row": 1,
+   "row_tail": " \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>",
+   "render_tail": " \"unit\": \"F\", \"raining\": false}</tool_result><｜Assistant｜><think></think>It's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<｜end▁of▁sentence｜>",
+   "first_assistant_turn_row": "<｜Assistant｜><think></think><｜end▁of▁sentence｜>",
+   "first_assistant_turn_render": "<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"city\" string=\"true\">Paris</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"celsius\" string=\"false\">false</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜>"
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017 / reasoning": {
+   "row_equals_render": false,
+   "'divisible' in the template's render": 1,
+   "'divisible' in Axolotl's row": 0,
+   "row_tail": "Assistant｜></think>No. 91 = 7 * 13, so it is not prime.<｜end▁of▁sentence｜><｜User｜>What about 97?<｜Assistant｜><think></think>Yes, 97 is prime.<｜end▁of▁sentence｜>",
+   "render_tail": ">What about 97?<｜Assistant｜><think>97 is not divisible by 2, 3, 5 or 7, and 11 * 11 = 121 is already larger than 97.</think>Yes, 97 is prime.<｜end▁of▁sentence｜>",
+   "first_assistant_turn_row": "<｜Assistant｜></think>No. 91 = 7 * 13, so it is not prime.<｜end▁of▁sentence｜>",
+   "first_assistant_turn_render": "<｜Assistant｜></think>No. 91 = 7 * 13, so it is not prime.<｜end▁of▁sentence｜>"
+  },
+  "Qwen/Qwen3-0.6B / tool_call": {
+   "row_equals_render": true,
+   "'get_weather' in the template's render": 2,
+   "'get_weather' in Axolotl's row": 2,
+   "row_tail": "ing\": false}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nIt's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|im_end|>\n",
+   "render_tail": "ing\": false}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nIt's 64 degrees Fahrenheit in Paris right now, and it isn't raining.<|im_end|>\n",
+   "first_assistant_turn_row": "<|im_start|>assistant\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\", \"celsius\": false}}\n</tool_call><|im_end|>\n",
+   "first_assistant_turn_render": "<|im_start|>assistant\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Paris\", \"celsius\": false}}\n</tool_call><|im_end|>\n"
+  },
+  "Qwen/Qwen3-0.6B / reasoning": {
+   "row_equals_render": true,
+   "'divisible' in the template's render": 1,
+   "'divisible' in Axolotl's row": 1,
+   "row_tail": "|im_end|>\n<|im_start|>assistant\n<think>\n97 is not divisible by 2, 3, 5 or 7, and 11 * 11 = 121 is already larger than 97.\n</think>\n\nYes, 97 is prime.<|im_end|>\n",
+   "render_tail": "|im_end|>\n<|im_start|>assistant\n<think>\n97 is not divisible by 2, 3, 5 or 7, and 11 * 11 = 121 is already larger than 97.\n</think>\n\nYes, 97 is prime.<|im_end|>\n",
+   "first_assistant_turn_row": "<|im_start|>assistant\nNo. 91 = 7 * 13, so it is not prime.<|im_end|>\n",
+   "first_assistant_turn_render": "<|im_start|>assistant\nNo. 91 = 7 * 13, so it is not prime.<|im_end|>\n"
+  }
+ }
+}

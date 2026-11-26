@@ -1,0 +1,53 @@
+{
+ "deepseek": {
+  "release": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
+  "model_config_type": "deepseek_v4",
+  "validated": {
+   "message_property_mappings": "{'role': 'role', 'content': 'content'}",
+   "field_thinking": "None",
+   "template_thinking_key": "None",
+   "split_thinking": "None"
+  },
+  "prompter": {
+   "message_property_mappings": {
+    "role": "role",
+    "content": "content"
+   },
+   "field_thinking": "reasoning_content",
+   "template_thinking_key": "reasoning_content"
+  },
+  "last_turn_keys": [
+   "content",
+   "role"
+  ],
+  "row_equals_template": false,
+  "row_tokens": 72,
+  "template_tokens": 105
+ },
+ "qwen3": {
+  "release": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "model_config_type": "qwen3",
+  "validated": {
+   "message_property_mappings": "{'role': 'role', 'content': 'content'}",
+   "field_thinking": "None",
+   "template_thinking_key": "None",
+   "split_thinking": "None"
+  },
+  "prompter": {
+   "message_property_mappings": {
+    "role": "role",
+    "content": "content"
+   },
+   "field_thinking": "reasoning_content",
+   "template_thinking_key": "reasoning_content"
+  },
+  "last_turn_keys": [
+   "content",
+   "reasoning_content",
+   "role"
+  ],
+  "row_equals_template": true,
+  "row_tokens": 104,
+  "template_tokens": 104
+ }
+}

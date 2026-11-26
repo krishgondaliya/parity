@@ -1,0 +1,279 @@
+{
+ "qwen3": {
+  "single_turn": [
+   {
+    "token": "<|im_start|>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "assistant",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "Ċ",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "<think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĊĊ",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "</think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĊĊ",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "Red",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ",",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġyellow",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġand",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġblue",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ".",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "<|im_end|>",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ċ",
+    "axolotl_trained": false,
+    "reference": "neutral"
+   }
+  ],
+  "multi_turn": [
+   {
+    "token": "<|im_start|>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "assistant",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "Ċ",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "<think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĊĊ",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "</think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĊĊ",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "Tok",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "yo",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġhas",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġmore",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġpeople",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġthan",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĠParis",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ".",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "<|im_end|>",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ċ",
+    "axolotl_trained": false,
+    "reference": "neutral"
+   }
+  ]
+ },
+ "deepseek": {
+  "single_turn": [
+   {
+    "token": "<｜Assistant｜>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "<think>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "</think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "Red",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ",",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġyellow",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġand",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġblue",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ".",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "<｜end▁of▁sentence｜>",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   }
+  ],
+  "multi_turn": [
+   {
+    "token": "<｜Assistant｜>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "<think>",
+    "axolotl_trained": false,
+    "reference": "prompt side"
+   },
+   {
+    "token": "</think>",
+    "axolotl_trained": false,
+    "reference": "must-train"
+   },
+   {
+    "token": "Tokyo",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġhas",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġmore",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġpeople",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "Ġthan",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "ĠParis",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": ".",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   },
+   {
+    "token": "<｜end▁of▁sentence｜>",
+    "axolotl_trained": true,
+    "reference": "must-train"
+   }
+  ]
+ }
+}
