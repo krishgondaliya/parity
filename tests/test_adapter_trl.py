@@ -46,7 +46,12 @@ def test_declare_matches_trls_documented_defaults_for_our_config(adapter, cfg):
 
 
 def test_the_environment_is_pinned(adapter):
-    assert adapter.env_lock == ENV_LOCK == "envs/trl-1.18.2/uv.lock"
+    """Verdicts name the lockfile of the environment the interpreter runs in: the main one, or the vlm variant
+    (TRL's own vision extra; the human's decision, 2026-11-26)."""
+    import sys
+
+    expected = "envs/trl-1.18.2/vlm/uv.lock" if Path(sys.prefix).resolve().parent.name == "vlm" else "envs/trl-1.18.2/uv.lock"
+    assert adapter.env_lock == ENV_LOCK == expected
     assert adapter.env_fingerprint == hashlib.sha256((REPO / ENV_LOCK).read_bytes()).hexdigest()
     assert trl.__version__ == "1.18.2"
 

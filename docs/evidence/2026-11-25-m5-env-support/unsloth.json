@@ -37,6 +37,16 @@
      "type": "builtins.ValueError",
      "message": "The checkpoint you are trying to load has model type `inkling2_loop` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
     }
+   },
+   "processor": {
+    "declared": "Inkling2Processor",
+    "declared_available": false,
+    "declared_error": {
+     "type": "builtins.AttributeError",
+     "message": "module transformers has no attribute Inkling2Processor"
+    },
+    "auto_processor": "TokenizersBackend",
+    "ok": false
    }
   },
   "tencent/Hy4-flash": {
@@ -73,6 +83,16 @@
      "type": "builtins.ValueError",
      "message": "The checkpoint you are trying to load has model type `hy_v4_flash` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
     }
+   },
+   "processor": {
+    "declared": "HYV4FlashProcessor",
+    "declared_available": false,
+    "declared_error": {
+     "type": "builtins.AttributeError",
+     "message": "module transformers has no attribute HYV4FlashProcessor"
+    },
+    "auto_processor": "TokenizersBackend",
+    "ok": false
    }
   },
   "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
@@ -127,6 +147,10 @@
      "class": "DeepseekV41TextForCausalLM",
      "params": 551880835184
     }
+   },
+   "processor": {
+    "ok": null,
+    "note": "the release ships no processor_config.json (no vision path)"
    }
   }
  },

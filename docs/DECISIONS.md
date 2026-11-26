@@ -14,6 +14,18 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-26: The vision path: TRL × Inkling in TRL's vlm variant; five pairs not judged; P-0002 on the targets
+- **Decisions (human):**
+  - **TRL × Inkling:** TRL's own `vlm` extra, as a lock variant (`envs/trl-1.18.2/vlm/`): installing the way TRL's package declares it for vision models. The parent's pins are all kept, and only the extra's packages are new (Pillow 13.0.0, torchvision 0.29.2+cu132, num2words 0.5.14). torchvision's compiled ops run with torch 2.15.0 (checked).
+  - **Axolotl × Inkling, Axolotl × Hy4, Unsloth × Inkling, Unsloth × Hy4: not judged.** The support table records "can't build the release's processor", with the exact error.
+  - **No text-path secondary table:** users don't take that path. Logged as a Phase 2 idea.
+- **Applied the same way, by evidence (flagged to the human):** **TRL × Hy4 is not judged either.** `HYV4FlashProcessor` exists in no TRL environment (`builtins.AttributeError: module transformers has no attribute HYV4FlashProcessor`), so TRL's vision path can't be built. TRL would refuse Hy4's template anyway.
+- **What "can't build" looks like** (`docs/evidence/2026-11-25-m5-env-support/`, the Day-0 support table). Where the declared processor class doesn't exist, `AutoProcessor.from_pretrained` raises nothing: it silently returns the plain tokenizer (`TokenizersBackend`). So the exact error recorded is the one resolving the declared class gives (`AttributeError: module transformers has no attribute Inkling2Processor`, or `... HYV4FlashProcessor`). Without the extra, TRL's environment raises `ValueError: Could not load any image processor class ... Missing optional dependencies: torchvision`.
+- **The TRL adapter:** verdicts name the lockfile the interpreter runs in (main or `vlm`). Inkling runs only in the `vlm` variant (the adapter refuses elsewhere), and Hy4 is listed as not judged with its error.
+- **Re-calibration in the variant** (`docs/evidence/2026-11-26-m4-recalibration/`): Qwen3 in `envs/trl-1.18.2/vlm` gives 96 of 96 verdicts identical to M4, apart from `model_build` and the variant's own `env_lock`/`env_fingerprint`.
+- **P-0002 on the targets** (`findings/P-0002/record.md`): the mechanism reproduces on all three target tokenizers through Axolotl's `chat_template` strategy. It's Axolotl's real path for DeepSeek V4.1 only.
+- Reversible? yes
+
 ## 2026-11-26: M5 prep built: the tiny model factory, D2 and D3, the adapters; every vision-path pair waits on its processor
 - **Built:**
   - `parity.tiny`, shared by the three adapters. It builds the release's own architecture where the environment can (its transformers, plus what the framework registers: Unsloth's DeepSeek V4.1), otherwise the D1 stand-in for the path, recorded in every verdict's `declaration.model_build`. Sizes come from a profile per model type. Qwen3 keeps exactly the settings the adapters used before (`tests/test_tiny.py`: the same config and weights).

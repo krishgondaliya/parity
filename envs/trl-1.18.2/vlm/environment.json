@@ -1,0 +1,18 @@
+{
+  "framework": "trl",
+  "version": "1.18.2",
+  "variant": "vlm",
+  "lockfile": "envs/trl-1.18.2/vlm/uv.lock",
+  "install": {
+    "documented": "pip install trl[vlm] (TRL's own extra for vision-language models: Pillow, torchvision, num2words)",
+    "doc": "trl-1.18.2 METADATA (Provides-Extra: vlm); https://github.com/huggingface/trl/blob/v1.18.2/pyproject.toml",
+    "ours": "the parent environment (envs/trl-1.18.2/pyproject.toml) with trl[vlm]==1.18.2 in place of trl==1.18.2; every parent constraint kept, so only the extra's packages are new",
+    "decided": "the human, 2026-11-26 (docs/DECISIONS.md): TRL x Inkling-2-Mini runs here, because its processor's image processor (Inkling2ImageProcessor) needs torchvision"
+  },
+  "deviations": [
+    "TRL's installation page (docs/source/installation.md at v1.18.2) shows only `pip install trl`; the `vlm` extra is declared in TRL's package metadata, not on that page."
+  ],
+  "platform": "WSL2 Ubuntu 22.04, x86_64, no GPU.",
+  "resolved": {"trl": "1.18.2", "transformers": "5.24.0", "tokenizers": "0.23.3", "torch": "2.15.0+cu132", "torchvision": "0.29.2+cu132", "pillow": "13.0.0", "num2words": "0.5.14", "datasets": "5.2.0"},
+  "checked": "torchvision imports and its compiled nms op runs with torch 2.15.0 (2026-11-26)"
+}

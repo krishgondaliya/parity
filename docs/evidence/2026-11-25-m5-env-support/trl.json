@@ -54,6 +54,15 @@
      "class": "Inkling2LoopForCausalLM",
      "params": 26068156416
     }
+   },
+   "processor": {
+    "declared": "Inkling2Processor",
+    "declared_available": true,
+    "ok": false,
+    "auto_processor_error": {
+     "type": "builtins.ValueError",
+     "message": "Could not load any image processor class for ~/.cache/huggingface/hub/models--thinkingmachines--Inkling-2-Mini/snapshots/7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6. The model configuration resolves to the following image processor classes: torchvision: Inkling2ImageProcessor. None of these classes could be imported. Missing optional dependencies: torchvision. Please install the missing dependencies or select a backend that is available in your environment."
+    }
    }
   },
   "tencent/Hy4-flash": {
@@ -90,6 +99,16 @@
      "type": "builtins.ValueError",
      "message": "The checkpoint you are trying to load has model type `hy_v4_flash` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
     }
+   },
+   "processor": {
+    "declared": "HYV4FlashProcessor",
+    "declared_available": false,
+    "declared_error": {
+     "type": "builtins.AttributeError",
+     "message": "module transformers has no attribute HYV4FlashProcessor"
+    },
+    "auto_processor": "TokenizersBackend",
+    "ok": false
    }
   },
   "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
@@ -126,6 +145,10 @@
      "type": "builtins.ValueError",
      "message": "The checkpoint you are trying to load has model type `deepseek_v41` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.\n\nYou can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`"
     }
+   },
+   "processor": {
+    "ok": null,
+    "note": "the release ships no processor_config.json (no vision path)"
    }
   }
  },

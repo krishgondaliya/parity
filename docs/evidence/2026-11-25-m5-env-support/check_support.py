@@ -38,6 +38,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 ENVS = {
     "trl": "envs/trl-1.18.2/uv.lock",
+    "trl-vlm": "envs/trl-1.18.2/vlm/uv.lock",  # TRL's own vlm extra (the human's decision, 2026-11-26)
     "axolotl": "envs/axolotl-0.21.1/uv.lock",
     "unsloth": "envs/unsloth-2026.11.10/uv.lock",
     "none": "uv.lock",
@@ -66,7 +67,7 @@ def import_framework(name: str) -> dict:
         import axolotl
 
         return {"axolotl": axolotl.__version__}
-    if name == "trl":
+    if name in ("trl", "trl-vlm"):
         import trl
 
         return {"trl": trl.__version__}
@@ -74,7 +75,8 @@ def import_framework(name: str) -> dict:
 
 
 def error_record(exc: BaseException) -> dict:
-    return {"type": f"{type(exc).__module__}.{type(exc).__qualname__}", "message": str(exc)[:2000]}
+    message = str(exc).replace(str(Path.home()), "~")[:2000]  # no home-directory paths in committed evidence
+    return {"type": f"{type(exc).__module__}.{type(exc).__qualname__}", "message": message}
 
 
 def ids_hash(ids: list[int]) -> str:
@@ -148,6 +150,30 @@ def check_target(target, framework: str) -> dict:
     except Exception as exc:  # noqa: BLE001
         out["config"] = {"ok": False, "error": error_record(exc)}
 
+    # The vision path's processor (D1): what AutoProcessor builds from the release's own files, or the exact error.
+    if (Path(local) / "processor_config.json").exists():
+        import transformers
+        from transformers import AutoProcessor
+
+        declared = json.loads((Path(local) / "processor_config.json").read_text(encoding="utf-8"))["processor_class"]
+        record: dict = {"declared": declared}
+        try:
+            getattr(transformers, declared)
+            record["declared_available"] = True
+        except AttributeError as exc:  # the exact error a framework resolving the declared class gets
+            record["declared_available"] = False
+            record["declared_error"] = error_record(exc)
+        try:  # what AutoProcessor gives instead: with no such class it falls back to the tokenizer, silently
+            got = type(AutoProcessor.from_pretrained(local)).__name__
+            record["auto_processor"] = got
+            record["ok"] = got == declared
+        except Exception as exc:  # noqa: BLE001
+            record["ok"] = False
+            record["auto_processor_error"] = error_record(exc)
+        out["processor"] = record
+    else:
+        out["processor"] = {"ok": None, "note": "the release ships no processor_config.json (no vision path)"}
+
     if framework == "axolotl":
         from axolotl.loaders.utils import load_model_config
         from axolotl.utils.dict import DictDefault
@@ -215,6 +241,28 @@ def run(framework: str) -> None:
         print(repo_id, "tokenizer:", t.get("tokenizer", {}).get("ok"), "config:", t.get("config", {}).get("ok"))
 
 
+# The Day-0 support table (D1): per framework x target, the environment it runs in, the path a text-only chat
+# fine-tune takes (read from each framework's own code; docs/DECISIONS.md, 2026-11-26, and each adapter's PATHS),
+# and what follows. TRL x Inkling runs in the vlm variant (the human's decision, 2026-11-26).
+PAIRS = {
+    ("trl", "thinkingmachines/Inkling-2-Mini"): ("trl-vlm", "vision"),
+    ("trl", "tencent/Hy4-flash"): ("trl", "vision"),
+    ("trl", "deepseek-ai/DeepSeek-V4.1-Flash-1017"): ("trl", "text"),
+    ("axolotl", "thinkingmachines/Inkling-2-Mini"): ("axolotl", "vision"),
+    ("axolotl", "tencent/Hy4-flash"): ("axolotl", "vision"),
+    ("axolotl", "deepseek-ai/DeepSeek-V4.1-Flash-1017"): ("axolotl", "text"),
+    ("unsloth", "thinkingmachines/Inkling-2-Mini"): ("unsloth", "vision"),
+    ("unsloth", "tencent/Hy4-flash"): ("unsloth", "vision"),
+    ("unsloth", "deepseek-ai/DeepSeek-V4.1-Flash-1017"): ("unsloth", "text"),
+}
+NOTES = {
+    ("trl", "deepseek-ai/DeepSeek-V4.1-Flash-1017"): (
+        "TRL's refusal is predicted from its source (trl.no_training_template: no generation markers, no stored "
+        "training template), so its cells are expected not_supported"
+    ),
+}
+
+
 def summarize() -> None:
     records = {fw: json.loads((HERE / f"{fw}.json").read_text(encoding="utf-8")) for fw in ENVS}
     frameworks = [fw for fw in ENVS if fw != "none"]
@@ -222,7 +270,8 @@ def summarize() -> None:
 
     def label(fw: str) -> str:
         v = records[fw]["versions"]
-        name = f"{fw} {v[fw]}" if fw in v else "core (no framework)"
+        base = fw.removesuffix("-vlm")
+        name = f"{base} {v[base]}" + (" (vlm extra)" if fw.endswith("-vlm") else "") if base in v else "core (no framework)"
         return f"{name}, transformers {v['transformers']}"
 
     def built(t: dict) -> str:
@@ -247,6 +296,27 @@ def summarize() -> None:
     def first_line(err: dict) -> str:
         return f"`{err['type']}`: {err['message'].splitlines()[0]}"
 
+    out += ["", "## Day-0 support, per pair (D1: the report card's \"loads the release's architecture\" field)", "",
+            "| framework | target | environment | path | release's architecture | release's processor | M5 |",
+            "| --- | --- | --- | --- | --- | --- | --- |"]
+    for (fw, repo_id), (env, path) in PAIRS.items():
+        t = records[env]["targets"][repo_id]
+        arch = "builds" if t.get("config", {}).get("ok") else "no: " + first_line(t["config"]["error"])[:90] + "..."
+        pr = t.get("processor", {})
+        if path == "text":
+            proc, judged = "n/a (text path)", None
+        elif pr.get("ok"):
+            proc, judged = f"{pr['auto_processor']} builds", None
+        else:
+            err = pr.get("declared_error") or pr.get("auto_processor_error")
+            proc = f"can't build {pr['declared']}: {first_line(err)[:120]}"
+            judged = "not judged: can't build the release's processor"
+        if judged is None:
+            judged = "judged on the release's architecture" if t.get("config", {}).get("ok") else "judged on a stand-in"
+        note = NOTES.get((fw, repo_id))
+        if note:
+            judged += f"; {note}"
+        out.append(f"| {fw} | {repo_id} | `{ENVS[env]}` | {path} | {arch} | {proc} | {judged} |".replace("\n", " "))
     out += ["", "## Exact errors (first line; the full text is in `<framework>.json`)", ""]
     for repo_id in targets:
         for fw in frameworks:
@@ -263,6 +333,22 @@ def summarize() -> None:
             a = t.get("axolotl_load_model_config")
             if a and not a["ok"]:
                 out.append(f"- **{repo_id}, axolotl, load_model_config:** {first_line(a['error'])}")
+    out += ["", "## The vision path's processor (what AutoProcessor builds from the release's files)", "",
+            "| target | " + " | ".join(label(fw) for fw in frameworks) + " |", "| --- |" + " --- |" * len(frameworks)]
+    for repo_id in targets:
+        cells = []
+        for fw in frameworks:
+            pr = records[fw]["targets"][repo_id].get("processor", {})
+            if pr.get("ok") is None:
+                cells.append("n/a")
+            elif pr["ok"]:
+                cells.append(f"{pr['auto_processor']} (the declared class)")
+            elif not pr["declared_available"]:
+                got = pr.get("auto_processor") or first_line(pr["auto_processor_error"])
+                cells.append(f"can't build {pr['declared']}: {first_line(pr['declared_error'])}; AutoProcessor gives {got}")
+            else:
+                cells.append(f"can't build {pr['declared']}: AutoProcessor raises {first_line(pr['auto_processor_error'])}")
+        out.append(f"| {repo_id} | " + " | ".join(c.replace("|", "/") for c in cells) + " |")
     out += ["", "## Tokenizers", "", "| target | " + " | ".join(label(fw) for fw in ENVS) + " |", "| --- |" + " --- |" * len(ENVS)]
     for repo_id in targets:
         cells = []

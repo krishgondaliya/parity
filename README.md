@@ -268,7 +268,7 @@ Step-by-step instructions and troubleshooting: [the GPU run guide](docs/gpu-run/
 
 **Lockfiles**, one per framework version, and one for each standalone repro:
 
-- TRL 1.18.2: [`envs/trl-1.18.2/uv.lock`](envs/trl-1.18.2/uv.lock)
+- TRL 1.18.2: [`envs/trl-1.18.2/uv.lock`](envs/trl-1.18.2/uv.lock), [`envs/trl-1.18.2/vlm/uv.lock`](envs/trl-1.18.2/vlm/uv.lock)
 - Axolotl 0.21.1: [`envs/axolotl-0.21.1/uv.lock`](envs/axolotl-0.21.1/uv.lock)
 - Unsloth 2026.11.10: [`envs/unsloth-2026.11.10/uv.lock`](envs/unsloth-2026.11.10/uv.lock), [`envs/unsloth-2026.11.10/cu126/uv.lock`](envs/unsloth-2026.11.10/cu126/uv.lock)
 - P-0002's standalone repro: [`findings/P-0002/uv.lock`](findings/P-0002/uv.lock)

@@ -47,6 +47,7 @@ import copy
 from dataclasses import replace
 import hashlib
 import logging
+import sys
 import tempfile
 from collections.abc import Sequence
 from importlib.resources import files
@@ -81,7 +82,22 @@ if trl.__version__ != VERSION:
     raise ImportError(f"this adapter is for trl=={VERSION}, found trl=={trl.__version__}")
 
 REPO_ROOT = Path(parity.__file__).resolve().parents[2]
-ENV_LOCK = f"envs/trl-{VERSION}/uv.lock"
+ENV_DIR = f"envs/trl-{VERSION}"
+
+
+def _running_lock() -> str:
+    """The lockfile of the environment this interpreter runs in (rule 7): the main one, or a variant under
+    envs/trl-<version>/ (vlm: TRL's own vision extra, the human's decision, 2026-11-26)."""
+    lock = Path(sys.prefix).resolve().parent / "uv.lock"
+    try:
+        rel = lock.relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return f"{ENV_DIR}/uv.lock"
+    return rel if rel.startswith(f"{ENV_DIR}/") and lock.is_file() else f"{ENV_DIR}/uv.lock"
+
+
+ENV_LOCK = _running_lock()
+VARIANT = "vlm" if ENV_LOCK == f"{ENV_DIR}/vlm/uv.lock" else None
 DOCS = {
     "assistant_only_loss": (
         "https://github.com/huggingface/trl/blob/v1.18.2/docs/source/sft_trainer.md#train-on-assistant-messages-only"
@@ -113,19 +129,21 @@ PATHS: dict[str, tuple[str, str]] = {
         "text",
         "config.architectures: DeepseekV41ForCausalLM (not in transformers, so AutoModelForCausalLM); " + MODEL_ID_PATH,
     ),
-}
-# Releases whose path is known but can't be built in this environment yet: the human decides (docs/DECISIONS.md).
-PENDING: dict[str, str] = {
     "thinkingmachines/Inkling-2-Mini": (
-        "the vision path (config.architectures: Inkling2LoopForConditionalGeneration, which accepts images; "
-        + MODEL_ID_PATH
-        + "). Its processor's image processor (Inkling2ImageProcessor) needs torchvision, which TRL's documented "
-        "install (pip install trl) doesn't bring; TRL's own `vlm` extra does"
+        "vision",
+        "config.architectures: Inkling2LoopForConditionalGeneration, which accepts images, so SFTTrainer loads its "
+        "processor (Inkling2Processor); " + MODEL_ID_PATH,
     ),
+}
+# A release whose processor needs a variant of this environment (the human's decision, 2026-11-26): Inkling-2-Mini's
+# image processor (Inkling2ImageProcessor) needs torchvision, which TRL's own `vlm` extra brings (envs/trl-1.18.2/vlm).
+NEEDS_VARIANT: dict[str, str] = {"thinkingmachines/Inkling-2-Mini": "vlm"}
+# Not judged (the human's decision, 2026-11-26): the path is the vision one and the release's processor can't be
+# built in any TRL environment (docs/evidence/2026-11-25-m5-env-support/, the Day-0 support table).
+NOT_JUDGED: dict[str, str] = {
     "tencent/Hy4-flash": (
-        "the vision path (config.architectures: HYV4FlashForConditionalGeneration). Its processor "
-        "(HYV4FlashProcessor) exists in no environment, so a stand-in processor would be needed; TRL refuses the "
-        "template either way (no generation markers)"
+        "the vision path (config.architectures: HYV4FlashForConditionalGeneration), and its processor can't be built: "
+        "builtins.AttributeError: module transformers has no attribute HYV4FlashProcessor"
     ),
 }
 # D2: TRL's own refusals, pinned to the exact exception at v1.18.2 (the installed file is identical to the tag).
@@ -158,9 +176,14 @@ class TRLAdapter:
         self.env_lock = ENV_LOCK
         self.env_fingerprint = hashlib.sha256((REPO_ROOT / ENV_LOCK).read_bytes()).hexdigest()
         self._local = fetch_release_files(release.release)  # tokenizer, template and config files only
-        if release.release.repo_id in PENDING:
-            raise NotImplementedError(f"{release.release.repo_id} on TRL is pending: {PENDING[release.release.repo_id]}")
-        if release.release.repo_id not in PATHS:
+        repo_id = release.release.repo_id
+        if repo_id in NOT_JUDGED:
+            raise NotImplementedError(f"{repo_id} on TRL is not judged: {NOT_JUDGED[repo_id]}")
+        if NEEDS_VARIANT.get(repo_id, VARIANT) != VARIANT:
+            raise NotImplementedError(
+                f"{repo_id} on TRL runs in {ENV_DIR}/{NEEDS_VARIANT[repo_id]}/ (this interpreter's lock: {ENV_LOCK})"
+            )
+        if repo_id not in PATHS:
             raise NotImplementedError(f"no TRL path decided for {release.release.repo_id} (docs/DECISIONS.md)")
         self._path, self._path_source = PATHS[release.release.repo_id]
         self._model_build: dict[str, Any] | None = None

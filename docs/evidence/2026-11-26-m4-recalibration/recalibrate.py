@@ -7,6 +7,9 @@ Step 1, run (in each framework's own environment; verdicts go to runs/, which is
   before and after the adapter change, with the GPU kit's own checks step (`docs/gpu-run/run_checks.py --allow-cpu`):
   the "before" run at commit f13a5a8 (the factory not yet in the adapter), the "after" run at the working tree.
 
+  TRL's vlm variant (envs/trl-1.18.2/vlm, the human's decision, 2026-11-26), against the same M4 verdicts:
+    envs/trl-1.18.2/vlm/.venv/bin/python docs/evidence/2026-11-26-m4-recalibration/recalibrate.py run trl --name trl-vlm
+
 Step 2, compare (core environment; writes results.json and summary.md next to this file):
     uv run python docs/evidence/2026-11-26-m4-recalibration/recalibrate.py compare \\
         --unsloth-before <before dir> --unsloth-after <after dir>
@@ -30,9 +33,10 @@ RUNS = REPO / "runs/recalibration-2026-11-26"
 MODES = ("thinking", "non_thinking")
 ADAPTERS = {"trl": ("parity.adapters.trl", "TRLAdapter"), "axolotl": ("parity.adapters.axolotl", "AxolotlAdapter")}
 ALLOWED = ("declaration.model_build", "declaration.other_calls.<n>.model_build")
+VARIANT_ALLOWED = ("env_lock", "env_fingerprint")  # a variant's verdicts name its own lockfile (rule 7)
 
 
-def run(framework: str) -> None:
+def run(framework: str, out_name: str | None = None) -> None:
     import importlib
 
     from parity.checks.tier1 import tier1_checks
@@ -49,7 +53,7 @@ def run(framework: str) -> None:
     verdicts = []
     for mode in MODES:
         verdicts += evaluate_suite(tier1_checks(mode), adapter, fixtures)
-    out = RUNS / framework
+    out = RUNS / (out_name or framework)
     for v in link_root_causes(verdicts):  # as M4's run.py does
         write_verdict(v, out / "verdicts" / v.serving_mode)
     print(f"{framework}: {len(verdicts)} verdicts in {out.relative_to(REPO)}")
@@ -77,7 +81,7 @@ def allowed(key: str) -> bool:
     return parts[0] == "declaration" and "model_build" in parts
 
 
-def compare_dirs(before: Path, after: Path) -> dict:
+def compare_dirs(before: Path, after: Path, also_allowed: tuple[str, ...] = ()) -> dict:
     """Every verdict file in `before`, matched by relative path in `after`."""
     old = {p.relative_to(before).as_posix(): p for p in sorted(before.rglob("*.json"))}
     new = {p.relative_to(after).as_posix(): p for p in sorted(after.rglob("*.json"))}
@@ -89,7 +93,7 @@ def compare_dirs(before: Path, after: Path) -> dict:
         a = flatten(json.loads(old[rel].read_text(encoding="utf-8")))
         b = flatten(json.loads(new[rel].read_text(encoding="utf-8")))
         differing = sorted(k for k in set(a) | set(b) if a.get(k, "<absent>") != b.get(k, "<absent>"))
-        unexpected = [k for k in differing if not allowed(k)]
+        unexpected = [k for k in differing if not allowed(k) and k not in also_allowed]
         cells.append({
             "verdict": rel,
             "result": b.get("result"),
@@ -108,6 +112,10 @@ def compare(unsloth_before: Path | None, unsloth_after: Path | None) -> None:
     results = {"allowed": list(ALLOWED), "frameworks": {}}
     for framework in ADAPTERS:
         results["frameworks"][framework] = compare_dirs(M4 / framework / "verdicts", RUNS / framework / "verdicts")
+    if (RUNS / "trl-vlm" / "verdicts").is_dir():  # TRL's vlm variant (the human's decision, 2026-11-26)
+        r = compare_dirs(M4 / "trl" / "verdicts", RUNS / "trl-vlm" / "verdicts", VARIANT_ALLOWED)
+        r["allowed_also"] = list(VARIANT_ALLOWED)
+        results["frameworks"]["trl, vlm variant (envs/trl-1.18.2/vlm)"] = r
     if unsloth_before and unsloth_after:
         folder = "Qwen__Qwen3-0.6B"
         r = compare_dirs(unsloth_before / folder / "verdicts", unsloth_after / folder / "verdicts")
@@ -126,7 +134,8 @@ def compare(unsloth_before: Path | None, unsloth_after: Path | None) -> None:
     ]
     for name, r in results["frameworks"].items():
         other = r["verdicts"] - r["identical_apart_from_allowed"]
-        lines.append(f"| {name} | `{r['before']}` | {r['verdicts']} | {r['identical_apart_from_allowed']} | {other} |")
+        extra = f" (also allowed: {', '.join(r['allowed_also'])})" if r.get("allowed_also") else ""
+        lines.append(f"| {name}{extra} | `{r['before']}` | {r['verdicts']} | {r['identical_apart_from_allowed']} | {other} |")
     lines.append("")
     for name, r in results["frameworks"].items():
         for c in r["cells"]:
@@ -143,12 +152,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("step", choices=["run", "compare"])
     parser.add_argument("framework", nargs="?", choices=sorted(ADAPTERS))
+    parser.add_argument("--name", help="output folder under runs/recalibration-2026-11-26/ (e.g. trl-vlm)")
     parser.add_argument("--unsloth-before", type=Path)
     parser.add_argument("--unsloth-after", type=Path)
     args = parser.parse_args()
     if args.step == "run":
         if not args.framework:
             sys.exit("run needs a framework")
-        run(args.framework)
+        run(args.framework, args.name)
     else:
         compare(args.unsloth_before, args.unsloth_after)
