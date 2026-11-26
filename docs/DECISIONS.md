@@ -14,6 +14,18 @@ Format:
 
 Milestone numbers follow `docs/phases/phase-0-kill-test.md`. Entries up to and including "Open items for M4 (adapters)" use an older Phase 0 numbering: old M1 (platform spike) = M3's install check, done early; old M2 = M1; old M3 = M2; old M4 = M3.
 
+## 2026-11-25: DeepSeek V4.1's own prompt format is `encoding/encoding.py`; its `chat_template.jinja` is a port
+- **Decision (the human's rule, applied by evidence, recorded before any comparison is run):** if the model team published `encoding.py` (the card points to it, or the model team committed it), it is the model's own format and the Jinja template is a port. Both conditions hold, so it is not ambiguous:
+  - **The card points to it.** `README.md` at the pinned revision: "This release does not include a Jinja-format chat template. The `encoding` folder contains a self-contained Python reference implementation (`encoding.py`)".
+  - **The model team committed it.** `encoding/encoding.py` arrived in the release commit itself, `1bae0e108899` ("Release DeepSeek-V4.1-Flash-1017", 2026-10-17), authored by `msr2000`, a public member of the `deepseek-ai` organization.
+  - **The Jinja came later, as a port.** `chat_template.jinja` was added by `08c8657f0229` ("Add chat template (#11)", 2026-11-10), which changed no other file. Pull request #11 was opened by `qgallouedec` (not a member of the organization) and merged by `GeeeekExplorer` (a public member). The template's first line says "ported from encoding/encoding.py in the model repo".
+- **What follows:**
+  - Frameworks render the Jinja (it is what `apply_chat_template` uses), so the Tier 1 reference keeps rendering it; nothing in the checks changes.
+  - The Jinja is compared with `encoding.py` on the 8 fixtures in both modes, run sandboxed (the human's conditions: pinned by sha256, `python -I` in an empty environment, an empty working directory, no network where `unshare -rn` works, fixtures in through stdin, strings out through stdout).
+  - Any disagreement is a candidate model-template finding against the Jinja: triaged with the skeptic, its inheriting frameworks listed, rated with the severity bar. In M5 it is one model-level root cause attributed to the model, never separate framework fails.
+- Evidence: Hugging Face Hub API, queried 2026-11-25 (commit list and per-commit file trees at the pinned revision, the `deepseek-ai` public member list, discussion #11); `encoding/encoding.py` sha256 `13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2`, `encoding/README.md` sha256 `a34a5ca98c65e5b5b2bedd693cc2e18e732fe50192723fb6937ae07219c23739`.
+- Reversible? yes
+
 ## 2026-11-25: M5 prep: architecture support, stand-ins, `not_supported`, Inkling's secondary table, the secondary table in M5
 - **Found while planning M5 (read from the installed packages, before any target run):** M0 checked that each target's tokenizer loads without repo code. It never checked that each target's architecture can be built, which rule 6 needs (every adapter builds a tiny `from_config` model).
   - `deepseek_v41` (DeepSeek V4.1) and `hy_v4_flash` (Hy4) are registered in none of the three environments' transformers, nor in transformers 5.24.1 (the newest on PyPI, 2026-11-24) or main. Neither config has an `auto_map`, so there is no remote code either.
