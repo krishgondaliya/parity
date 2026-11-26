@@ -55,7 +55,7 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 1. **Human: the vision-path processors** (`docs/DECISIONS.md`, 2026-11-26), for TRL × Inkling (TRL's own `vlm` extra adds `torchvision`), Axolotl × Inkling and × Hy4, and Unsloth × Inkling and × Hy4 (no release processor in the environment; a stand-in processor, or not judged). Also: Unsloth's recipe for DeepSeek V4.1 (Unsloth documents running it, not training it).
 2. **Then the M5 predictions:** one folder per pair (`docs/evidence/<date>-m5-<framework>-<target>/predictions.md`), from docs and source alone, each saying the support-check and factory results were known; the M5 runner refuses a pair without its committed predictions.
 3. **Then the Unsloth kit** at that commit, `MODELS` = Qwen3 first (re-checks the GPU calibration) plus the targets, writing each model's results as it finishes.
-4. **Human:** run the P-0002 repro as `findings/P-0002/HOW-TO-RUN.md` says (it should exit 1), then post `findings/P-0002/issue.md` through Axolotl's issue form, and put the URL in the record.
+4. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix.
 5. Watch unslothai/unsloth#19567 (P-0005) for a maintainer's reply.
 
 ## Open questions
@@ -74,7 +74,7 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 ## Findings so far
 
 - **P-0001** (Axolotl 0.21.1): only the think opener is untrained. Known difference KD-0002/KD-0003, thinking mode only; possible docs gap.
-- **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity on reach (ordinary reasoning and tool-call turns are not affected; checked). Issue drafted, **not posted**.
+- **P-0002** (Axolotl 0.21.1): an empty assistant turn's end-of-turn token is never labeled, silently. Template-agnostic, and reproduces on main. Candidate, low severity on reach (ordinary reasoning and tool-call turns are not affected; checked). **Posted 2026-11-26:** [axolotl-ai-cloud/axolotl#4318](https://github.com/axolotl-ai-cloud/axolotl/issues/4318); an Axolotl collaborator replied the same day ("may have been an edge case") and invited a contributor's fix. Still a candidate: whether that counts as confirmation is the human's call.
 - **P-0003** (TRL 1.18.2, secondary only): **harness error (H-9)**, ours; fixed. Never counted against TRL.
 - **P-0004** (Unsloth 2026.11.10, CPU backend only): a second `<|im_end|>` on chat-formatted rows (TRL #3318 behavior). Candidate; on the card as CPU-only, low impact; not shrunk. **Confirmed CPU-only on GPU:** GPU rows equal the render. Card only; revisit after the kill test.
 - **P-0005** (Unsloth 2026.11.10): `train_on_responses_only` silently drops `pad_to_multiple_of` with padded batches (the explicit padded path; Unsloth's padding-free default keeps it). Class: config value silently ignored. Candidate, **reproduced on GPU**, rule 4 cleared; labels not affected, loss the same up to float rounding. Shrunk. **Posted 2026-11-25:** [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567) (main repo, as unsloth-zoo#698 asks); awaiting a maintainer. Explains the 8 special-tokens width fails of the M4 GPU calibration (pinned).

@@ -11,7 +11,7 @@
 <img alt="calibration: green on 3 of 3" src="https://img.shields.io/badge/calibration-green%20on%203%20of%203-2ea44f">
 <img alt="planted faults: 22 (3 real-world)" src="https://img.shields.io/badge/planted%20faults-22%20%283%20real--world%29-informational">
 <img alt="candidate findings: 3" src="https://img.shields.io/badge/candidate%20findings-3-orange">
-<img alt="issues posted upstream: 1" src="https://img.shields.io/badge/issues%20posted%20upstream-1-informational">
+<img alt="issues posted upstream: 2" src="https://img.shields.io/badge/issues%20posted%20upstream-2-informational">
 <img alt="harness errors caught: 11" src="https://img.shields.io/badge/harness%20errors%20caught-11-lightgrey">
 </p>
 
@@ -96,7 +96,7 @@ Every fail is triaged before it is called anything. Our adapter, fixture and ref
 
 | ID | Framework | What happens | Severity | Status | Upstream issue |
 | --- | --- | --- | --- | --- | --- |
-| [P-0002](findings/P-0002/record.md) | Axolotl 0.21.1 | An empty assistant turn's end token is never labeled, silently | low, on reach (only assistant turns that render empty) | candidate | drafted, not posted ([draft](findings/P-0002/issue.md)) |
+| [P-0002](findings/P-0002/record.md) | Axolotl 0.21.1 | An empty assistant turn's end token is never labeled, silently | low, on reach (only assistant turns that render empty) | candidate | [axolotl-ai-cloud/axolotl#4318](https://github.com/axolotl-ai-cloud/axolotl/issues/4318), posted 2026-11-26; maintainer replied (below) |
 | [P-0004](findings/P-0004/record.md) | Unsloth 2026.11.10 (CPU backend) | On CPU, Unsloth's Qwen3 recipe trains on rows with a second `<\|im_end\|>`: stock TRL preparation appends it (TRL #3318 behavior); Unsloth's GPU-route preparation doesn't | low (CPU backend only) | candidate | none (card only) |
 | [P-0005](findings/P-0005/record.md) | Unsloth 2026.11.10 | `train_on_responses_only` silently drops `SFTConfig.pad_to_multiple_of` (class: config value silently ignored) | low (an ignored setting; labels not affected) | candidate | [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567), posted 2026-11-25; no maintainer reply yet |
 
@@ -120,13 +120,14 @@ None yet.
 
 Reported upstream, awaiting a fix:
 
+- [axolotl-ai-cloud/axolotl#4318](https://github.com/axolotl-ai-cloud/axolotl/issues/4318) ([P-0002](findings/P-0002/record.md), Axolotl 0.21.1), posted 2026-11-26
 - [unslothai/unsloth#19567](https://github.com/unslothai/unsloth/issues/19567) ([P-0005](findings/P-0005/record.md), Unsloth 2026.11.10), posted 2026-11-25
 
 ### Maintainer acknowledgments
 
 Maintainer replies, labels or fixes, quoted with a link, from each record's "Maintainer response" lines.
 
-None yet.
+- [P-0002](findings/P-0002/record.md), [axolotl-ai-cloud/axolotl#4318 (comment)](https://github.com/axolotl-ai-cloud/axolotl/issues/4318#issuecomment-7184341120) (2026-11-26): "Thank you for the clear repro. That may have been an edge case, we haven't thought of intentionally empty assistant turn."
 
 ## Self-improving check loop (working towards)
 

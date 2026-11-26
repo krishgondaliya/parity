@@ -1,6 +1,6 @@
 # P-0002: Axolotl never trains the closing token of an empty assistant turn, despite `train_on_eos: turn`
 
-- Status: candidate
+- Status: **candidate, posted 2026-11-26**: https://github.com/axolotl-ai-cloud/axolotl/issues/4318, by the human. Repro shrunk. "Candidate" until a maintainer confirms (rule 8).
 - Severity: low, on reach (only assistant turns that render empty)
 - Date found: 2026-11-24
 - Model: Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca (found here; also reproduced with SmolLM2, Llama 3.2, Mistral v0.3 and Gemma 3 chat templates)
@@ -114,10 +114,13 @@
 - **So P-0002 stays low, on reach, not on effect.** It would become medium only if ordinary data turned out to produce empty-rendering assistant turns, for example a dataset convention or template that renders ordinary turns empty.
 
 ## Upstream
-- Issue URL (posted by human): not posted; draft in findings/P-0002/issue.md
-- Maintainer response: none yet
+- Issue URL (posted by human): https://github.com/axolotl-ai-cloud/axolotl/issues/4318 (posted 2026-11-26)
+- Maintainer response: 2026-11-26, https://github.com/axolotl-ai-cloud/axolotl/issues/4318#issuecomment-7184341120, "Thank you for the clear repro. That may have been an edge case, we haven't thought of intentionally empty assistant turn."
 - Fixed in: not yet
-- Draft: `findings/P-0002/issue.md`, laid out for Axolotl's issue form (blank issues are disabled there). Not posted; the human runs the repro, then posts.
+- **Posted 2026-11-26** (by the human): https://github.com/axolotl-ai-cloud/axolotl/issues/4318, titled "End-of-turn token of an empty assistant turn is never labeled with train_on_eos: turn". Open when recorded (created 2026-11-26T05:05:42Z, checked read-only).
+  - Replies when recorded: a contributor (`its-amann`, no repo association) asked to take it, planning to have `find_turn` return the empty content's position (start == end) instead of (-1, -1), with tests for an empty last and middle turn. An Axolotl collaborator (`NanoCode012`) answered with the reply quoted above, invited the contributor's fix, and suggested limiting it to empty text with no tool or reasoning fields, so it doesn't apply to tool or thinking turns.
+  - The status stays "candidate": whether that reply confirms the finding is the human's call (rule 8, Gate A).
+- Draft: `findings/P-0002/issue.md`, laid out for Axolotl's issue form (blank issues are disabled there).
 - Reviewed by the `issue-reviewer` subagent (2026-11-24): "ready to post after the fixes". Applied:
   - the form layout and the title in title casing;
   - the script's exact stdout as expected vs actual;
