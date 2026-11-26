@@ -227,21 +227,12 @@ def test_upstream_fixes_and_acknowledgments_fill_in_from_the_records():
         assert thanks.splitlines()[-1] == "None yet."
 
 
-def test_open_candidates_and_posted_issues_counts():
-    text = readme_text()
-    open_ids = rows_by_id(table_after(text, FINDINGS_HEADER))
-    posted = [fid for fid in ledger_ids() if "https://" in upstream_values(fid, "Issue URL (posted by human)")[0]]
-    assert f'alt="candidate findings: {len(open_ids)}"' in text
-    assert f'alt="issues posted upstream: {len(posted)}"' in text
-
-
 def test_harness_error_count_is_the_ledgers():
     ledger = LEDGER.read_text(encoding="utf-8")
     rows = re.findall(r"^\| H-\d+ \|", ledger, re.M)
     assert f"## Harness errors caught: {len(rows)}" in ledger
     text = readme_text()
     assert f"**{len(rows)} harness errors caught**" in text
-    assert f'alt="harness errors caught: {len(rows)}"' in text
 
 
 # 3. Calibration, from the verdict JSON.
@@ -318,7 +309,6 @@ def test_expected_report_output_is_what_the_verdicts_give():
         line = f"{label}: {state}; untriaged {untriaged}, harness inconclusive 0, plants missed {missed}"
         assert f"\n{line}\n" in text, line
     green = sum(is_green(calibration_verdicts(f)) for f in readme.CALIBRATED)
-    assert f'alt="calibration: green on {green} of {len(readme.CALIBRATED)}"' in text
 
 
 # 4. The checks table, from the check code.
@@ -344,7 +334,6 @@ def test_checks_table_matches_the_checks_and_their_planted_faults(qwen3, officia
         real += sum(o == "real-world" for o in origins.values())
     text = readme_text()
     assert f"{total} in all, of which {real} reproduce a bug someone actually hit" in text
-    assert f'alt="planted faults: {total} ({real} real-world)"' in text
 
 
 def test_fixture_and_known_difference_counts():
@@ -469,4 +458,3 @@ def test_banner_is_self_contained_and_brings_its_own_background():
     assert not re.search(r"href|@import|@font-face|url\((?!#)", raw)
     card = next(el for el in root if el.tag.endswith("rect"))
     assert card.get("fill") and card.get("width") and card.get("stroke")
-    assert 'src="docs/assets/parity-banner.svg"' in readme_text()

@@ -25,7 +25,6 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
 
 REPO = Path(__file__).resolve().parents[2]
 TEMPLATE = REPO / "docs" / "readme" / "README.in.md"
@@ -566,13 +565,6 @@ def known_differences() -> list[dict]:
     return json.loads(KNOWN_DIFFERENCES.read_text(encoding="utf-8"))["entries"]
 
 
-def badge(label: str, message: str, color: str) -> str:
-    def esc(s: str) -> str:
-        return quote(s.replace("-", "--").replace("_", "__"), safe="")
-
-    return f'<img alt="{label}: {message}" src="https://img.shields.io/badge/{esc(label)}-{esc(message)}-{color}">'
-
-
 # The claims, and rendering.
 
 
@@ -639,18 +631,6 @@ def claims() -> dict[str, str]:
     for r in runs:
         if r.framework != "unsloth":
             values[f"calibration.stdout.{r.framework}"] = run_stdout(r.verdicts)
-    status_color = "2ea44f" if green == len(runs) else "d73a49"
-    values["badges"] = "\n".join(
-        [
-            badge("python", python, "3776ab"),
-            badge("frameworks", " · ".join(framework_names), "informational"),
-            badge("calibration", f"green on {green} of {len(runs)}", status_color),
-            badge("planted faults", f"{len(plants)} ({values['plants.real_world']} real-world)", "informational"),
-            badge("candidate findings", str(len(open_findings)), "orange"),
-            badge("issues posted upstream", str(len(posted)), "informational"),
-            badge("harness errors caught", str(errors), "lightgrey"),
-        ]
-    )
     return {k: str(v) for k, v in values.items()}
 
 

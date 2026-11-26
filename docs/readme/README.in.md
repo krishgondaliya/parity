@@ -1,13 +1,4 @@
-<!-- Generated file. Edit docs/readme/README.in.md, then run: uv run python -m parity.readme
-     tests/test_readme_claims.py fails when a number or status here drifts from the records it comes from. -->
-
-<p align="center">
-  <img src="docs/assets/parity-banner.svg" alt="Parity: differential testing for LLM fine-tuning frameworks" width="100%">
-</p>
-
-<p align="center">
-{{badges}}
-</p>
+# Parity
 
 Parity checks what LLM fine-tuning frameworks actually feed into training. It runs the same conversations through each framework's own public code path, then compares the token ids and the loss mask, token by token, with an independent reference built from the model's own chat template. A difference is triaged with our own code as the first suspect, and a real one becomes a minimal reproduction script and an issue a maintainer can run.
 
