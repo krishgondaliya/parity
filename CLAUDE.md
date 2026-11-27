@@ -35,6 +35,8 @@ This is a solo, career-first portfolio project. Correctness and honesty matter m
 - Start a phase with `/start-phase <n>`. Work in plan mode first, get the plan approved, then build.
 - One task per conversation. Use `/clear` between unrelated tasks.
 - Small commits with clear messages. Run the tests before every commit.
+  - **No upstream references in commit messages.** Never put upstream issue URLs or `owner/repo#number` references in a commit message: GitHub turns them into public cross-references on the maintainers' issues. Keep URLs inside files only. A bare `#number` would link to this repo's own issue of that number, so leave upstream numbers out of commit messages too.
+  - **Neutral wording.** For example "findings: record P-0007 issue", never "posted by the human".
 - End every session with `/wrap-session` so `docs/STATUS.md` stays true.
 - When a fail shows up: `/triage` first, then `/shrink-repro`, then `/draft-issue`. Use the `skeptic` subagent before any finding leaves the repo.
 - Gates are decided by evidence files, not by feel: `/gate-check <A|B|C>`.
