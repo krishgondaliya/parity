@@ -6,7 +6,7 @@ Target: axolotl-ai-cloud/axolotl. Blank issues are disabled there, so this is la
 
 **Title**
 
-[chat_template] reasoning_content and tool_calls dropped before rendering for EXAONE 4 and Gemma 4 templates
+[chat_template] `reasoning_content` and `tool_calls` Dropped Before Rendering for EXAONE 4 and Gemma 4 Templates
 
 ---
 
@@ -173,7 +173,7 @@ Related prior art on the DPO path: #3824, and its open PR #3825, which adds the 
 ---
 
 **Acknowledgements**
-- Title: concise and descriptive (sentence case).
+- Title: concise, descriptive, in title casing.
 - Searched existing issues: done.
 - "I am using the latest version of axolotl": 0.21.1 is the latest release, and main also reproduces.
 - Enough information to reproduce: the script above.
