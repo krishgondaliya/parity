@@ -458,3 +458,13 @@ def test_banner_is_self_contained_and_brings_its_own_background():
     assert not re.search(r"href|@import|@font-face|url\((?!#)", raw)
     card = next(el for el in root if el.tag.endswith("rect"))
     assert card.get("fill") and card.get("width") and card.get("stroke")
+
+
+
+def test_link_text_names_github_issues_and_hugging_face_discussions():
+    from parity.readme import link_text
+
+    assert link_text("https://github.com/o/r/issues/12") == "o/r#12"
+    assert link_text("https://github.com/o/r/issues/12#issuecomment-3") == "o/r#12 (comment)"
+    assert link_text("https://huggingface.co/org/model/discussions/62") == "org/model discussion 62"
+    assert link_text("https://example.com/x") == "https://example.com/x"

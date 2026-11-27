@@ -1,4 +1,4 @@
-# P-0008 discussion draft. NOT POSTED.
+# P-0008 discussion draft. Posted 2026-11-27 by the human: https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/62
 
 Target: the Hugging Face model repo `thinkingmachines/Inkling-2-Mini`, as a Community discussion (https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions, "New discussion"). There is no form: paste the title, then the body below the line, as Markdown. First run the repro as `findings/P-0008/HOW-TO-RUN.md` says (it should exit 1).
 

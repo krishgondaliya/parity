@@ -102,11 +102,15 @@ def cell(text: str) -> str:
 
 
 def link_text(url: str) -> str:
-    """owner/repo#N for a GitHub issue or pull request, else the URL."""
+    """owner/repo#N for a GitHub issue or pull request, "org/repo discussion N" for a Hugging Face Community
+    discussion, else the URL."""
     m = re.fullmatch(r"https://github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)(#\S+)?", url)
-    if not m:
-        return url
-    return f"{m.group(1)}#{m.group(2)}" + (" (comment)" if m.group(3) else "")
+    if m:
+        return f"{m.group(1)}#{m.group(2)}" + (" (comment)" if m.group(3) else "")
+    m = re.fullmatch(r"https://huggingface\.co/([^/]+/[^/]+)/discussions/(\d+)(#\S+)?", url)
+    if m:
+        return f"{m.group(1)} discussion {m.group(2)}" + (" (comment)" if m.group(3) else "")
+    return url
 
 
 def word(n: int) -> str:

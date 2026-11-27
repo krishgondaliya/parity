@@ -442,7 +442,7 @@
     {
       "id": "P-0008",
       "record": "findings/P-0008/record.md",
-      "status": "candidate",
+      "status": "candidate, posted 2026-11-27 (Inkling-2-Mini discussion 62)",
       "framework": "trl@1.18.2",
       "model": "thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6",
       "summary": "On TRL's vision path (Inkling2Processor), prepare_multimodal_messages wraps an assistant turn's empty content as an empty text part, and Inkling's template renders it as an empty text message (<|content_text|><|end_message|><|message_model|>, trained) before the tool call, which the template's string-form render doesn't have. Skeptic: mainly the template's own inconsistency (string vs list form); TRL's wrapping of '' is deliberate (#5496).",

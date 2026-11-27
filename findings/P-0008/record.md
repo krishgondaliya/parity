@@ -1,6 +1,6 @@
 # P-0008: On TRL's vision path, Inkling-2-Mini tool-call turns with empty content gain a trained empty text message
 
-- Status: candidate
+- Status: **candidate, posted 2026-11-27**: https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/62, by the human (a Community discussion on the model repo). Repro shrunk. "Candidate" until a maintainer confirms (rule 8).
 - Severity: low, provisionally (effect: three extra tokens (an empty text message) are rendered and trained in each affected assistant turn, which the template's string-form render doesn't have; reach unmeasured: TRL's documented tool-call format leaves `content` out, which becomes null and is unaffected, so only data that writes `content: ""` on tool-call or reasoning turns is reached. It becomes medium if ordinary datasets turn out to do that), by effect x reach (docs/DECISIONS.md)
 - Date found: 2026-11-26
 - Model: thinkingmachines/Inkling-2-Mini@7a67ae2314b44ef05c87fd1d4d311c58aaeb18f6 (the release's own architecture and processor)
@@ -78,6 +78,9 @@
 - **Duplicates on the Hub** (read-only, 2026-11-27): the Community discussions of Inkling-2-Mini (61), Inkling-2-Small (16) and Inkling-2-Small-MXFP8 (9). No duplicate: the closest are Mini #21 (the model's own tool-call behavior) and the merged PRs that added generation markers to the Small repos' templates.
 
 ## Upstream
-- Issue URL (posted by human): not posted; draft in findings/P-0008/issue.md (a Community discussion for the model repo; reviewed by the issue-reviewer, 2026-11-27)
+- Issue URL (posted by human): https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/62 (posted 2026-11-27)
 - Maintainer response: none yet
 - Fixed in: not yet
+- **Posted 2026-11-27** (by the human): https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/62, a Community discussion on thinkingmachines/Inkling-2-Mini, from `findings/P-0008/issue.md` (reviewed by the issue-reviewer, 2026-11-27), titled "[chat_template] Empty text part on a tool-call turn renders an empty text message, unlike "content": """ (the draft's title). Open when recorded: created 2026-11-27T06:51:18Z, not edited, no replies (checked read-only through the Hub API and the public page, 2026-11-27T06:56Z).
+  - **What the post holds:** the draft's body, with its code blocks intact (the repro, its output, the template diff, the renderer's output), but without its Markdown formatting: no links (the template lines, TRL's lines and PR), no bold headings, no bullet markers, no blank lines between paragraphs (the page shows line breaks). It reads like rendered text pasted in place of the Markdown.
+  - **The closing line offering a PR**, which the human mentioned adding, isn't in the posted text as of 06:56Z: it ends with the closing question. `issue.md` is left as the draft was; the line goes in once its wording is on the post.
