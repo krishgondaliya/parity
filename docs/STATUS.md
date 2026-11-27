@@ -3,7 +3,7 @@
 Keep this file short and true. `/wrap-session` updates it at the end of every session.
 
 - **Current phase:** Phase 0, kill test. M0-M4 done (calibration green for all three). **M5:** the three local pairs are run and triaged; Unsloth x DeepSeek V4.1 waits on the Colab run (kit built). Milestone numbers follow `docs/phases/phase-0-kill-test.md`.
-- **Last updated:** 2026-11-26 (P-0007 reach and repro; KD-0004/KD-0005; P-0008's reference from Thinking Machines' renderer, and its repro)
+- **Last updated:** 2026-11-27 (kit 4b4de273e093's Colab run: Qwen3's per-model zip ingested, matches M4, green; no DeepSeek V4.1 zip; the kit makes one download now)
 - **Gates:** A not started · B not started · C not started
 
 ## Done
@@ -76,16 +76,17 @@ From the coverage preview (`docs/evidence/2026-11-25-m5-coverage-preview/`), the
 | TRL 1.18.2 × DeepSeek V4.1 | 96 of 96 | 44 `not_supported` (TRL's pinned refusal: no generation markers), 4 n/a | `docs/evidence/2026-11-26-m5-trl-deepseek/` |
 | TRL 1.18.2 (vlm) × Inkling-2-Mini | 96 of 96 | 38 pass, 1 fail (P-0008, `tool_call`), 5 inconclusive, 4 n/a | `docs/evidence/2026-11-26-m5-trl-inkling/` |
 | Axolotl 0.21.1 × DeepSeek V4.1 | 81 of 96 (90 at the first run) | 17 pass, 1 fail (P-0007), 9 known differences (KD-0004: `</think>` untrained without reasoning, the human's decision after the run), 17 inconclusive, 4 n/a. Misses: the 6 `reasoning` cells, and the 9 cells predicted `fail` that are now differences (their behavior is unchanged) | `docs/evidence/2026-11-26-m5-axolotl-deepseek/` |
-| Unsloth 2026.11.10 × DeepSeek V4.1 (GPU) | not run yet | predictions committed | `docs/evidence/2026-11-26-m5-unsloth-deepseek/predictions.md` |
+| Unsloth 2026.11.10 × DeepSeek V4.1 (GPU) | no results yet | the 2026-11-26 Colab run's DeepSeek zip never came back (no per-model zip, no combined zip) | `docs/evidence/2026-11-26-m5-unsloth-deepseek/predictions.md` |
 
 - **Built for M5:** the runner refuses a pair without committed predictions (`parity.engine.predictions`, `docs/evidence/2026-11-26-m5-runs/run.py`); the GPU kit applies the same guard to its archive and zips each model's results as it finishes.
-- **The Colab kit:** `dist/gpu-kit/4b4de273e093/` (built from `4b4de27`), `MODELS` = Qwen3 then DeepSeek V4.1. Follow `docs/gpu-run/GPU-RUN.md`.
+- **The 2026-11-26 Colab run** (kit `4b4de273e093`): only Qwen3's per-model zip came back; Chrome blocked the other downloads. Qwen3, verified and ingested on its own (`docs/evidence/2026-11-27-unsloth-gpu-per-model/`): 90 of 96 verdicts identical to M4's GPU run apart from `model_build`; the other 6 (non-thinking `reasoning`) moved from not_configurable to not_applicable by 8a00284, which came after M4's kit commit, as the CPU backend already shows. Calibration green (8 P-0005 fails, pinned).
+- **The kit now makes one download** (the combined zip, cell 7) and lists every zip to keep, to take by hand from Colab's Files panel if the browser blocks it. It needs rebuilding at the new commit before the next trip.
 
 ## Next actions
 
 1. **Human: post P-0007** (axolotl-ai-cloud/axolotl, Bug report form) from `findings/P-0007/issue.md`, after running `findings/P-0007/HOW-TO-RUN.md`. Drafted and reviewed by the issue-reviewer 2026-11-26; its edits applied (PR #3825 as related prior art, the repro now prints both texts, the form layout). Attach `requirements.txt`.
 2. **Human: `/draft-issue P-0008`** for the model repo (`thinkingmachines/Inkling-2-Mini`: the list branch should skip an empty text part, as its string branch and Thinking Machines' renderer do). TRL only as a note on #8497.
-3. **Human: the Colab run** with `dist/gpu-kit/4b4de273e093/` (Qwen3, then DeepSeek V4.1). After it: ingest, and compare Unsloth's documented auto-detection on the same rows (the human's item 3).
+3. **Human: DeepSeek V4.1's GPU results.** If the 2026-11-26 Colab runtime is still connected, its `/content` may still hold `parity-gpu-results-4b4de273e093-*.zip` and the DeepSeek per-model zip: take them from the Files panel. Otherwise, a new trip with a kit rebuilt at the current commit (`uv run python docs/gpu-run/build_kit.py --models <Qwen3>,<DeepSeek V4.1>`; whether to run Qwen3 again is the human's call). Then: ingest, the DeepSeek triage, and Unsloth's documented auto-detection on the same rows (the human's item 3).
 4. **After M5 (not yet):** whether `AutoProcessor`'s silent fallback to the tokenizer changes what TRL trains on for Inkling under a plain `pip install trl` (the human's item 4); predictions first.
 5. **Human:** decide whether the collaborator's reply on axolotl-ai-cloud/axolotl#4318 (P-0002) confirms the finding; watch it for a fix. Watch unslothai/unsloth#19567 (P-0005).
 
