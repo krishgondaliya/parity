@@ -1,0 +1,29 @@
+{
+ "zip": "parity-gpu-model-4b4de273e093-Qwen__Qwen3-0.6B-20261126T122230Z.zip",
+ "zip_sha256": "f267d947cefa7efcdb4143da3cb0ef4271581405cfb12cbe0338971f59341df9",
+ "files_verified": 107,
+ "commit": "4b4de273e09398665ddb2bf3f1062fb72d7c9993",
+ "archive_sha256": "893dfdcb9e49d376fae945934d0c25fc964904072f9af44b04a4f824580c6906",
+ "archive_rebuilt_here": true,
+ "partial": {
+  "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "model_ok": true,
+  "models": [
+   "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+   "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518"
+  ]
+ },
+ "mode": "full",
+ "lockfile": "envs/unsloth-2026.11.10/uv.lock",
+ "lockfile_sha256": "3ae3515ac36db31193dc762cfd13ad7f4d52c041300ceb15d2bd3a36d8cbd5da",
+ "gpu": "Tesla T4",
+ "driver": "580.82.07",
+ "torch": "2.14.1+cu130",
+ "unsloth_device_type": "cuda",
+ "model": "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+ "models_in_run": [
+  "Qwen/Qwen3-0.6B@c1899de289a04d12100db370d81485cdf75e47ca",
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518"
+ ],
+ "verdicts_verified": 96
+}

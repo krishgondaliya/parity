@@ -1,0 +1,1430 @@
+{
+ "before": "M4 GPU run (parity-gpu-results-b73da059b614-20261125T221035Z.zip)",
+ "after": "this per-model zip",
+ "verdicts": 96,
+ "identical_apart_from_allowed": 90,
+ "cells": [
+  {
+   "verdict": "non_thinking/t1.assistant_mask__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__long_answer.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__non_ascii.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__single_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__system_prompt.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.assistant_mask__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__long_answer.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__non_ascii.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__single_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__system_prompt.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.end_of_turn__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__long_answer.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__non_ascii.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__single_turn.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__system_prompt.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.multiturn_prefix__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__long_answer.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__non_ascii.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__single_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__system_prompt.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.special_tokens__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__long_answer.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__non_ascii.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__single_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__system_prompt.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.template_parity__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__empty_assistant.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__long_answer.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__multi_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__non_ascii.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__reasoning.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {
+    "declaration.error": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "ModeNotConfigurable: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable."
+    },
+    "reason": {
+     "before": "serving mode: Unsloth documents non-thinking training via the /no_think soft switch; hard-switch training is not configurable.",
+     "after": "non-thinking mode: an assistant turn carries reasoning, and with thinking off the model generates no think content, so this conversation is not non-thinking data. Decided from the fixture and the serving mode, before any framework output; reasoning is judged in thinking mode"
+    },
+    "result": {
+     "before": "not_configurable",
+     "after": "not_applicable"
+    }
+   },
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__single_turn.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__system_prompt.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "non_thinking/t1.truncation__tool_call.json",
+   "result": "not_configurable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": []
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__empty_assistant.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__long_answer.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__multi_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__non_ascii.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__reasoning.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__single_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__system_prompt.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.assistant_mask__tool_call.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__empty_assistant.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__long_answer.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__multi_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__non_ascii.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__reasoning.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__single_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__system_prompt.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.end_of_turn__tool_call.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__empty_assistant.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__long_answer.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__multi_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__non_ascii.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__reasoning.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__single_turn.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__system_prompt.json",
+   "result": "not_applicable",
+   "kind": null,
+   "self_test": null,
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.multiturn_prefix__tool_call.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__empty_assistant.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__long_answer.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__multi_turn.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__non_ascii.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__reasoning.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__single_turn.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__system_prompt.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.special_tokens__tool_call.json",
+   "result": "fail",
+   "kind": "bug",
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__empty_assistant.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__long_answer.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__multi_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__non_ascii.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__reasoning.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__single_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__system_prompt.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.template_parity__tool_call.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__empty_assistant.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__long_answer.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__multi_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__non_ascii.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__reasoning.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__single_turn.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__system_prompt.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  },
+  {
+   "verdict": "thinking/t1.truncation__tool_call.json",
+   "result": "pass",
+   "kind": null,
+   "self_test": "caught",
+   "unexpected_differences": {},
+   "allowed_differences": [
+    "declaration.model_build.built_model_type",
+    "declaration.model_build.class",
+    "declaration.model_build.config_sha256",
+    "declaration.model_build.deviation",
+    "declaration.model_build.path",
+    "declaration.model_build.path_source",
+    "declaration.model_build.release_model_type",
+    "declaration.model_build.stand_in",
+    "declaration.other_calls.0.model_build.built_model_type",
+    "declaration.other_calls.0.model_build.class",
+    "declaration.other_calls.0.model_build.config_sha256",
+    "declaration.other_calls.0.model_build.deviation",
+    "declaration.other_calls.0.model_build.path",
+    "declaration.other_calls.0.model_build.path_source",
+    "declaration.other_calls.0.model_build.release_model_type",
+    "declaration.other_calls.0.model_build.stand_in"
+   ]
+  }
+ ],
+ "calibration": {
+  "green": true,
+  "results": {
+   "fail": 8,
+   "not_applicable": 14,
+   "not_configurable": 38,
+   "pass": 36
+  },
+  "linked_fails": {
+   "P-0005": 8
+  },
+  "untriaged_fails": 0,
+  "harness_inconclusives": 0,
+  "missed_plants": 0,
+  "not_supported": 0
+ }
+}
