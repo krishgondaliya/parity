@@ -1,0 +1,69 @@
+{
+ "model_build": {
+  "release_model_type": "deepseek_v41",
+  "built_model_type": "deepseek_v41",
+  "class": "DeepseekV41ForCausalLM",
+  "path": "text",
+  "stand_in": null,
+  "deviation": null,
+  "config_sha256": "801511dcc5da216340078bb92188f3d73d9e071489a2fc358c7178ad5077ccda"
+ },
+ "tiny": {
+  "engram_config": {
+   "engram_layer_ids": null,
+   "engram_num_embeddings": null,
+   "num_hidden_layers": 2
+  },
+  "engram_tensors_saved": [
+   "model.layers.1.engram.k_weight",
+   "model.layers.1.engram.q_weight",
+   "model.layers.1.engram.wkv.weight"
+  ],
+  "engram_tables_in_model": {
+   "model.engram_tables.1": {
+    "class": "UnslothFrozenTableEmbedding",
+    "parameter_free": true,
+    "store": null,
+    "parameters": []
+   }
+  }
+ },
+ "release": {
+  "engram_config": {
+   "engram_layer_ids": null,
+   "engram_num_embeddings": null,
+   "num_hidden_layers": null
+  },
+  "tensor_names": 96085,
+  "engram_tensors": [
+   "layers.1.engram.embed.scale",
+   "layers.1.engram.embed.weight",
+   "layers.1.engram.k_weight",
+   "layers.1.engram.q_weight",
+   "layers.1.engram.wkv.scale",
+   "layers.1.engram.wkv.weight",
+   "layers.14.engram.embed.scale",
+   "layers.14.engram.embed.weight",
+   "layers.14.engram.k_weight",
+   "layers.14.engram.q_weight",
+   "layers.14.engram.wkv.scale",
+   "layers.14.engram.wkv.weight"
+  ],
+  "name_prefixes": [
+   "aligner",
+   "embed",
+   "head",
+   "image_end",
+   "image_newline",
+   "image_start",
+   "layers",
+   "mtp",
+   "norm",
+   "vision"
+  ]
+ },
+ "bind_on_saved_checkpoint": {
+  "ok": false,
+  "error": "RuntimeError: Unsloth: could not find frozen table model.engram_tables.1 (plane 'weight') in the checkpoint. Refusing to load it into memory; set UNSLOTH_FROZEN_TABLE=gpu for a normal load."
+ }
+}

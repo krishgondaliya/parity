@@ -27,7 +27,7 @@ Keep this file short and true. `/wrap-session` updates it at the end of every se
   - **TRL 1.18.2:** 7 KD-0001;
   - **Axolotl 0.21.1:** 13 P-0001 and 8 P-0002;
   - **Unsloth 2026.11.10 (GPU, Colab T4):** 8 P-0005, the `t1.special_tokens` width rule on all 8 fixtures. Non-thinking mode is not configurable for Unsloth.
-- **Harness errors caught: 12** (`findings/LEDGER.md`). They are never counted against a framework.
+- **Harness errors caught: 13** (`findings/LEDGER.md`). They are never counted against a framework.
 
 ## M5 coverage, the honest math (primary table, 432 cells = 9 pairs x 48)
 

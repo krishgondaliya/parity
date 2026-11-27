@@ -97,7 +97,7 @@ Severity is effect × reach, set before any target results existed ([decision lo
 | [P-0003](findings/P-0003/record.md) | TRL 1.18.2 | Non-thinking cells judged rows that were never encoded in non-thinking mode | harness error (ours), H-9 | Never |
 | [P-0006](findings/P-0006/record.md) | Unsloth 2026.11.10 (GPU) | Non-thinking mode: `train_on_responses_only` trains the last turn's empty think block, which the reference puts on the prompt side as a pre-fill | closed: not configurable | No. Its cells are not judged |
 
-Our own mistakes are counted as well: **12 harness errors caught** so far, each an error in our reference, a check, the engine, an adapter or a test that produced, or could have produced, a wrong verdict ([ledger](findings/LEDGER.md#harness-errors-caught-12)). None of them counts against a framework.
+Our own mistakes are counted as well: **13 harness errors caught** so far, each an error in our reference, a check, the engine, an adapter or a test that produced, or could have produced, a wrong verdict ([ledger](findings/LEDGER.md#harness-errors-caught-13)). None of them counts against a framework.
 
 ### Upstream fixes
 

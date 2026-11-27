@@ -126,3 +126,26 @@ def test_collators_are_read_in_training_mode_the_way_unsloths_train_enters_it():
 def test_padded_batches_come_out_padded_on_the_right_as_training_pads_them(adapter):
     d = adapter.declare(TrainCfg(pad_to=545))
     assert "padding_side='right'" in next(s for s in d.sources if s.startswith("pad_token_id:"))
+
+
+def test_the_tiny_deepseek_v41_checkpoint_has_engram_tables_unsloth_can_bind(tmp_path):
+    """H-13 (2026-11-27): the tiny checkpoint lacked the engram table rows, and from_pretrained refused to load it.
+    The factory now writes them where the release has them, and Unsloth's own bind step finds every table."""
+    from transformers import AutoConfig, AutoModelForCausalLM
+    from unsloth_zoo.frozen_table_store import bind_frozen_tables, read_safetensors_header
+
+    from parity.release import Release, fetch_release_files
+    from parity.targets import PHASE0_TARGETS
+    from parity.tiny import build, save
+
+    pin = next(t for t in PHASE0_TARGETS if t.repo_id.startswith("deepseek-ai/"))
+    local = fetch_release_files(Release.parse(pin.spec))
+    tiny = build(local, "text")
+    folder = save(tiny, local, tmp_path / "model")
+    names = {}
+    for path in folder.glob("*.safetensors"):
+        header, _ = read_safetensors_header(str(path))
+        names.update({k: v["dtype"] for k, v in header.items() if ".engram.embed." in k})
+    assert names == {"model.layers.1.engram.embed.weight": "F8_E4M3", "model.layers.1.engram.embed.scale": "F8_E8M0"}
+    model = AutoModelForCausalLM.from_config(AutoConfig.from_pretrained(folder))
+    assert sorted(bind_frozen_tables(model, str(folder), mode="disk")) == ["model.engram_tables.1"]

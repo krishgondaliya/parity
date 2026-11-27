@@ -15,7 +15,7 @@ from transformers import AutoConfig, AutoModelForCausalLM  # noqa: E402
 
 from parity.release import fetch_release_files  # noqa: E402
 from parity.targets import CALIBRATION, PHASE0_TARGETS  # noqa: E402
-from parity.tiny import QWEN3, STAND_INS, NoStandIn, build, save  # noqa: E402
+from parity.tiny import QWEN3, STAND_INS, NoStandIn, build, frozen_table_rows, save  # noqa: E402
 
 
 def _builds_natively(local) -> bool:
@@ -87,3 +87,47 @@ def test_save_puts_the_release_files_next_to_the_tiny_weights(tmp_path):
 def test_a_path_that_isnt_text_or_vision_is_refused():
     with pytest.raises(ValueError, match="path"):
         build(fetch_release_files(CALIBRATION), "audio")
+
+
+# Frozen tables (H-13, 2026-11-27): a table with no weights of its own, bound to the checkpoint after loading, gets
+# rows written in the release's form, or Unsloth refuses to load the save.
+
+
+class FakeFrozenTable(torch.nn.Module):
+    """Shaped like unsloth_zoo's UnslothFrozenTableEmbedding: checkpoint planes, no store bound, no parameters."""
+
+    def __init__(self, rows=8, width=64, block=32):
+        super().__init__()
+        self.num_embeddings, self.embedding_dim, self.block_size = rows, width, block
+        self.checkpoint_planes = {"weight": ("weight",), "scale": ("scale", "weight_scale_inv")}
+        self.frozen_table_store = None
+
+
+def model_with(**modules):
+    model = torch.nn.Module()
+    for name, module in modules.items():
+        setattr(model, name, module)
+    return model
+
+
+def test_a_frozen_table_gets_fp8_rows_and_e8m0_scales_seeded():
+    model = model_with(table=FakeFrozenTable(), ordinary=torch.nn.Embedding(4, 4))
+    rows = frozen_table_rows(model)
+    assert set(rows) == {"table.weight", "table.scale"}  # the release's plane names; nothing for the ordinary layer
+    assert (rows["table.weight"].dtype, tuple(rows["table.weight"].shape)) == (torch.float8_e4m3fn, (8, 64))
+    assert (rows["table.scale"].dtype, tuple(rows["table.scale"].shape)) == (torch.float8_e8m0fnu, (8, 2))
+    again = frozen_table_rows(model)
+    assert all(torch.equal(rows[k].view(torch.uint8), again[k].view(torch.uint8)) for k in rows)
+
+
+def test_a_frozen_table_whose_rows_arent_whole_blocks_is_refused():
+    with pytest.raises(ValueError, match="isn't a multiple of its 32-channel scale block"):
+        frozen_table_rows(model_with(table=FakeFrozenTable(width=16)))
+
+
+def test_a_bound_table_or_one_with_weights_gets_no_rows():
+    bound = FakeFrozenTable()
+    bound.frozen_table_store = object()
+    weighted = FakeFrozenTable()
+    weighted.weight = torch.nn.Parameter(torch.zeros(8, 64))
+    assert frozen_table_rows(model_with(bound=bound, weighted=weighted)) == {}

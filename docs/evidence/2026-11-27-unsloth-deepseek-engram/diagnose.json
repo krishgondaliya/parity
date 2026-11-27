@@ -1,0 +1,154 @@
+{
+ "model_build": {
+  "release_model_type": "deepseek_v41",
+  "built_model_type": "deepseek_v41",
+  "class": "DeepseekV41ForCausalLM",
+  "path": "text",
+  "stand_in": null,
+  "deviation": null,
+  "config_sha256": "c4bdf15437aeadf26bde5f1ef8d9dac1ec1eb586a22ee60aba5a41b43e88e7a7",
+  "frozen_tables": [
+   "model.engram_tables.1.scale",
+   "model.engram_tables.1.weight"
+  ]
+ },
+ "tiny": {
+  "engram_config": {
+   "engram_layer_ids": null,
+   "engram_num_embeddings": null,
+   "num_hidden_layers": 2
+  },
+  "engram_tensors_saved": {
+   "model.layers.1.engram.k_weight": [
+    "BF16",
+    [
+     4,
+     64
+    ]
+   ],
+   "model.layers.1.engram.q_weight": [
+    "BF16",
+    [
+     4,
+     64
+    ]
+   ],
+   "model.layers.1.engram.wkv.weight": [
+    "BF16",
+    [
+     320,
+     192
+    ]
+   ],
+   "model.layers.1.engram.embed.scale": [
+    "F8_E8M0",
+    [
+     4096,
+     1
+    ]
+   ],
+   "model.layers.1.engram.embed.weight": [
+    "F8_E4M3",
+    [
+     4096,
+     32
+    ]
+   ]
+  },
+  "frozen_tables_recorded": [
+   "model.engram_tables.1.scale",
+   "model.engram_tables.1.weight"
+  ],
+  "engram_tables_in_model": {
+   "model.engram_tables.1": {
+    "class": "UnslothFrozenTableEmbedding",
+    "parameter_free": true,
+    "store": null,
+    "parameters": []
+   }
+  }
+ },
+ "release": {
+  "engram_config": {
+   "engram_layer_ids": null,
+   "engram_num_embeddings": null,
+   "num_hidden_layers": null
+  },
+  "tensor_names": 96085,
+  "engram_tensors": [
+   "layers.1.engram.embed.scale",
+   "layers.1.engram.embed.weight",
+   "layers.1.engram.k_weight",
+   "layers.1.engram.q_weight",
+   "layers.1.engram.wkv.scale",
+   "layers.1.engram.wkv.weight",
+   "layers.14.engram.embed.scale",
+   "layers.14.engram.embed.weight",
+   "layers.14.engram.k_weight",
+   "layers.14.engram.q_weight",
+   "layers.14.engram.wkv.scale",
+   "layers.14.engram.wkv.weight"
+  ],
+  "name_prefixes": [
+   "aligner",
+   "embed",
+   "head",
+   "image_end",
+   "image_newline",
+   "image_start",
+   "layers",
+   "mtp",
+   "norm",
+   "vision"
+  ]
+ },
+ "names_against_the_release": {
+  "layer_1_only_in_release": [],
+  "layer_1_only_in_tiny": [],
+  "layer_1_scales_in_tiny": [
+   "engram.embed.scale"
+  ],
+  "layer_1_scales_in_release": [
+   "attn.wkv.scale",
+   "attn.wo_a.scale",
+   "attn.wo_b.scale",
+   "attn.wq_a.scale",
+   "attn.wq_b.scale",
+   "engram.embed.scale",
+   "engram.wkv.scale",
+   "ffn.experts.<e>.w1.scale",
+   "ffn.experts.<e>.w2.scale",
+   "ffn.experts.<e>.w3.scale",
+   "ffn.shared_experts.w1.scale",
+   "ffn.shared_experts.w2.scale",
+   "ffn.shared_experts.w3.scale"
+  ],
+  "layer_1_scales_only_in_tiny": [],
+  "outside_layers_only_in_release": [],
+  "outside_layers_only_in_tiny": [],
+  "release_outside_layers_not_in_the_text_model": [
+   "aligner",
+   "image_end",
+   "image_newline",
+   "image_start",
+   "mtp",
+   "vision"
+  ]
+ },
+ "bind_on_saved_checkpoint": {
+  "ok": true,
+  "bound": [
+   "model.engram_tables.1"
+  ],
+  "lookups": {
+   "model.engram_tables.1": {
+    "shape": [
+     1,
+     3,
+     32
+    ],
+    "equals_rows_written": true
+   }
+  }
+ }
+}

@@ -14,6 +14,15 @@ Shrinking: each architecture keeps its own invariants, so the sizes come from a 
 to fields the config has. Qwen3, the calibration model, keeps exactly the settings the adapters used before this
 module existed (`QWEN3`), so calibration builds the same model. `quantization_config` is dropped: the weights are
 random, and a quantization recipe for a checkpoint that was never loaded means nothing.
+
+Frozen tables: some models hold a table with no weights of its own, bound to the checkpoint's rows after loading
+(Unsloth's `UnslothFrozenTableEmbedding`, e.g. DeepSeek V4.1's engram tables). Built from config, such a table has
+no rows, so `save_pretrained` writes nothing for it and loading the save fails (2026-11-27, harness error H-13). The
+factory writes rows for every such table in the release's own form: fp8 e4m3 rows and one e8m0 scale per block of
+channels (DeepSeek V4.1's quantization_config: fp8, `scale_fmt` ue8m0, 32-channel blocks), under the release's plane
+names, `weight` and `scale` (the first name the table accepts for each plane). Saved, they sit where the release has
+them (`layers.N.engram.embed.weight` / `.scale`, under the checkpoint's `model.` prefix). Their names are recorded in
+`TinyModel.record["frozen_tables"]`.
 """
 
 from __future__ import annotations
@@ -21,7 +30,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -56,7 +65,9 @@ EXTRA: dict[str, dict[str, Any]] = {
     "deepseek_v41_text": {
         "num_hidden_layers": 4, "compress_ratios": [0, 0, 2, 1], "kv_source_layer_ids": [2],
         "index_source_layer_ids": [2], "candidate_source_layer_id": 2, "engram_layer_ids": [1],
-        "engram_num_embeddings": [4096], "engram_vocab_size": 4096, "engram_n_heads": 2, "engram_head_dim": 16,
+        # engram_head_dim: a multiple of the release's 32-channel scale block (quantization_config
+        # weight_block_size [32, 32]), which Unsloth's fp8 table decode needs (H-13)
+        "engram_num_embeddings": [4096], "engram_vocab_size": 4096, "engram_n_heads": 2, "engram_head_dim": 32,
         "dspark_target_layer_ids": [1, 2, 3], "dspark_markov_rank": 8, "dspark_n_routed_experts": 4,
         "dspark_num_experts_per_tok": 2,
     },
@@ -89,6 +100,7 @@ class NoStandIn(RuntimeError):
 class TinyModel:
     model: Any
     record: dict[str, Any]  # what was built and why; every verdict's declaration carries it
+    frozen_table_rows: dict[str, torch.Tensor] = field(default_factory=dict)  # written by save() (module docstring)
 
 
 def build(local: Path, path: str = "text", seed: int = 0) -> TinyModel:
@@ -139,13 +151,42 @@ def build(local: Path, path: str = "text", seed: int = 0) -> TinyModel:
         ),
         "config_sha256": hashlib.sha256(model.config.to_json_string(use_diff=False).encode()).hexdigest(),
     }
-    return TinyModel(model, record)
+    rows = frozen_table_rows(model, seed)
+    if rows:
+        record["frozen_tables"] = sorted(rows)
+    return TinyModel(model, record, rows)
+
+
+def frozen_table_rows(model: Any, seed: int = 0) -> dict[str, torch.Tensor]:
+    """Rows for every frozen table in `model` (a module with checkpoint planes, no store bound, and no weights of its
+    own): fp8 e4m3 rows, and per block of channels one e8m0 (power-of-two) scale, seeded."""
+    out: dict[str, torch.Tensor] = {}
+    generator = torch.Generator().manual_seed(seed)
+    for name, module in model.named_modules():
+        planes = getattr(module, "checkpoint_planes", None)
+        if not planes or getattr(module, "frozen_table_store", None) is not None:
+            continue
+        if any(True for _ in module.parameters(recurse=False)):
+            continue
+        rows, width = int(module.num_embeddings), int(module.embedding_dim)
+        block = int(getattr(module, "block_size", 32))
+        if width % block:
+            raise ValueError(f"{name}: row width {width} isn't a multiple of its {block}-channel scale block")
+        values = (torch.randn(rows, width, generator=generator) * 0.02).to(torch.float8_e4m3fn)
+        exponents = torch.randint(-2, 3, (rows, width // block), generator=generator).float()
+        scales = torch.exp2(exponents).to(torch.float8_e8m0fnu)
+        out[f"{name}.{planes['weight'][0]}"] = values
+        out[f"{name}.{planes['scale'][0]}"] = scales
+    return out
 
 
 def save(tiny: TinyModel, local: Path, folder: Path) -> Path:
     """The tiny model in a folder a framework can load by path: its weights and config, plus the release's own
     tokenizer, template and other files (all but the release's config.json)."""
-    tiny.model.save_pretrained(folder)
+    if tiny.frozen_table_rows:
+        tiny.model.save_pretrained(folder, state_dict={**tiny.model.state_dict(), **tiny.frozen_table_rows})
+    else:
+        tiny.model.save_pretrained(folder)
     for item in Path(local).iterdir():
         if item.name != "config.json":
             shutil.copy(item, folder / item.name)
