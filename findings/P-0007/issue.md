@@ -1,4 +1,4 @@
-# P-0007 upstream issue draft. NOT POSTED.
+# P-0007 upstream issue draft. Posted 2026-11-27 by the human: https://github.com/axolotl-ai-cloud/axolotl/issues/4320
 
 Target: axolotl-ai-cloud/axolotl. Blank issues are disabled there, so this is laid out field by field for the **Bug report** form. First run the repro as `findings/P-0007/HOW-TO-RUN.md` says (it should exit 1 and print the two texts below). Then paste each section into the form field it names, without this header, and attach `findings/P-0007/requirements.txt`.
 

@@ -1,6 +1,6 @@
 # P-0007: Axolotl drops every message field its template analyzer can't see: reasoning and tool calls on EXAONE-4.0, Gemma 4 and DeepSeek V4.1 templates
 
-- Status: candidate
+- Status: **candidate, posted 2026-11-27**: https://github.com/axolotl-ai-cloud/axolotl/issues/4320, by the human. Repro shrunk. "Candidate" until a maintainer confirms (rule 8).
 - Severity: medium (effect: reasoning SFT silently becomes empty-think SFT, and a tool-call turn loses its call, becoming an empty turn whose end token P-0002's rule then leaves untrained; reach, users today: EXAONE-4.0 with Axolotl's bundled `exaone4` or its own template, and gemma-4-12B-it with its own template, lose reasoning and tool calls silently on ordinary OpenAI-format data; the bundled `gemma4` and `gemma4_unified` raise an unexplained `TypeError` on OpenAI-format tool results, and drop reasoning silently only in Gemma's native tool format. Latent: DeepSeek V4.1, once Axolotl's transformers builds it), by effect x reach (docs/DECISIONS.md; `docs/evidence/2026-11-26-p0007-reach/`)
 - Date found: 2026-11-26
 - Model: deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518 (its tokenizer and chat template; the mechanism needs no architecture)
@@ -88,6 +88,7 @@
 - **Repro slip, caught before recording:** the first version dumped the config without `exclude_none=True`, so `field_messages` was None and the script crashed with `ValueError: Messages is null`. That also exits 1, so the exit code alone wasn't enough: the output was checked, and every run above printed the three lines.
 
 ## Upstream
-- Issue URL (posted by human): not posted; draft in findings/P-0007/issue.md (reviewed by the issue-reviewer, 2026-11-26)
+- Issue URL (posted by human): https://github.com/axolotl-ai-cloud/axolotl/issues/4320 (posted 2026-11-27)
 - Maintainer response: none yet
 - Fixed in: not yet
+- **Posted 2026-11-27** (by the human): https://github.com/axolotl-ai-cloud/axolotl/issues/4320, from `findings/P-0007/issue.md` (reviewed by the issue-reviewer, 2026-11-26). Open when recorded (created 2026-11-27T05:32:10Z, the form's default `bug` label, no comments; checked read-only 2026-11-27T05:35Z). GitHub shows the title as "[chat_template] reasoning_content and tool_calls dropped before rendering for EXAONE 4 and Gemma 4 templates". The human gave it as "[chat_template] `reasoning_content` and `tool_calls` Dropped Before Rendering for EXAONE 4 and Gemma 4 Templates" (title case, per the form's checkbox); the record keeps what GitHub shows until the two agree.

@@ -426,7 +426,7 @@
     {
       "id": "P-0007",
       "record": "findings/P-0007/record.md",
-      "status": "candidate",
+      "status": "candidate, posted 2026-11-27 (axolotl-ai-cloud/axolotl#4320)",
       "framework": "axolotl@0.21.1",
       "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017@08c8657f02291e11b6f6b63e0e16014f8e748518",
       "summary": "DeepSeek V4.1's template is opaque to Axolotl's Jinja analyzer (it finds no message fields; only a loop variable named 'message' counts), and the validated mappings are role and content, so reasoning_content and tool_calls are dropped before rendering: the reasoning fixture's row loses its reasoning (template parity). Only that cell: the 9 </think> fails on fixtures without reasoning are KD-0002's first-field rule on DeepSeek's template (skeptic, 2026-11-26), untriaged until the human decides.",
