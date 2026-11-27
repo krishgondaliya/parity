@@ -19,7 +19,8 @@ VIRTUAL_ENV="$WORK/.venv" uv pip install -r requirements.txt
 
 `requirements.txt` resolves `transformers==5.24.0` and `trl==1.18.2` against Parity's TRL `vlm` lockfile
 (`findings/P-0008/uv.lock`), so every package is at the version Parity ran (torch 2.15.0). TRL is only needed for
-the optional last line; `pip install transformers==5.24.0` alone runs the template part.
+the optional last line; `pip install transformers==5.24.0 jinja2==3.1.6` alone runs the template part. transformers
+alone doesn't: `apply_chat_template` raises `ImportError` without jinja2, which also exits 1, so check the output.
 
 ## 2. Run it
 
@@ -39,6 +40,12 @@ TRL turns content "" into [{'type': 'text', 'text': ''}]: 1 empty text message(s
 ```
 
 Without TRL installed, the last line is skipped and the exit code is still 1.
+
+## What was checked, 2026-11-27 (after the issue-reviewer's edits: jinja2 pinned in the comment, `copy` removed)
+
+- 3 runs in the fresh pinned environment: exit 1 every time, the five lines above, identical across the runs.
+- A venv with only `transformers==5.24.0` and `jinja2==3.1.6`: the first four lines, exit 1. With transformers alone:
+  `ImportError: apply_chat_template requires jinja2`.
 
 ## What was checked, 2026-11-26
 

@@ -71,7 +71,13 @@
 - **`findings/P-0008/repro.py`** (2026-11-26), 30 lines, no Parity code, tokenizer and template files only, aimed at the model repo. Inkling-2-Mini's template on one tool-call conversation, the tool-call turn's content as `""`, null and one empty text part. It prints the official renderer's expectation (no empty text message for any form) and the counts (0, 0 and 1). An optional last line, when TRL is installed, shows `prepare_multimodal_messages` turning `""` into the list form. Exit 1.
 - **Runs:** 3 of 3 exit 1 in a fresh venv (transformers 5.24.0, trl 1.18.2, torch 2.15.0, resolved against Parity's TRL `vlm` lock), and exit 1 with TRL made unimportable. There's no fixed version to test: the template and tokenizer files are byte-identical at the model's main (`c9d0283`), and `prepare_multimodal_messages` is identical on TRL's main (`c2d5ff4`). Commands and expected output: `findings/P-0008/HOW-TO-RUN.md`; lockfile `findings/P-0008/uv.lock`.
 
+- **Repro, after the issue-reviewer (2026-11-27):** jinja2 pinned in its comment (transformers alone raises `ImportError` in `apply_chat_template`, which also exits 1), and the unneeded `copy` removed. 3 of 3 exit 1 in the pinned venv with identical output; with only transformers and jinja2, the four template lines and exit 1.
+- **Renderer on the repro's own conversation** (`docs/evidence/2026-11-26-p0008-renderer/repro_cases.py`, `repro_results.json`, the same sandbox, 2026-11-27): the four forms accepted; the same output for each; equal to the template's text and token ids for `""`, null and missing; no empty text message.
+- **The suggested template change** (`findings/P-0008/fix_check.py`, `fix_check.json`): with it, the template equals the renderer on all four forms, on the fixture and on the repro's conversation; 18 of 19 other renders unchanged; the one that changes is TRL's row for `tool_call` (every string content as one text part), which then equals the template's render of the fixture as given.
+- **Same template elsewhere** (Hub API, read-only, 2026-11-27): `chat_template.jinja` has blob `cae99e08917f` at the current main of Inkling-2-Mini (`c9d0283`), Inkling-2-Small (`885d78b`) and Inkling-2-Small-MXFP8 (`14f2cb2`), the same as at the pinned revision.
+- **Duplicates on the Hub** (read-only, 2026-11-27): the Community discussions of Inkling-2-Mini (61), Inkling-2-Small (16) and Inkling-2-Small-MXFP8 (9). No duplicate: the closest are Mini #21 (the model's own tool-call behavior) and the merged PRs that added generation markers to the Small repos' templates.
+
 ## Upstream
-- Issue URL (posted by human): none
+- Issue URL (posted by human): not posted; draft in findings/P-0008/issue.md (a Community discussion for the model repo; reviewed by the issue-reviewer, 2026-11-27)
 - Maintainer response: none yet
 - Fixed in: not yet

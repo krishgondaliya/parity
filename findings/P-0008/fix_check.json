@@ -1,0 +1,60 @@
+{
+ "equals_renderer": {
+  "empty string": {
+   "original": true,
+   "patched": true
+  },
+  "null": {
+   "original": true,
+   "patched": true
+  },
+  "absent": {
+   "original": true,
+   "patched": true
+  },
+  "one empty text part": {
+   "original": false,
+   "patched": true
+  }
+ },
+ "equals_renderer_on_the_repro_conversation": {
+  "\"\"": {
+   "original": true,
+   "patched": true
+  },
+  "null": {
+   "original": true,
+   "patched": true
+  },
+  "missing": {
+   "original": true,
+   "patched": true
+  },
+  "[{\"type\": \"text\", \"text\": \"\"}]": {
+   "original": false,
+   "patched": true
+  }
+ },
+ "unchanged": {
+  "single_turn (as given)": true,
+  "single_turn (string content as one text part)": true,
+  "multi_turn (as given)": true,
+  "multi_turn (string content as one text part)": true,
+  "system_prompt (as given)": true,
+  "system_prompt (string content as one text part)": true,
+  "tool_call (as given)": true,
+  "tool_call (string content as one text part)": false,
+  "reasoning (as given)": true,
+  "reasoning (string content as one text part)": true,
+  "empty_assistant (as given)": true,
+  "empty_assistant (string content as one text part)": true,
+  "long_answer (as given)": true,
+  "long_answer (string content as one text part)": true,
+  "non_ascii (as given)": true,
+  "non_ascii (string content as one text part)": true,
+  "non-empty text part on a tool-call turn": true,
+  "empty text part on a user turn": true,
+  "empty text part on a plain assistant turn": true
+ },
+ "trl_row_for_tool_call_patched_equals_render_as_given": true
+}

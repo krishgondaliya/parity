@@ -1,0 +1,136 @@
+{
+ "tml_renderers": {
+  "version": "0.5.0",
+  "module_sha256": "86e0c106580a2535ac04c8b52b345ee685bb4a714778a685694d11bc558cf725"
+ },
+ "effort": 0.9,
+ "sandbox": {
+  "command": [
+   "unshare",
+   "-rnm",
+   "/bin/sh",
+   "-c",
+   "<remount all read-only but the temp dir; probe a write outside; cd temp; exec env -i venv/bin/python -I -B driver.py>"
+  ],
+  "returncode": 0,
+  "probe_outside_written": false,
+  "temp_dir_left": [],
+  "stderr_tail": "/tmp/claude-1000/-home-krishg-parity/b153f1c8-a439-467c-9d06-17e95a8d8b04/scratchpad/tmlr-0.5.0/venv/lib/python3.12/site-packages/torch/_subclasses/functional_tensor.py:368: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)\n  cpu = _conversion_method_template(device=torch.device(\"cpu\"))\n"
+ },
+ "cases": {
+  "\"\"": {
+   "given": {
+    "role": "assistant",
+    "content": "",
+    "tool_calls": [
+     {
+      "id": "c1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   "renderer_text": "<|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>Weather in Paris?<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>18C<|end_message|><|message_model|><|content_text|>It's 18C.<|end_message|><|content_model_end_sampling|>",
+   "renderer_empty_text_messages": 0,
+   "hf_template_empty_text_messages": 0,
+   "renderer_equals_hf_template": {
+    "text": true,
+    "ids": true
+   }
+  },
+  "null": {
+   "given": {
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+     {
+      "id": "c1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   "renderer_text": "<|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>Weather in Paris?<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>18C<|end_message|><|message_model|><|content_text|>It's 18C.<|end_message|><|content_model_end_sampling|>",
+   "renderer_empty_text_messages": 0,
+   "hf_template_empty_text_messages": 0,
+   "renderer_equals_hf_template": {
+    "text": true,
+    "ids": true
+   }
+  },
+  "missing": {
+   "given": {
+    "role": "assistant",
+    "tool_calls": [
+     {
+      "id": "c1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   "renderer_text": "<|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>Weather in Paris?<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>18C<|end_message|><|message_model|><|content_text|>It's 18C.<|end_message|><|content_model_end_sampling|>",
+   "renderer_empty_text_messages": 0,
+   "hf_template_empty_text_messages": 0,
+   "renderer_equals_hf_template": {
+    "text": true,
+    "ids": true
+   }
+  },
+  "[{\"type\": \"text\", \"text\": \"\"}]": {
+   "given": {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": ""
+     }
+    ],
+    "tool_calls": [
+     {
+      "id": "c1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   "renderer_text": "<|message_system|><|content_text|>Thinking effort level: 0.9<|end_message|><|message_user|><|content_text|>Weather in Paris?<|end_message|><|message_model|>get_weather<|content_invoke_tool_json|>{\"name\":\"get_weather\",\"args\":{\"city\":\"Paris\"}}<|end_message|><|content_model_end_sampling|><|message_tool|>get_weather<|content_text|>18C<|end_message|><|message_model|><|content_text|>It's 18C.<|end_message|><|content_model_end_sampling|>",
+   "renderer_empty_text_messages": 0,
+   "hf_template_empty_text_messages": 1,
+   "renderer_equals_hf_template": {
+    "text": false,
+    "ids": false
+   }
+  }
+ },
+ "trl_vision_path": {
+  "content_becomes": [
+   {
+    "type": "text",
+    "text": ""
+   }
+  ],
+  "empty_text_messages": 1
+ },
+ "renderer_output_identical_across_forms": true
+}
