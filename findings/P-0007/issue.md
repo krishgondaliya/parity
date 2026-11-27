@@ -6,7 +6,7 @@ Target: axolotl-ai-cloud/axolotl. Blank issues are disabled there, so this is la
 
 **Title**
 
-[chat_template] reasoning_content and tool_calls Dropped Before Rendering for EXAONE 4 and Gemma 4 Templates (axolotl 0.21.1)
+[chat_template] reasoning_content and tool_calls dropped before rendering for EXAONE 4 and Gemma 4 templates
 
 ---
 
@@ -155,12 +155,12 @@ Where it seems to come from (permalinks at main, `de8549a`):
 
 Some directions, if any fits the design:
 - pass every unmapped message key through to the template. For these conversations that is the same as the explicit mapping above, which gives row = render;
-- add the common OpenAI message keys to the analyzer's fields, as open PR #3825 does for the DPO strategy (its `BASE_MSG_VARIABLES`: `tool_calls`, `tool_call_id`, `name`, `reasoning_content`, `reasoning`, with a comment that the analysis misses `message.get(...)` reads, e.g. `gemma4`). That set covers every field dropped in the OpenAI-format cases above (not run);
+- add the common OpenAI message keys (`tool_calls`, `tool_call_id`, `name`, `reasoning_content`, `reasoning`) to the fields `transform_message` keeps;
 - or at least warn when a message has keys that are neither mapped nor found by the analyzer.
 
 I may be missing a reason the current filtering is intended; if so, a note in the docs would help.
 
-Related: #3824 and its open PR #3825 handle this for the DPO strategy; SFT's `chat_template` strategy has no such step. PR #3228 adds a `tool` key to the empty-mapping default, which validated configs don't reach.
+Related prior art on the DPO path: #3824, and its open PR #3825, which adds the same OpenAI message keys to the analyzer's fields in the DPO and preference strategies, with a comment that the analysis misses `message.get(...)` reads (e.g. `gemma4`). It doesn't change the SFT `chat_template` strategy above. PR #3228 adds a `tool` key to the empty-mapping default, which validated configs don't reach.
 
 ---
 
@@ -173,7 +173,11 @@ Related: #3824 and its open PR #3825 handle this for the DPO strategy; SFT's `ch
 ---
 
 **Acknowledgements**
-- Title: concise, descriptive, in title casing.
+- Title: concise and descriptive (sentence case).
 - Searched existing issues: done.
 - "I am using the latest version of axolotl": 0.21.1 is the latest release, and main also reproduces.
 - Enough information to reproduce: the script above.
+
+---
+
+Happy to open a PR with a fix and tests covering the templates above, or to help extend #3825 if that's the preferred direction.
