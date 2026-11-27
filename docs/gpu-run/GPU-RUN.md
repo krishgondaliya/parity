@@ -49,7 +49,7 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
     - `RUN = "p0005"`: only P-0005, a few minutes: install, the GPU check, then the P-0005 runs. No checks run and no verdicts are made. Use this when you're asked for a P-0005-only trip: change the word between the quotes, then run the cell.
 13. **Cell 3 (GPU check):** ▶. A table prints with **Tesla T4** in it. If it says "No GPU", go back to step 9.
 14. **Cell 4 (upload):** ▶. A **Choose Files** button appears under the cell. Click it and pick `parity-src-<commit>.zip` from the kit folder. Wait for "100% done". The cell then prints `Code from commit ...`: check that it matches the commit in `KIT.txt`.
-15. **Cell 5 (the run):** ▶. With `RUN = "full"` this takes about 20 to 40 minutes; with `RUN = "p0005"`, a few minutes, and the `checks` step below is replaced by the P-0005 runs. **Keep the browser tab open and the computer awake.** As soon as each model finishes, your browser downloads that model's results (`parity-gpu-model-<commit>-<model>-<time>.zip`); allow the downloads if it asks. If the session is lost later, those zips are already safe: bring them back with whatever else you have. It prints each step as it goes:
+15. **Cell 5 (the run):** ▶. With `RUN = "full"` this takes about 20 to 40 minutes; with `RUN = "p0005"`, a few minutes, and the `checks` step below is replaced by the P-0005 runs. **Keep the browser tab open and the computer awake.** As soon as each model finishes, its results are saved as a zip of their own (`parity-gpu-model-<commit>-<model>-<time>.zip`, in `/content`), and the output says so. Nothing downloads during the run: a browser can block a page's repeated downloads (Chrome did, 2026-11-26), so cell 7 makes one download at the end. If the session might end early, take a model's zip by hand from the Files panel as soon as it's saved (as in step 17). It prints each step as it goes:
     - `platform`: which GPU and driver;
     - `choose`: which lockfile the driver allows;
     - `uv` and `sync`: installing, the longest step (several GB of downloads);
@@ -67,12 +67,13 @@ Each code cell has a ▶ (play) button at its top left. Click it and wait until 
     Its output goes into the same results zip, in its own `P-0005` folder, apart from the verdicts.
     - It ends with `P-0005 done` or `P-0005 did not complete`. **Both are fine.**
     - It never changes the main results. If it fails, the zip from cell 5 stays exactly as it was. If it works, the zip gets the extra folder.
-17. **Cell 7 (download):** ▶. Your browser downloads `parity-gpu-results-<commit>-<time>.zip`. If the browser asks to allow downloads, allow it.
-    - If nothing downloads, click the **folder icon** in Colab's left sidebar. Find `parity-gpu-results-....zip` (in `/content`, you may need to click `..` once), click its **⋮** menu, and choose **Download**.
+17. **Cell 7 (download):** ▶. Your browser makes one download, `parity-gpu-results-<commit>-<time>.zip`, which holds every model's results. If the browser asks to allow downloads, allow it.
+    - Cell 7 then prints every zip to keep: the results zip, then the per-model zips. If nothing downloaded, or the browser blocked it, take each listed file by hand: click the **folder icon** in Colab's left sidebar, go to `/content` (you may need to click `..` once), click the file's **⋮** menu, and choose **Download**. The results zip is the one that matters; the per-model zips are what to bring back if there is no results zip.
+    - Cell 5's output ends with the same list (`KEEP=` lines), in case cell 7 never runs.
 
 ### E. Bring the zip back
 
-18. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zips into it (the results zip, and the per-model zips). **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
+18. In File Explorer, go to `\\wsl.localhost\Ubuntu-22.04\home\krishg\parity\dist`. Make a folder named `gpu-results` there, and move the downloaded zips into it (the results zip, and any per-model zips you took). **Don't unzip it or change it.** Its manifest holds the sha256 of every file, and I check them.
 19. Tell Claude Code: "The GPU results zip is at `dist/gpu-results/<file name>.zip`".
 20. Back in Colab: menu **Runtime > Disconnect and delete runtime**, so the free GPU isn't held.
 

@@ -16,11 +16,13 @@ Steps, each logged to <out>/logs/<step>.log; any failure stops the run but still
 6. smoke     In that environment: torch sees the GPU and runs on it, and Unsloth takes its GPU route
              (UNSLOTH_DISABLE_CPU_FALLBACK=1, so it raises instead of falling back to CPU).
 7. checks    docs/gpu-run/run_checks.py: the six Tier 1 checks, both serving modes, one model at a time. As soon as a
-             model finishes, its results go into a zip of their own (MODEL_ZIP=<path>; the notebook downloads it at
-             once), with environment.json, status.json and MANIFEST.json, so a lost Colab session keeps the models
-             that finished (the human's decision, 2026-11-25).
+             model finishes, its results go into a zip of their own (MODEL_ZIP=<path>), with environment.json,
+             status.json and MANIFEST.json, so the models that finished are on disk at once (the human's decision,
+             2026-11-25). Nothing is downloaded during the run.
 Then environment.json (what ran, and every deviation from Unsloth's documented install), MANIFEST.json (sha256 of
-every file) and one zip of everything.
+every file) and one zip of everything. The run ends with the list of zips to keep (KEEP=<path>): the notebook makes one
+download, the combined zip, and the list is what to take by hand if the browser blocks it (2026-11-27: Chrome
+blocked the per-model downloads, then the combined one).
 
 P-0005 (P0005_RUNS: the repro padded, with padding_free left to Unsloth, and with one real training step, then the
 adapter's pad_to check) runs in
@@ -212,6 +214,8 @@ class Kit:
                 failed.append(spec)
             path = self.model_zip(spec, ok=code == 0)
             print(f"MODEL_ZIP={path}", flush=True)
+            print(f"Saved {path.name} in {path.parent}. Nothing downloads until cell 7; if this session might end "
+                  "first, take it now from the Files panel.", flush=True)  # fmt: skip
         if failed:
             raise KitError(f"run_checks.py failed for {failed} (logs/checks.log and results/*/run.json)")
         return f"{len(self.models)} model(s), each zipped as it finished"
@@ -344,6 +348,19 @@ def stream(command: list[str], cwd: Path, env: dict[str, str], log_path: Path) -
         code = proc.wait()
         log.write(f"[exit {code}]\n")
     return code, "".join(lines)
+
+
+def files_to_keep(folder: Path) -> list[Path]:
+    """Every zip the kit wrote in `folder`: the combined results zip first, then the per-model zips."""
+    return sorted(folder.glob("parity-gpu-results-*.zip")) + sorted(folder.glob("parity-gpu-model-*.zip"))
+
+
+def print_files_to_keep(folder: Path) -> None:
+    """The list to take by hand when the browser blocks a download (Chrome blocks a page's repeated downloads)."""
+    print("\nFiles to keep. If the browser blocked a download, take each one from Colab's Files panel (the folder icon "
+          f"on the left, then {folder}; a file's menu, Download):", flush=True)  # fmt: skip
+    for path in files_to_keep(folder):
+        print(f"KEEP={path}", flush=True)
 
 
 def model_folder(spec: str) -> str:
@@ -574,6 +591,7 @@ def run_p0005(root: Path, out: Path, zip_path: Path, python: Path | None = None,
     completed = not record.get("error") and all(r["completed"] for r in record["runs"].values())
     print(f"\nP-0005 {'done' if completed else 'did not complete (see P-0005/run.json)'}; added to {zip_path}")
     print(f"RESULT_ZIP={zip_path}")
+    print_files_to_keep(zip_path.parent)
     return 0 if completed else 1
 
 
@@ -614,6 +632,7 @@ def main() -> int:
     ok = all(s.ok for s in kit.steps) and len(kit.steps) == len(steps)
     print(f"\n{'DONE' if ok else 'STOPPED EARLY'}: {archive}")
     print(f"RESULT_ZIP={archive}")
+    print_files_to_keep(archive.parent)
     if mode == "p0005-only":
         if not ok:
             print("P-0005 not run: the install or the smoke step didn't pass (see the zip's logs).")

@@ -7,6 +7,7 @@ import json
 import re
 import sys
 import tomllib
+import types
 import zipfile
 from pathlib import Path
 
@@ -403,7 +404,49 @@ def test_build_kit_writes_the_models_into_the_kits_notebook_and_nothing_else():
     assert build.notebook_with_models(committed, [CALIBRATION.spec]) == committed
 
 
-def test_the_notebook_downloads_each_models_zip_as_it_arrives():
+# One download at the end, and a list to take by hand (2026-11-27: Chrome blocked the per-model downloads, then the
+# combined one)
+
+
+def notebook_cell(index: int) -> str:
     nb = json.loads((KIT_DIR / "parity_gpu_run.ipynb").read_text(encoding="utf-8"))
-    cell5 = "".join(nb["cells"][4]["source"])
-    assert 'line.startswith("MODEL_ZIP=")' in cell5 and "files.download(" in cell5
+    return "".join(nb["cells"][index]["source"])
+
+
+def test_the_notebook_downloads_once_at_the_end():
+    cell5, cell7 = notebook_cell(4), notebook_cell(6)
+    assert "files.download(" not in cell5  # nothing downloads during the run
+    assert 'line.startswith("MODEL_ZIP=")' in cell5 and "MODEL_ZIPS.append(" in cell5
+    assert cell7.count("files.download(") == 1 and "files.download(RESULT_ZIP)" in cell7
+
+
+@pytest.mark.parametrize("finished", [True, False])
+def test_cell7_downloads_the_results_zip_and_lists_every_zip_to_keep(tmp_path, capsys, monkeypatch, finished):
+    for name in ("parity-gpu-model-e-deepseek-ai__X-2.zip", "parity-gpu-model-e-Qwen__Qwen3-0.6B-1.zip", "other.zip"):
+        (tmp_path / name).write_bytes(b"zip")
+    results = tmp_path / "parity-gpu-results-e-3.zip"
+    if finished:
+        results.write_bytes(b"zip")
+    downloads: list[str] = []
+    colab = types.ModuleType("google.colab")
+    colab.files = types.SimpleNamespace(download=downloads.append)
+    google = types.ModuleType("google")
+    google.colab = colab
+    monkeypatch.setitem(sys.modules, "google", google)
+    monkeypatch.setitem(sys.modules, "google.colab", colab)
+    cell7 = notebook_cell(6)
+    assert cell7.count('"/content"') == 1
+    exec(cell7.replace('"/content"', repr(str(tmp_path))), {"RESULT_ZIP": str(results) if finished else None})
+    listed = [line.strip() for line in capsys.readouterr().out.splitlines() if line.strip().startswith(str(tmp_path))]
+    models = sorted(str(p) for p in tmp_path.glob("parity-gpu-model-*.zip"))
+    assert downloads == ([str(results)] if finished else [])
+    assert listed == ([str(results)] if finished else []) + models
+
+
+def test_the_kit_ends_with_every_zip_to_keep(tmp_path, capsys):
+    for name in ("parity-gpu-model-e-M2-2.zip", "parity-gpu-results-e-3.zip", "parity-gpu-model-e-M1-1.zip", "x.zip"):
+        (tmp_path / name).write_bytes(b"zip")
+    kit.print_files_to_keep(tmp_path)
+    keep = [line.split("=", 1)[1] for line in capsys.readouterr().out.splitlines() if line.startswith("KEEP=")]
+    expected = ("parity-gpu-results-e-3.zip", "parity-gpu-model-e-M1-1.zip", "parity-gpu-model-e-M2-2.zip")
+    assert keep == [str(tmp_path / name) for name in expected]
